@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import { saveBoard, loadBoard, generateBoardId } from "../lib/storage";
 import { sendLeadToGHL } from "../lib/ghl";
+import { suggestField, isAIAvailable } from "../lib/ai";
 import EmailGate from "./EmailGate";
+import WebScanner from "./WebScanner";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
 // ═══════════════════════════════════════════════
-const BrandContext = createContext();
+const BrandCtx = createContext(null);
+const useBrand = () => useContext(BrandCtx);
 
 // ═══════════════════════════════════════════════
 // CONSTANTS
@@ -16,7 +19,7 @@ const PHASES = [
   { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice"] },
   { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "logo", "motion", "media"] },
   { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
-  { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export", "history"] },
+  { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
 ];
 
 const SECTIONS = [
@@ -80,27 +83,105 @@ const DEFAULT_BRAND = {
 };
 
 // ═══════════════════════════════════════════════
+// AI SUGGEST — inline suggestion widget
+// ═══════════════════════════════════════════════
+function AISuggestButton({ fieldKey, onChange }) {
+  const ctx = useBrand();
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestion, setSuggestion] = useState(null);
+  const [err, setErr] = useState(null);
+
+  if (!ctx?.aiEnabled || !fieldKey) return null;
+
+  const suggest = async () => {
+    setSuggesting(true);
+    setErr(null);
+    setSuggestion(null);
+    try {
+      const s = await suggestField(fieldKey, ctx.brand);
+      setSuggestion(s);
+    } catch {
+      setErr("Try again");
+    }
+    setSuggesting(false);
+  };
+
+  return (
+    <>
+      <button
+        onClick={suggest}
+        disabled={suggesting}
+        style={{
+          padding: "2px 7px", borderRadius: "4px",
+          border: "1px solid rgba(155,89,182,0.35)",
+          background: "rgba(155,89,182,0.07)", color: "#9b59b6",
+          cursor: suggesting ? "wait" : "pointer",
+          fontSize: "10px", fontWeight: 700,
+          fontFamily: "'DM Sans', sans-serif",
+          opacity: suggesting ? 0.5 : 1,
+        }}
+      >
+        {suggesting ? "···" : "✦ AI"}
+      </button>
+      {(suggestion || err) && (
+        <div style={{
+          position: "relative", marginTop: "6px", padding: "10px 12px",
+          borderRadius: "8px", border: "1px solid rgba(155,89,182,0.2)",
+          background: "rgba(155,89,182,0.04)",
+        }}>
+          {suggestion && (
+            <div style={{ fontSize: "13px", color: "#ccc", lineHeight: 1.55, marginBottom: "8px" }}>
+              {suggestion}
+            </div>
+          )}
+          {err && <div style={{ fontSize: "12px", color: "#e94560", marginBottom: "8px" }}>{err}</div>}
+          <div style={{ display: "flex", gap: "6px" }}>
+            {suggestion && (
+              <button
+                onClick={() => { onChange(suggestion); setSuggestion(null); }}
+                style={{ padding: "4px 12px", borderRadius: "6px", border: "none", background: "#9b59b6", color: "#fff", fontSize: "11px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+              >
+                Use this
+              </button>
+            )}
+            <button
+              onClick={() => { setSuggestion(null); setErr(null); }}
+              style={{ padding: "4px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#666", fontSize: "11px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════
 // SHARED UI COMPONENTS
 // ═══════════════════════════════════════════════
-const TextInput = ({ label, value, onChange, hint, multiline, noAI }) => (
+const inputBase = {
+  width: "100%", padding: "10px 14px", borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(255,255,255,0.03)", color: "#e0e0e0",
+  fontSize: "14px", fontFamily: "'DM Sans', sans-serif",
+  outline: "none", boxSizing: "border-box",
+};
+
+const TextInput = ({ label, value, onChange, hint, multiline, aiField }) => (
   <div style={{ marginBottom: "16px" }}>
-    <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#aaa", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+      <label style={{ fontSize: "12px", fontWeight: 600, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+        {label}
+      </label>
+      {aiField && <AISuggestButton fieldKey={aiField} onChange={onChange} />}
+    </div>
     {multiline ? (
-      <textarea
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={hint}
-        rows={3}
-        style={{ width: "100%", padding: "10px 14px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", resize: "vertical", outline: "none", boxSizing: "border-box" }}
-      />
+      <textarea value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={hint} rows={3}
+        style={{ ...inputBase, resize: "vertical" }} />
     ) : (
-      <input
-        type="text"
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={hint}
-        style={{ width: "100%", padding: "10px 14px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
-      />
+      <input type="text" value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={hint}
+        style={inputBase} />
     )}
   </div>
 );
@@ -114,8 +195,11 @@ const ArrayInput = ({ label, values, onChange, hint }) => {
       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#aaa", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
       {values.map((v, i) => (
         <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
-          <input type="text" value={v} onChange={(e) => update(i, e.target.value)} placeholder={hint} style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
-          {values.length > 1 && <button onClick={() => remove(i)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)", background: "transparent", color: "#666", cursor: "pointer", fontSize: "12px" }}>✕</button>}
+          <input type="text" value={v} onChange={(e) => update(i, e.target.value)} placeholder={hint}
+            style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+          {values.length > 1 && (
+            <button onClick={() => remove(i)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)", background: "transparent", color: "#666", cursor: "pointer", fontSize: "12px" }}>✕</button>
+          )}
         </div>
       ))}
       <button onClick={add} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(233,69,96,0.2)", background: "rgba(233,69,96,0.06)", color: "#e94560", cursor: "pointer", fontSize: "12px", fontWeight: 500 }}>+ Add</button>
@@ -125,7 +209,8 @@ const ArrayInput = ({ label, values, onChange, hint }) => {
 
 const ColorPicker = ({ label, value, onChange }) => (
   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-    <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)} style={{ width: "36px", height: "36px", border: "none", borderRadius: "8px", cursor: "pointer", background: "transparent" }} />
+    <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)}
+      style={{ width: "36px", height: "36px", border: "none", borderRadius: "8px", cursor: "pointer", background: "transparent" }} />
     <div>
       <div style={{ fontSize: "12px", color: "#aaa" }}>{label}</div>
       <div style={{ fontSize: "11px", color: "#555", fontFamily: "monospace" }}>{value}</div>
@@ -149,15 +234,16 @@ const SectionHeader = ({ title, subtitle, phase }) => {
 // ═══════════════════════════════════════════════
 // SECTION COMPONENTS
 // ═══════════════════════════════════════════════
-function OverviewSection({ brand, update }) {
+function OverviewSection({ brand, update, onApplyScanned }) {
   return (
     <div>
       <SectionHeader title="Brand Overview" subtitle="The fundamentals of your brand identity." phase={0} />
+      <WebScanner onApply={onApplyScanned} />
       <TextInput label="Brand Name" value={brand.brandName} onChange={(v) => update("brandName", v)} hint="Your brand or company name" />
-      <TextInput label="Tagline" value={brand.tagline} onChange={(v) => update("tagline", v)} hint="A memorable phrase that captures your brand" />
+      <TextInput label="Tagline" value={brand.tagline} onChange={(v) => update("tagline", v)} hint="A memorable phrase that captures your brand" aiField="tagline" />
       <TextInput label="Industry" value={brand.industry} onChange={(v) => update("industry", v)} hint="e.g. SaaS, E-commerce, Consulting" />
       <TextInput label="Website" value={brand.website} onChange={(v) => update("website", v)} hint="https://yourbrand.com" />
-      <TextInput label="Elevator Pitch" value={brand.elevator} onChange={(v) => update("elevator", v)} hint="30-second description of what you do and why it matters" multiline />
+      <TextInput label="Elevator Pitch" value={brand.elevator} onChange={(v) => update("elevator", v)} hint="30-second description of what you do and why it matters" multiline aiField="elevator" />
     </div>
   );
 }
@@ -166,11 +252,11 @@ function IdentitySection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="Identity & Story" subtitle="Your brand's purpose, values, and differentiators." phase={1} />
-      <TextInput label="Mission" value={brand.mission} onChange={(v) => update("mission", v)} hint="Why does your brand exist? What change do you drive?" multiline />
-      <TextInput label="Vision" value={brand.vision} onChange={(v) => update("vision", v)} hint="Where is your brand headed? The future you're building." multiline />
+      <TextInput label="Mission" value={brand.mission} onChange={(v) => update("mission", v)} hint="Why does your brand exist? What change do you drive?" multiline aiField="mission" />
+      <TextInput label="Vision" value={brand.vision} onChange={(v) => update("vision", v)} hint="Where is your brand headed? The future you're building." multiline aiField="vision" />
       <ArrayInput label="Core Values" values={brand.coreValues} onChange={(v) => update("coreValues", v)} hint="e.g. Integrity, Innovation, Empathy" />
-      <TextInput label="Why We're Different" value={brand.whyDifferent} onChange={(v) => update("whyDifferent", v)} hint="What sets you apart from every competitor?" multiline />
-      <TextInput label="Brand Promise" value={brand.brandPromise} onChange={(v) => update("brandPromise", v)} hint="The one commitment you always deliver on" multiline />
+      <TextInput label="Why We're Different" value={brand.whyDifferent} onChange={(v) => update("whyDifferent", v)} hint="What sets you apart from every competitor?" multiline aiField="whyDifferent" />
+      <TextInput label="Brand Promise" value={brand.brandPromise} onChange={(v) => update("brandPromise", v)} hint="The one commitment you always deliver on" multiline aiField="brandPromise" />
     </div>
   );
 }
@@ -193,9 +279,9 @@ function ArchetypeSection({ brand, update }) {
           </button>
         ))}
       </div>
-      <TextInput label="Brand Enemy" value={brand.enemy} onChange={(v) => update("enemy", v)} hint="What does your brand stand against? The status quo you're fighting." multiline />
-      <TextInput label="Ideal Customer (The Victim)" value={brand.victim} onChange={(v) => update("victim", v)} hint="Who is suffering from the problem your brand solves?" multiline />
-      <TextInput label="Hero Statement" value={brand.heroStatement} onChange={(v) => update("heroStatement", v)} hint="How does your customer become the hero through your brand?" multiline />
+      <TextInput label="Brand Enemy" value={brand.enemy} onChange={(v) => update("enemy", v)} hint="What does your brand stand against?" multiline aiField="enemy" />
+      <TextInput label="Ideal Customer (The Victim)" value={brand.victim} onChange={(v) => update("victim", v)} hint="Who is suffering from the problem your brand solves?" multiline aiField="victim" />
+      <TextInput label="Hero Statement" value={brand.heroStatement} onChange={(v) => update("heroStatement", v)} hint="How does your customer become the hero through your brand?" multiline aiField="heroStatement" />
       <ArrayInput label="Personality Traits" values={brand.brandPersonality} onChange={(v) => update("brandPersonality", v)} hint="e.g. Bold, Witty, Authoritative" />
     </div>
   );
@@ -205,12 +291,12 @@ function StoryBrandSection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="StoryBrand Script" subtitle="Your brand narrative following the StoryBrand framework." phase={1} />
-      <TextInput label="The Guide (Your Brand)" value={brand.storyGuide} onChange={(v) => update("storyGuide", v)} hint="How does your brand show empathy and authority?" multiline />
-      <TextInput label="The Problem" value={brand.storyProblem} onChange={(v) => update("storyProblem", v)} hint="External, internal, and philosophical problems your customer faces" multiline />
-      <TextInput label="The Plan" value={brand.storyPlan} onChange={(v) => update("storyPlan", v)} hint="The simple steps you offer (3-step process)" multiline />
-      <TextInput label="Call to Action" value={brand.storyCTA} onChange={(v) => update("storyCTA", v)} hint="The direct and transitional CTAs" />
-      <TextInput label="Success (What life looks like after)" value={brand.storySuccess} onChange={(v) => update("storySuccess", v)} hint="Paint the picture of transformation" multiline />
-      <TextInput label="Failure (What happens if they don't act)" value={brand.storyFailure} onChange={(v) => update("storyFailure", v)} hint="The stakes — what's at risk" multiline />
+      <TextInput label="The Guide (Your Brand)" value={brand.storyGuide} onChange={(v) => update("storyGuide", v)} hint="How does your brand show empathy and authority?" multiline aiField="storyGuide" />
+      <TextInput label="The Problem" value={brand.storyProblem} onChange={(v) => update("storyProblem", v)} hint="External, internal, and philosophical problems your customer faces" multiline aiField="storyProblem" />
+      <TextInput label="The Plan" value={brand.storyPlan} onChange={(v) => update("storyPlan", v)} hint="The simple steps you offer (3-step process)" multiline aiField="storyPlan" />
+      <TextInput label="Call to Action" value={brand.storyCTA} onChange={(v) => update("storyCTA", v)} hint="The direct and transitional CTAs" aiField="storyCTA" />
+      <TextInput label="Success (What life looks like after)" value={brand.storySuccess} onChange={(v) => update("storySuccess", v)} hint="Paint the picture of transformation" multiline aiField="storySuccess" />
+      <TextInput label="Failure (What happens if they don't act)" value={brand.storyFailure} onChange={(v) => update("storyFailure", v)} hint="The stakes — what's at risk" multiline aiField="storyFailure" />
     </div>
   );
 }
@@ -225,7 +311,10 @@ function PillarsSection({ brand, update }) {
         <div key={i} style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", marginBottom: "12px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#f39c12" }}>Pillar {i + 1}</span>
-            {brand.contentPillars.length > 1 && <button onClick={() => update("contentPillars", brand.contentPillars.filter((_, x) => x !== i))} style={{ background: "transparent", border: "none", color: "#666", cursor: "pointer", fontSize: "14px" }}>✕</button>}
+            {brand.contentPillars.length > 1 && (
+              <button onClick={() => update("contentPillars", brand.contentPillars.filter((_, x) => x !== i))}
+                style={{ background: "transparent", border: "none", color: "#666", cursor: "pointer", fontSize: "14px" }}>✕</button>
+            )}
           </div>
           <TextInput label="Pillar Name" value={p.name} onChange={(v) => updatePillar(i, "name", v)} hint="e.g. Leadership, Innovation" />
           <TextInput label="Description" value={p.description} onChange={(v) => updatePillar(i, "description", v)} hint="What this pillar covers" multiline />
@@ -243,8 +332,8 @@ function VoiceSection({ brand, update }) {
       <ArrayInput label="Tone Attributes" values={brand.toneAttributes} onChange={(v) => update("toneAttributes", v)} hint="e.g. Confident, Approachable, Direct" />
       <ArrayInput label="Messaging Do's" values={brand.messagingDos} onChange={(v) => update("messagingDos", v)} hint="e.g. Use active voice, Lead with benefits" />
       <ArrayInput label="Messaging Don'ts" values={brand.messagingDonts} onChange={(v) => update("messagingDonts", v)} hint="e.g. Never use jargon, Avoid passive language" />
-      <TextInput label="Social Media Personality" value={brand.socialPersonality} onChange={(v) => update("socialPersonality", v)} hint="How does the brand behave on social?" multiline />
-      <TextInput label="Email Sign-off Style" value={brand.emailSignoff} onChange={(v) => update("emailSignoff", v)} hint="e.g. Warm regards, Keep building, Cheers" />
+      <TextInput label="Social Media Personality" value={brand.socialPersonality} onChange={(v) => update("socialPersonality", v)} hint="How does the brand behave on social?" multiline aiField="socialPersonality" />
+      <TextInput label="Email Sign-off Style" value={brand.emailSignoff} onChange={(v) => update("emailSignoff", v)} hint="e.g. Warm regards, Keep building, Cheers" aiField="emailSignoff" />
     </div>
   );
 }
@@ -265,7 +354,9 @@ function ColorsSection({ brand, update }) {
         <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>☀ Light Mode</span>
-            <button onClick={() => update("lightModeEnabled", !brand.lightModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.lightModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>{brand.lightModeEnabled ? "ON" : "OFF"}</button>
+            <button onClick={() => update("lightModeEnabled", !brand.lightModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.lightModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
+              {brand.lightModeEnabled ? "ON" : "OFF"}
+            </button>
           </div>
           {brand.lightModeEnabled && <>
             <ColorPicker label="Background" value={brand.lightBg} onChange={(v) => update("lightBg", v)} />
@@ -278,7 +369,9 @@ function ColorsSection({ brand, update }) {
         <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>🌙 Dark Mode</span>
-            <button onClick={() => update("darkModeEnabled", !brand.darkModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.darkModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>{brand.darkModeEnabled ? "ON" : "OFF"}</button>
+            <button onClick={() => update("darkModeEnabled", !brand.darkModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.darkModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
+              {brand.darkModeEnabled ? "ON" : "OFF"}
+            </button>
           </div>
           {brand.darkModeEnabled && <>
             <ColorPicker label="Background" value={brand.darkBg} onChange={(v) => update("darkBg", v)} />
@@ -314,9 +407,9 @@ function PhotographySection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="Photography Style" subtitle="Visual direction for photos and imagery." phase={2} />
-      <TextInput label="Photo Style" value={brand.photoStyle} onChange={(v) => update("photoStyle", v)} hint="e.g. Candid, editorial, minimalist, vibrant" multiline />
-      <TextInput label="Mood / Feeling" value={brand.photoMood} onChange={(v) => update("photoMood", v)} hint="e.g. Warm, aspirational, gritty, clean" />
-      <TextInput label="Preferred Subjects" value={brand.photoSubjects} onChange={(v) => update("photoSubjects", v)} hint="e.g. People, workspaces, nature, products" />
+      <TextInput label="Photo Style" value={brand.photoStyle} onChange={(v) => update("photoStyle", v)} hint="e.g. Candid, editorial, minimalist, vibrant" multiline aiField="photoStyle" />
+      <TextInput label="Mood / Feeling" value={brand.photoMood} onChange={(v) => update("photoMood", v)} hint="e.g. Warm, aspirational, gritty, clean" aiField="photoMood" />
+      <TextInput label="Preferred Subjects" value={brand.photoSubjects} onChange={(v) => update("photoSubjects", v)} hint="e.g. People, workspaces, nature, products" aiField="photoSubjects" />
     </div>
   );
 }
@@ -325,9 +418,9 @@ function LogoSection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="Logo & Icons" subtitle="Logo guidelines and icon system." phase={2} />
-      <TextInput label="Logo Description" value={brand.logoDescription} onChange={(v) => update("logoDescription", v)} hint="Describe your logo and its meaning" multiline />
-      <TextInput label="Logo Usage Rules" value={brand.logoUsageRules} onChange={(v) => update("logoUsageRules", v)} hint="Minimum sizes, clear space, backgrounds, etc." multiline />
-      <TextInput label="Icon Style" value={brand.iconStyle} onChange={(v) => update("iconStyle", v)} hint="e.g. Outlined, filled, duotone, rounded" />
+      <TextInput label="Logo Description" value={brand.logoDescription} onChange={(v) => update("logoDescription", v)} hint="Describe your logo and its meaning" multiline aiField="logoDescription" />
+      <TextInput label="Logo Usage Rules" value={brand.logoUsageRules} onChange={(v) => update("logoUsageRules", v)} hint="Minimum sizes, clear space, backgrounds, etc." multiline aiField="logoUsageRules" />
+      <TextInput label="Icon Style" value={brand.iconStyle} onChange={(v) => update("iconStyle", v)} hint="e.g. Outlined, filled, duotone, rounded" aiField="iconStyle" />
     </div>
   );
 }
@@ -336,7 +429,7 @@ function MotionSection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="Motion & Animation" subtitle="How your brand moves." phase={2} />
-      <TextInput label="Motion Style" value={brand.motionStyle} onChange={(v) => update("motionStyle", v)} hint="e.g. Smooth easing, bouncy, minimal, cinematic" multiline />
+      <TextInput label="Motion Style" value={brand.motionStyle} onChange={(v) => update("motionStyle", v)} hint="e.g. Smooth easing, bouncy, minimal, cinematic" multiline aiField="motionStyle" />
       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#aaa", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Animation Speed</label>
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         {["subtle", "moderate", "energetic"].map((s) => (
@@ -356,8 +449,8 @@ function MediaSection({ brand, update }) {
   return (
     <div>
       <SectionHeader title="Media & Sound" subtitle="Audio identity and media direction." phase={2} />
-      <TextInput label="Audio Mood" value={brand.audioMood} onChange={(v) => update("audioMood", v)} hint="e.g. Uplifting, ambient, high-energy" />
-      <TextInput label="Sound Logo / Audio Signature" value={brand.soundLogo} onChange={(v) => update("soundLogo", v)} hint="Describe your sonic identity" multiline />
+      <TextInput label="Audio Mood" value={brand.audioMood} onChange={(v) => update("audioMood", v)} hint="e.g. Uplifting, ambient, high-energy" aiField="audioMood" />
+      <TextInput label="Sound Logo / Audio Signature" value={brand.soundLogo} onChange={(v) => update("soundLogo", v)} hint="Describe your sonic identity" multiline aiField="soundLogo" />
       <TextInput label="Music Style" value={brand.musicStyle} onChange={(v) => update("musicStyle", v)} hint="e.g. Lo-fi, orchestral, electronic, acoustic" />
     </div>
   );
@@ -419,6 +512,11 @@ function ScoreSection({ brand }) {
         <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", marginTop: "16px", overflow: "hidden" }}>
           <div style={{ width: `${score}%`, height: "100%", background: color, borderRadius: "4px", transition: "width 0.5s" }} />
         </div>
+        {score < 50 && (
+          <div style={{ marginTop: "16px", fontSize: "13px", color: "#555" }}>
+            Scan your website in Overview or click <span style={{ color: "#9b59b6" }}>✦ AI</span> buttons to fill fields faster.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -464,8 +562,8 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [loading, setLoading] = useState(!!initialBoardId);
   const scrollRef = useRef(null);
   const sectionRefs = useRef({});
+  const aiEnabled = isAIAvailable();
 
-  // Load existing board if boardId provided
   useEffect(() => {
     if (initialBoardId) {
       loadBoard(initialBoardId).then((data) => {
@@ -483,6 +581,12 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     setSaved(false);
   }, []);
 
+  // Applied by WebScanner — merges scan results into brand state
+  const applyScannedData = useCallback((updates) => {
+    setBrand((prev) => ({ ...prev, ...updates }));
+    setSaved(false);
+  }, []);
+
   const handleSave = () => {
     if (email) {
       doSave(email, null);
@@ -497,17 +601,9 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     setEmail(userEmail);
     setSaved(true);
     setShowEmailGate(false);
-
     const url = `${window.location.origin}/board/${newBoardId}`;
     setShareUrl(url);
-
-    // Send lead to GHL
-    await sendLeadToGHL({
-      email: userEmail,
-      firstName: firstName || "",
-      boardId: newBoardId,
-      boardUrl: url,
-    });
+    await sendLeadToGHL({ email: userEmail, firstName: firstName || "", boardId: newBoardId, boardUrl: url });
   };
 
   const scrollToSection = (id) => {
@@ -515,7 +611,6 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Track active section on scroll
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -524,10 +619,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
         const el = sectionRefs.current[s.id];
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom > 200) {
-            setActiveSection(s.id);
-            break;
-          }
+          if (rect.top <= 200 && rect.bottom > 200) { setActiveSection(s.id); break; }
         }
       }
     };
@@ -535,7 +627,6 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Progress
   const fields = Object.entries(brand).filter(([k]) => !["customFields", "contentPillars", "integrations", "lightModeEnabled", "darkModeEnabled"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
@@ -555,7 +646,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
 
   const renderSection = (id) => {
     const map = {
-      overview: <OverviewSection brand={brand} update={update} />,
+      overview: <OverviewSection brand={brand} update={update} onApplyScanned={applyScannedData} />,
       identity: <IdentitySection brand={brand} update={update} />,
       archetype: <ArchetypeSection brand={brand} update={update} />,
       storybrand: <StoryBrandSection brand={brand} update={update} />,
@@ -576,7 +667,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   };
 
   return (
-    <BrandContext.Provider value={{ brand }}>
+    <BrandCtx.Provider value={{ brand, aiEnabled }}>
       <div style={{ height: "100vh", background: "#0a0a0f", color: "#e0e0e0", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
@@ -590,6 +681,11 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            {aiEnabled && (
+              <div style={{ padding: "3px 9px", borderRadius: "5px", border: "1px solid rgba(155,89,182,0.2)", background: "rgba(155,89,182,0.06)" }}>
+                <span style={{ fontSize: "10px", color: "#9b59b6", fontWeight: 700 }}>✦ AI ON</span>
+              </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <div style={{ width: "80px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
                 <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg, #e94560, #f39c12)", transition: "width 0.5s" }} />
@@ -651,6 +747,6 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
           onSubmit={({ email, firstName }) => doSave(email, firstName)}
         />
       </div>
-    </BrandContext.Provider>
+    </BrandCtx.Provider>
   );
 }
