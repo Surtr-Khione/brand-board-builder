@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import { Link } from "react-router-dom";
 import { saveBoard, loadBoard, generateBoardId } from "../lib/storage";
 import { sendLeadToGHL } from "../lib/ghl";
 import { suggestField, isAIAvailable } from "../lib/ai";
+import { publishBrand } from "../lib/brands";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
 
@@ -522,7 +524,11 @@ function ScoreSection({ brand }) {
   );
 }
 
-function ExportSection({ brand, onSave }) {
+function ExportSection({ brand, onSave, email }) {
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(null);
+  const [pubErr, setPubErr] = useState(null);
+
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify(brand, null, 2)], { type: "application/json" });
     const u = URL.createObjectURL(blob);
@@ -531,6 +537,19 @@ function ExportSection({ brand, onSave }) {
     a.download = `${(brand.brandName || "brand").toLowerCase().replace(/\s+/g, "-")}-brand-board.json`;
     a.click();
     URL.revokeObjectURL(u);
+  };
+
+  const handlePublish = async () => {
+    if (!brand.brandName) { setPubErr("Add a Brand Name before publishing."); return; }
+    setPublishing(true);
+    setPubErr(null);
+    try {
+      const res = await publishBrand(brand, email);
+      setPublished(res);
+    } catch (e) {
+      setPubErr(e.message || "Publish failed");
+    }
+    setPublishing(false);
   };
 
   return (
@@ -543,6 +562,19 @@ function ExportSection({ brand, onSave }) {
         <button onClick={exportJSON} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
           📄 Export as JSON (for LLMs)
         </button>
+        {!published ? (
+          <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(155,89,182,0.3)", background: "rgba(155,89,182,0.06)", color: publishing ? "#666" : "#9b59b6", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }}>
+            {publishing ? "Publishing..." : "◆ Publish to Brand Library"}
+          </button>
+        ) : (
+          <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(46,204,113,0.25)", background: "rgba(46,204,113,0.05)" }}>
+            <div style={{ fontSize: "13px", color: "#2ecc71", fontWeight: 600, marginBottom: 6 }}>✓ Published to Brand Library</div>
+            <Link to={published.url} style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>
+              View at brandmd.space{published.url} →
+            </Link>
+          </div>
+        )}
+        {pubErr && <div style={{ fontSize: "12px", color: "#e94560", padding: "8px 0" }}>{pubErr}</div>}
       </div>
     </div>
   );
@@ -575,6 +607,35 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       }).catch(() => setLoading(false));
     }
   }, [initialBoardId]);
+
+  useEffect(() => {
+    const clone = sessionStorage.getItem("brand-clone");
+    if (!clone) return;
+    sessionStorage.removeItem("brand-clone");
+    try {
+      const b = JSON.parse(clone);
+      setBrand(prev => ({
+        ...prev,
+        brandName: b.brandName || prev.brandName,
+        tagline: b.tagline || prev.tagline,
+        industry: b.industry || prev.industry,
+        mission: b.mission || prev.mission,
+        vision: b.vision || prev.vision,
+        elevator: b.elevator || prev.elevator,
+        archetype: b.archetype || prev.archetype,
+        website: b.website || prev.website,
+        primaryColor: b.primaryColor || prev.primaryColor,
+        secondaryColor: b.secondaryColor || prev.secondaryColor,
+        accentColor: b.accentColor || prev.accentColor,
+        primaryFont: b.primaryFont || prev.primaryFont,
+        bodyFont: b.bodyFont || prev.bodyFont,
+        toneAttributes: b.toneAttributes?.length ? b.toneAttributes : prev.toneAttributes,
+        brandPersonality: b.brandPersonality?.length ? b.brandPersonality : prev.brandPersonality,
+        photoStyle: b.photoStyle || prev.photoStyle,
+        socialPersonality: b.socialPersonality || prev.socialPersonality,
+      }));
+    } catch {}
+  }, []);
 
   const update = useCallback((key, value) => {
     setBrand((prev) => ({ ...prev, [key]: value }));
@@ -661,7 +722,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       accessibility: <AccessibilitySection brand={brand} update={update} />,
       guidelines: <CustomFieldsSection brand={brand} update={update} />,
       score: <ScoreSection brand={brand} />,
-      export: <ExportSection brand={brand} onSave={handleSave} />,
+      export: <ExportSection brand={brand} onSave={handleSave} email={email} />,
     };
     return map[id] || null;
   };
@@ -679,6 +740,12 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>Brand Board Builder</div>
               <div style={{ fontSize: "9px", color: "#555", letterSpacing: "1.5px", textTransform: "uppercase" }}>AI-Powered Enterprise</div>
             </div>
+            <Link to="/brands" style={{ marginLeft: 8, padding: "3px 10px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#666", fontSize: "11px", fontWeight: 600, textDecoration: "none", letterSpacing: 0.3, transition: "all 0.18s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#666"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            >
+              ◆ Brand Library
+            </Link>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             {aiEnabled && (

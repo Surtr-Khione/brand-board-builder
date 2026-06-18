@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /brands
+Allow: /brands/
+
+Sitemap: https://brandmd.space/sitemap.xml

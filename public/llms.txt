@@ -1,0 +1,42 @@
+# Brand Board Builder — Public Brand Library
+
+Brand Board Builder (brandmd.space) is a free tool for building brand boards
+and a public library of the world's iconic brands with full brand identity data.
+
+## API Access
+
+All brand data is available as structured JSON — no authentication required.
+
+### List all brands
+GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands
+
+### Search brands
+GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?q={query}
+
+### Filter by archetype
+GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?archetype=The+Hero
+
+### Get single brand (full data + evolution history)
+GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?slug={slug}
+
+## Data Schema
+
+Each brand record includes:
+- brand_name, slug, tagline, description, mission, vision, elevator
+- industry, archetype (12 Jungian archetypes)
+- primary_color, secondary_color, accent_color (hex)
+- primary_font, body_font
+- tone_attributes[], brand_personality[]
+- photo_style, social_personality
+- founded_year, country
+- Year-over-year brand snapshots (brand evolution history)
+
+## Brands in the Library
+
+Apple, Nike, Tesla, Patagonia, Spotify, Airbnb, Netflix, Google, Coca-Cola,
+Amazon, Louis Vuitton, Canva, OpenAI, Red Bull, Notion, and more.
+
+## Build Your Own Brand Board
+
+Free tool at https://brandmd.space — scan any website to auto-populate
+your brand board with colors, fonts, and AI-generated brand identity.
