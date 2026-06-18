@@ -740,9 +740,9 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>Brand Board Builder</div>
               <div style={{ fontSize: "9px", color: "#555", letterSpacing: "1.5px", textTransform: "uppercase" }}>AI-Powered Enterprise</div>
             </div>
-            <Link to="/brands" style={{ marginLeft: 8, padding: "3px 10px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#666", fontSize: "11px", fontWeight: 600, textDecoration: "none", letterSpacing: 0.3, transition: "all 0.18s" }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#666"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            <Link to="/brands" style={{ marginLeft: 8, padding: "3px 10px", borderRadius: 5, border: "1px solid rgba(155,89,182,0.2)", background: "rgba(155,89,182,0.05)", color: "#9b59b6", fontSize: "11px", fontWeight: 600, textDecoration: "none", letterSpacing: 0.3, transition: "all 0.18s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(155,89,182,0.1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(155,89,182,0.05)"; }}
             >
               ◆ Brand Library
             </Link>

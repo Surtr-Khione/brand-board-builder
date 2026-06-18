@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import BrandBoardBuilder from './components/BrandBoardBuilder';
 import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
+import HomePage from './pages/HomePage';
 
 function BoardPage() {
   const { boardId } = useParams();
@@ -17,7 +18,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<BrandBoardBuilder />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/builder" element={<BrandBoardBuilder />} />
         <Route path="/board/:boardId" element={<BoardPage />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
