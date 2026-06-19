@@ -10,80 +10,150 @@ function json(data: unknown, status = 200) {
   });
 }
 
-// ── color extraction ──────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
-function extractColors(css: string): Record<string, number> {
-  const counts: Record<string, number> = {};
+function normalizeHex(hex: string): string {
+  hex = hex.toLowerCase();
+  if (hex.length === 4) return "#" + hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+  return hex;
+}
 
-  const normalize = (hex: string): string => {
-    if (hex.length === 4) {
-      return "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
-    }
-    return hex.toLowerCase();
-  };
-
-  for (const m of css.matchAll(/#[0-9a-fA-F]{6}\b/g)) counts[normalize(m[0])] = (counts[normalize(m[0])] || 0) + 1;
-  for (const m of css.matchAll(/#[0-9a-fA-F]{3}\b/g)) { const n = normalize(m[0]); counts[n] = (counts[n] || 0) + 1; }
-
-  return counts;
+function luma(hex: string): number {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000;
 }
 
 function saturation(hex: string): number {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return Math.max(r, g, b) - Math.min(r, g, b);
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return Math.max(r,g,b) - Math.min(r,g,b);
 }
 
-function brightness(hex: string): number {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r + g + b) / 3;
+function isNeutral(hex: string): boolean {
+  const l = luma(hex);
+  const s = saturation(hex);
+  return s < 18 || l < 18 || l > 238;
 }
 
-function pickBrandColors(counts: Record<string, number>): {
-  primary: string; secondary: string; accent: string; allVivid: string[];
-} {
-  const sorted = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([c]) => c);
+// ── semantic color extraction ─────────────────────────────────────────────────
 
-  // Vivid = not near-white or near-black, has some saturation
-  const vivid = sorted.filter(c => {
-    const b = brightness(c);
-    const s = saturation(c);
-    return s > 25 && b > 35 && b < 225;
-  });
+interface ColorRoles {
+  cssVars: string[];       // --primary-color etc — most reliable
+  headings: string[];      // h1/h2 color
+  bodyText: string[];      // body/p color
+  backgrounds: string[];   // body/html/section bg
+  ctaButtons: string[];    // button/.btn bg
+  links: string[];         // a color
+  navBg: string[];         // nav/header bg
+  themeColor: string | null;  // <meta name="theme-color">
+}
 
-  return {
-    primary: vivid[0] || "#e94560",
-    secondary: vivid[1] || "#1a1a2e",
-    accent: vivid[2] || "#f39c12",
-    allVivid: vivid.slice(0, 10),
+function extractSemanticColors(css: string, html: string): ColorRoles {
+  const roles: ColorRoles = {
+    cssVars: [], headings: [], bodyText: [], backgrounds: [],
+    ctaButtons: [], links: [], navBg: [], themeColor: null,
   };
+
+  // 1. theme-color meta — single most reliable brand color signal
+  const tc = /<meta[^>]*name="theme-color"[^>]*content="(#[0-9a-fA-F]{3,6})"/i.exec(html)?.[1];
+  if (tc) roles.themeColor = normalizeHex(tc);
+
+  // 2. CSS custom properties — designers name these intentionally
+  const varPattern = /--([\w-]*(?:primary|brand|main|accent|secondary|highlight|foreground|color|bg|background)[\w-]*)\s*:\s*(#[0-9a-fA-F]{3,6})/gi;
+  for (const m of css.matchAll(varPattern)) {
+    const v = normalizeHex(m[2]);
+    if (!roles.cssVars.includes(v)) roles.cssVars.push(v);
+  }
+
+  // 3. CSS rule blocks: map selectors to color roles
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, ""); // remove comments
+  const ruleRx = /([^{}]+)\{([^{}]*)\}/g;
+  for (const rule of stripped.matchAll(ruleRx)) {
+    const sel = rule[1].trim().toLowerCase();
+    const body = rule[2];
+
+    const bgM = /background(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})/i.exec(body);
+    const colorM = /(?:^|;)\s*color\s*:\s*(#[0-9a-fA-F]{3,6})/i.exec(body);
+    const bg = bgM ? normalizeHex(bgM[1]) : null;
+    const color = colorM ? normalizeHex(colorM[1]) : null;
+
+    if (/\bh[1-3]\b|\.h[1-3]\b|heading/.test(sel)) {
+      if (color) roles.headings.push(color);
+    }
+    if (/(?:^|\s|,)body(?:\s|,|$|\{)/.test(sel) || /\bp\b/.test(sel)) {
+      if (bg && !isNeutral(bg)) roles.backgrounds.push(bg);
+      else if (bg) roles.backgrounds.push(bg);
+      if (color) roles.bodyText.push(color);
+    }
+    if (/\bhtml\b/.test(sel) || /\bmain\b|\bwrapper\b|\bcontainer\b/.test(sel)) {
+      if (bg) roles.backgrounds.push(bg);
+    }
+    if (/\bbutton\b|\.btn(?:\b|\s)|\.cta(?:\b|\s)/.test(sel)) {
+      if (bg && !isNeutral(bg)) roles.ctaButtons.push(bg);
+    }
+    if (/(?:^|\s|,)a(?:\s|,|$|:)/.test(sel) || /\.link\b/.test(sel)) {
+      if (color && !isNeutral(color)) roles.links.push(color);
+    }
+    if (/\bnav\b|\.nav\b|\bnavbar\b|\bheader\b/.test(sel)) {
+      if (bg) roles.navBg.push(bg);
+    }
+  }
+
+  // 4. Inline element colors from HTML
+  for (const m of html.matchAll(/<h[1-3][^>]*style="[^"]*\bcolor\s*:\s*(#[0-9a-fA-F]{3,6})/gi)) {
+    roles.headings.push(normalizeHex(m[1]));
+  }
+  for (const m of html.matchAll(/<(?:button|a)[^>]*style="[^"]*background(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})/gi)) {
+    const v = normalizeHex(m[1]);
+    if (!isNeutral(v)) roles.ctaButtons.push(v);
+  }
+
+  // Deduplicate each role
+  for (const k of Object.keys(roles) as (keyof ColorRoles)[]) {
+    if (Array.isArray(roles[k])) {
+      (roles as Record<string, string[]>)[k] = [...new Set((roles as Record<string, string[]>)[k])];
+    }
+  }
+
+  return roles;
+}
+
+// ── raw color frequency (as a tiebreaker / fallback) ─────────────────────────
+
+function countAllColors(css: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const m of css.matchAll(/#[0-9a-fA-F]{6}\b/g)) {
+    const c = normalizeHex(m[0]);
+    counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  for (const m of css.matchAll(/#[0-9a-fA-F]{3}\b/g)) {
+    const c = normalizeHex(m[0]);
+    counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  return counts;
 }
 
 // ── font extraction ───────────────────────────────────────────────────────────
 
 const SYSTEM_FONTS = new Set([
-  "inherit", "initial", "unset", "system-ui", "sans-serif", "serif", "monospace",
-  "-apple-system", "blinkmacsystemfont", "segoe ui", "helvetica neue", "arial",
-  "helvetica", "verdana", "trebuchet ms", "times new roman", "georgia",
+  "inherit","initial","unset","system-ui","sans-serif","serif","monospace",
+  "-apple-system","blinkmacsystemfont","segoe ui","helvetica neue","arial",
+  "helvetica","verdana","trebuchet ms","times new roman","georgia",
 ]);
 
 function extractFonts(css: string): string[] {
   const fonts: string[] = [];
   for (const m of css.matchAll(/font-family\s*:\s*([^;}"']+)/gi)) {
     const first = m[1].split(",")[0].trim().replace(/['"]/g, "");
-    if (first.length > 2 && !SYSTEM_FONTS.has(first.toLowerCase())) {
-      fonts.push(first);
-    }
+    if (first.length > 2 && !SYSTEM_FONTS.has(first.toLowerCase())) fonts.push(first);
   }
   return [...new Set(fonts)];
 }
 
-// ── meta extraction ───────────────────────────────────────────────────────────
+// ── HTML helpers ──────────────────────────────────────────────────────────────
 
 function get(html: string, pattern: RegExp): string {
   return pattern.exec(html)?.[1]?.trim() || "";
@@ -119,9 +189,73 @@ function extractText(html: string): string {
 }
 
 function extractInlineCSS(html: string): string {
-  return [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)]
-    .map(m => m[1])
-    .join("\n");
+  return [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(m => m[1]).join("\n");
+}
+
+// ── choose brand colors intelligently ─────────────────────────────────────────
+
+function pickColors(roles: ColorRoles, counts: Map<string, number>): {
+  primary: string; secondary: string; accent: string;
+  colorMap: { role: string; color: string }[];
+} {
+  const colorMap: { role: string; color: string }[] = [];
+
+  // Build priority-ordered candidate list
+  const candidates: string[] = [];
+
+  if (roles.themeColor && !isNeutral(roles.themeColor)) {
+    candidates.push(roles.themeColor);
+    colorMap.push({ role: "Theme Color", color: roles.themeColor });
+  }
+  for (const c of roles.cssVars.filter(v => !isNeutral(v))) {
+    candidates.push(c);
+    colorMap.push({ role: "Brand Variable", color: c });
+  }
+  for (const c of roles.ctaButtons.filter(v => !isNeutral(v))) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "CTA / Button", color: c });
+    candidates.push(c);
+  }
+  for (const c of roles.links.filter(v => !isNeutral(v))) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "Link / Accent", color: c });
+    candidates.push(c);
+  }
+  for (const c of roles.headings) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "Heading", color: c });
+    if (!isNeutral(c)) candidates.push(c);
+  }
+  for (const c of roles.navBg.filter(v => !isNeutral(v))) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "Navigation", color: c });
+    candidates.push(c);
+  }
+
+  // Backgrounds — add to map but low priority for brand color picks
+  const bgColors = [...new Set(roles.backgrounds)];
+  for (const c of bgColors) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "Background", color: c });
+  }
+  for (const c of roles.bodyText) {
+    if (!colorMap.find(x => x.color === c)) colorMap.push({ role: "Body Text", color: c });
+  }
+
+  // Fallback: most frequent vivid colors from raw CSS count
+  if (candidates.length < 3) {
+    const vivid = [...counts.entries()]
+      .sort((a,b) => b[1]-a[1])
+      .map(([c]) => c)
+      .filter(c => !isNeutral(c) && saturation(c) > 25);
+    for (const c of vivid) {
+      if (candidates.length >= 5) break;
+      if (!candidates.includes(c)) candidates.push(c);
+    }
+  }
+
+  const deduped = [...new Set(candidates)];
+  return {
+    primary: deduped[0] || "#e94560",
+    secondary: deduped[1] || "#1a1a2e",
+    accent: deduped[2] || "#f39c12",
+    colorMap: colorMap.slice(0, 10),
+  };
 }
 
 // ── main handler ──────────────────────────────────────────────────────────────
@@ -135,14 +269,13 @@ Deno.serve(async (req) => {
 
     const target = /^https?:\/\//.test(url) ? url : `https://${url}`;
 
-    // Fetch homepage
     const pageResp = await fetch(target, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; BrandBot/1.0)" },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(12_000),
     });
     const html = await pageResp.text();
 
-    // Build CSS corpus: inline + up to 2 linked sheets
+    // Build CSS corpus: inline + up to 3 linked sheets
     let css = extractInlineCSS(html);
     const cssLinks = [...html.matchAll(/href="([^"]+\.css(?:[^"?#]*))/g)]
       .map(m => {
@@ -151,44 +284,45 @@ Deno.serve(async (req) => {
       })
       .filter(Boolean) as string[];
 
-    for (const link of cssLinks.slice(0, 2)) {
+    for (const link of cssLinks.slice(0, 3)) {
       try {
-        const r = await fetch(link, { signal: AbortSignal.timeout(5_000) });
+        const r = await fetch(link, { signal: AbortSignal.timeout(6_000) });
         css += "\n" + await r.text();
-      } catch { /* skip failed sheets */ }
+      } catch { /* skip */ }
     }
 
-    // Parse
-    const colorCounts = extractColors(css);
-    const { primary, secondary, accent, allVivid } = pickBrandColors(colorCounts);
-    const fonts = extractFonts(css);
     const meta = extractMeta(html);
     const pageText = extractText(html);
+    const fonts = extractFonts(css);
+    const roles = extractSemanticColors(css, html);
+    const counts = countAllColors(css);
+    const { primary, secondary, accent, colorMap } = pickColors(roles, counts);
 
-    // Add theme-color as a high-weight hint if present
-    if (meta.themeColor && /^#[0-9a-f]{3,6}$/i.test(meta.themeColor)) {
-      const norm = meta.themeColor.length === 4
-        ? "#" + meta.themeColor[1]+meta.themeColor[1]+meta.themeColor[2]+meta.themeColor[2]+meta.themeColor[3]+meta.themeColor[3]
-        : meta.themeColor.toLowerCase();
-      colorCounts[norm] = (colorCounts[norm] || 0) + 500;
-    }
-
-    // ── AI analysis: ONE Haiku call ───────────────────────────────────────────
+    // ── AI: one Haiku call with enriched color context ────────────────────────
     const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     let analysis: Record<string, unknown> = {};
 
     if (ANTHROPIC_KEY) {
       const displayName = meta.ogTitle || meta.title.split(/[|\-–]/)[0].trim();
-      const prompt = `Analyze this website and extract brand identity data. Return ONLY valid JSON — no markdown, no explanation.
+
+      // Build a human-readable color summary for Claude
+      const colorSummary = colorMap.map(x => `  ${x.role}: ${x.color}`).join("\n") ||
+        `  Primary pick: ${primary}`;
+
+      const prompt = `Analyze this website and extract brand identity data. Return ONLY valid JSON.
 
 URL: ${target}
 Brand: ${displayName}
 Description: ${meta.description || meta.ogDesc || "(none)"}
-Headline: ${meta.h1 || meta.h2 || "(none)"}
-Keywords: ${meta.keywords || "(none)"}
+H1: ${meta.h1 || "(none)"}
+H2: ${meta.h2 || "(none)"}
 Page text: ${pageText.slice(0, 2000)}
 
-Respond with exactly this JSON shape (keep values concise — 1–2 sentences max):
+Colors identified by role:
+${colorSummary}
+Fonts: ${fonts.slice(0,4).join(", ") || "none detected"}
+
+Respond with exactly this JSON (1–2 sentences max per field):
 {
   "brandName": "${displayName || ""}",
   "tagline": "",
@@ -223,9 +357,8 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
         const raw: string = aiData.content?.[0]?.text || "{}";
         const match = raw.match(/\{[\s\S]*\}/);
         if (match) analysis = JSON.parse(match[0]);
-      } catch { /* leave analysis empty on AI failure */ }
+      } catch { /* leave empty on AI failure */ }
     } else {
-      // Zero-AI fallback: derive what we can from HTML metadata alone
       analysis = {
         brandName: meta.ogTitle || meta.title.split(/[|\-–]/)[0].trim(),
         tagline: (meta.description || meta.ogDesc || "").slice(0, 120),
@@ -235,10 +368,11 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
 
     return json({
       success: true,
-      allVivid,
       primaryColor: primary,
       secondaryColor: secondary,
       accentColor: accent,
+      colorMap,           // labeled color roles for display
+      roles,              // full semantic breakdown (for debugging)
       fonts,
       meta,
       analysis,

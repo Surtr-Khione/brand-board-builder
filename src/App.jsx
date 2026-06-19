@@ -3,6 +3,7 @@ import BrandBoardBuilder from './components/BrandBoardBuilder';
 import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
+import { FloatingFeedback } from './components/FeedbackButton';
 
 function BoardPage() {
   const { boardId } = useParams();
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
       </Routes>
+      <FloatingFeedback />
     </BrowserRouter>
   );
 }
