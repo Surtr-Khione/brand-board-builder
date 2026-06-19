@@ -153,6 +153,48 @@ function extractFonts(css: string): string[] {
   return [...new Set(fonts)];
 }
 
+// ── icon / favicon extraction ─────────────────────────────────────────────────
+
+function extractIcons(html: string, baseUrl: string): { faviconUrl: string | null; appleIconUrl: string | null; ogImage: string | null } {
+  const resolve = (u: string) => {
+    try { return u.startsWith("http") ? u : new URL(u, baseUrl).href; }
+    catch { return null; }
+  };
+
+  // Highest-res: apple-touch-icon (180×180 or 192×192)
+  const applePats = [
+    /<link[^>]*rel="apple-touch-icon(?:-precomposed)?"[^>]*href="([^"]+)"/i,
+    /<link[^>]*href="([^"]+)"[^>]*rel="apple-touch-icon(?:-precomposed)?"/i,
+  ];
+  let appleIconUrl: string | null = null;
+  for (const p of applePats) {
+    const m = p.exec(html);
+    if (m) { appleIconUrl = resolve(m[1]); break; }
+  }
+
+  // Standard favicon (prefer SVG → PNG → ico)
+  const iconPats = [
+    /<link[^>]*rel="icon"[^>]*href="([^"]+\.svg[^"]*)"/i,
+    /<link[^>]*href="([^"]+\.svg[^"]*)"[^>]*rel="icon"/i,
+    /<link[^>]*rel="icon"[^>]*href="([^"]+\.png[^"]*)"/i,
+    /<link[^>]*href="([^"]+\.png[^"]*)"[^>]*rel="icon"/i,
+    /<link[^>]*rel="(?:shortcut )?icon"[^>]*href="([^"]+)"/i,
+    /<link[^>]*href="([^"]+)"[^>]*rel="(?:shortcut )?icon"/i,
+  ];
+  let faviconUrl: string | null = null;
+  for (const p of iconPats) {
+    const m = p.exec(html);
+    if (m) { faviconUrl = resolve(m[1]); break; }
+  }
+
+  // og:image as brand visual
+  const ogM = /<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i.exec(html)
+    || /<meta[^>]*content="([^"]+)"[^>]*property="og:image"/i.exec(html);
+  const ogImage = ogM ? resolve(ogM[1]) : null;
+
+  return { faviconUrl, appleIconUrl, ogImage };
+}
+
 // ── HTML helpers ──────────────────────────────────────────────────────────────
 
 function get(html: string, pattern: RegExp): string {
@@ -297,6 +339,13 @@ Deno.serve(async (req) => {
     const roles = extractSemanticColors(css, html);
     const counts = countAllColors(css);
     const { primary, secondary, accent, colorMap } = pickColors(roles, counts);
+    const icons = extractIcons(html, target);
+
+    // Derive domain for Clearbit + Google Favicon fallbacks
+    let domain = "";
+    try { domain = new URL(target).hostname; } catch {}
+    const clearbitUrl = domain ? `https://logo.clearbit.com/${domain}` : null;
+    const googleFaviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=256` : null;
 
     // ── AI: one Haiku call with enriched color context ────────────────────────
     const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -371,12 +420,24 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
       primaryColor: primary,
       secondaryColor: secondary,
       accentColor: accent,
-      colorMap,           // labeled color roles for display
-      roles,              // full semantic breakdown (for debugging)
+      colorMap,
+      roles,
       fonts,
       meta,
       analysis,
       hasAI: !!ANTHROPIC_KEY,
+      // Brand icon sources — priority order
+      faviconUrl: icons.appleIconUrl || icons.faviconUrl,   // highest-res discovered icon
+      logoUrl: clearbitUrl,                                   // Clearbit vector logo
+      googleFaviconUrl,                                       // Google S2 fallback
+      ogImage: icons.ogImage,                                 // og:image (hero/cover)
+      iconSources: {
+        appleIcon: icons.appleIconUrl,
+        favicon: icons.faviconUrl,
+        clearbit: clearbitUrl,
+        googleFavicon: googleFaviconUrl,
+        ogImage: icons.ogImage,
+      },
     });
   } catch (err) {
     return json({ error: String(err) }, 500);

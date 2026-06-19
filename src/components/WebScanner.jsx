@@ -75,6 +75,12 @@ export default function WebScanner({ onApply }) {
     if (result.accentColor)    updates.accentColor    = result.accentColor;
     if (result.fonts?.[0]) updates.primaryFont = result.fonts[0];
     if (result.fonts?.[1]) updates.bodyFont    = result.fonts[1];
+    // Brand icons
+    if (result.faviconUrl)      updates.faviconUrl  = result.faviconUrl;
+    if (result.logoUrl)         updates.logoUrl     = result.logoUrl;
+    if (result.ogImage)         updates.ogImage     = result.ogImage;
+    if (result.iconSources)     updates.iconSources = result.iconSources;
+    // AI analysis
     if (a.brandName)                       updates.brandName      = a.brandName;
     if (a.tagline)                         updates.tagline        = a.tagline;
     if (a.industry)                        updates.industry       = a.industry;
@@ -148,6 +154,47 @@ export default function WebScanner({ onApply }) {
       {result && !scanning && (
         <div style={{ marginTop: 16 }}>
           <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 16 }} />
+
+          {/* Brand icons row */}
+          {(result.faviconUrl || result.logoUrl || result.ogImage) && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Brand Icons Discovered</div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                {result.logoUrl && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ width: 56, height: 56, background: "#fff", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <img src={result.logoUrl} alt="Logo" style={{ width: 40, height: 40, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+                    </div>
+                    <div style={{ fontSize: 8, color: "#333", marginTop: 3, letterSpacing: 1 }}>CLEARBIT</div>
+                  </div>
+                )}
+                {result.faviconUrl && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ width: 56, height: 56, background: "#111", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <img src={result.faviconUrl} alt="Icon" style={{ width: 40, height: 40, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+                    </div>
+                    <div style={{ fontSize: 8, color: "#333", marginTop: 3, letterSpacing: 1 }}>APPLE ICON</div>
+                  </div>
+                )}
+                {result.googleFaviconUrl && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ width: 56, height: 56, background: "#111", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <img src={result.googleFaviconUrl} alt="Favicon" style={{ width: 40, height: 40, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+                    </div>
+                    <div style={{ fontSize: 8, color: "#333", marginTop: 3, letterSpacing: 1 }}>FAVICON</div>
+                  </div>
+                )}
+                {result.ogImage && (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ width: 80, height: 56, background: "#111", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <img src={result.ogImage} alt="OG" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.currentTarget.style.display = "none"} />
+                    </div>
+                    <div style={{ fontSize: 8, color: "#333", marginTop: 3, letterSpacing: 1 }}>OG IMAGE</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
             {/* Color roles */}

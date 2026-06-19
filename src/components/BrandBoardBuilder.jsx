@@ -82,6 +82,7 @@ const DEFAULT_BRAND = {
   darkBg: "#0a0a0f", darkSurface: "#13131a", darkText: "#e0e0e0", darkSecText: "#999999", darkBorder: "#2a2a35",
   lightModeEnabled: true, darkModeEnabled: true,
   photoStyle: "", photoMood: "", photoSubjects: "",
+  faviconUrl: "", logoUrl: "", ogImage: "", iconSources: null,
   logoDescription: "", logoUsageRules: "", iconStyle: "",
   motionStyle: "", animationSpeed: "moderate",
   audioMood: "", soundLogo: "", musicStyle: "",
@@ -538,10 +539,56 @@ function PhotographySection({ brand, update, onApplyScanned }) {
   );
 }
 
+function BrandIconPreview({ brand }) {
+  const sources = [
+    { label: "Logo", url: brand.logoUrl, bg: "#fff" },
+    { label: "App Icon", url: brand.faviconUrl, bg: "#111" },
+    { label: "Favicon", url: brand.iconSources?.googleFavicon, bg: "#111" },
+    { label: "OG Image", url: brand.ogImage, bg: "#111", wide: true },
+  ].filter(s => s.url);
+
+  if (!sources.length) {
+    // Live preview using website domain if available
+    const domain = brand.website?.replace(/^https?:\/\//, "").split("/")[0];
+    if (!domain) return null;
+    return (
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 64, height: 64, background: "#fff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <img src={`https://logo.clearbit.com/${domain}`} alt="Logo" style={{ width: 46, height: 46, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+          </div>
+          <div style={{ fontSize: 8, color: "#333", marginTop: 4, letterSpacing: 1 }}>CLEARBIT</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 64, height: 64, background: "#111", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=256`} alt="Favicon" style={{ width: 46, height: 46, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+          </div>
+          <div style={{ fontSize: 8, color: "#333", marginTop: 4, letterSpacing: 1 }}>FAVICON</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+      {sources.map(s => (
+        <div key={s.label} style={{ textAlign: "center" }}>
+          <div style={{ width: s.wide ? 96 : 64, height: 64, background: s.bg, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={s.url} alt={s.label} style={{ width: s.wide ? "100%" : 46, height: s.wide ? "100%" : 46, objectFit: s.wide ? "cover" : "contain" }} onError={e => e.currentTarget.style.display = "none"} />
+          </div>
+          <div style={{ fontSize: 8, color: "#333", marginTop: 4, letterSpacing: 1 }}>{s.label.toUpperCase()}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LogoSection({ brand, update }) {
   return (
     <div>
-      <SectionHeader title="Logo & Icons" subtitle="Logo guidelines and icon system." phase={2} />
+      <SectionHeader title="Logo & Icons" subtitle="Discovered brand icons and logo guidelines." phase={2} />
+      <BrandIconPreview brand={brand} />
+      <TextInput label="Logo URL" value={brand.logoUrl} onChange={(v) => update("logoUrl", v)} hint="Paste a logo image URL or let website scan discover it" />
       <TextInput label="Logo Description" value={brand.logoDescription} onChange={(v) => update("logoDescription", v)} hint="Describe your logo and its meaning" multiline aiField="logoDescription" />
       <TextInput label="Logo Usage Rules" value={brand.logoUsageRules} onChange={(v) => update("logoUsageRules", v)} hint="Minimum sizes, clear space, backgrounds, etc." multiline aiField="logoUsageRules" />
       <TextInput label="Icon Style" value={brand.iconStyle} onChange={(v) => update("iconStyle", v)} hint="e.g. Outlined, filled, duotone, rounded" aiField="iconStyle" />
