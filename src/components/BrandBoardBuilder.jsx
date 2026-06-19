@@ -20,7 +20,7 @@ const useBrand = () => useContext(BrandCtx);
 // ═══════════════════════════════════════════════
 const PHASES = [
   { name: "Discover", color: "#e94560", sections: ["overview"] },
-  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "audience", "socialvoice", "vocabulary", "competitive"] },
+  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "audience", "icps", "socialvoice", "vocabulary", "competitive"] },
   { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "logo", "motion", "media"] },
   { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
   { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
@@ -34,6 +34,7 @@ const SECTIONS = [
   { id: "pillars", label: "Content Pillars", icon: "◆", phase: 1 },
   { id: "voice", label: "Voice & Messaging", icon: "❝", phase: 1 },
   { id: "audience", label: "Audience", icon: "👥", phase: 1 },
+  { id: "icps", label: "Ideal Customers", icon: "◈", phase: 1 },
   { id: "socialvoice", label: "Platform Voice", icon: "📡", phase: 1 },
   { id: "vocabulary", label: "Brand Vocabulary", icon: "📝", phase: 1 },
   { id: "competitive", label: "Positioning", icon: "◇", phase: 1 },
@@ -92,6 +93,12 @@ const DEFAULT_BRAND = {
   sources: {},
   // Audience
   audienceAge: "", audienceRole: "", audiencePains: "", audienceGoals: "",
+  // Ideal Customer Profiles
+  icps: [
+    { id: "1", title: "", segment: "", demographics: "", psychographics: "", painPoints: ["", ""], goals: ["", ""], buyingTriggers: ["", ""], channels: "", messageAngle: "", ltv: "", acquisition: "" },
+    { id: "2", title: "", segment: "", demographics: "", psychographics: "", painPoints: ["", ""], goals: ["", ""], buyingTriggers: ["", ""], channels: "", messageAngle: "", ltv: "", acquisition: "" },
+    { id: "3", title: "", segment: "", demographics: "", psychographics: "", painPoints: ["", ""], goals: ["", ""], buyingTriggers: ["", ""], channels: "", messageAngle: "", ltv: "", acquisition: "" },
+  ],
   // Platform-specific voice
   voiceInstagram: "", voiceLinkedIn: "", voiceYouTube: "",
   voiceTikTok: "", voiceFacebook: "", voiceTwitter: "",
@@ -239,12 +246,105 @@ const ColorPicker = ({ label, value, onChange }) => (
   </div>
 );
 
+// Translucent inline section feedback — appears on hover, posts to Supabase feedback table
+function SectionFeedback({ section, title }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sent, setSent] = useState(false);
+  const ctx = useBrand();
+  const bc = ctx?.brand?.primaryColor || "#e94560";
+
+  const submit = async () => {
+    if (!text.trim()) return;
+    try {
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (url && key) {
+        await fetch(`${url}/rest/v1/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "apikey": key, "Authorization": `Bearer ${key}` },
+          body: JSON.stringify({ section, page: `builder:${section}`, feedback: text, context: { brandName: ctx?.brand?.brandName, sectionTitle: title } }),
+        });
+      }
+    } catch {}
+    setSent(true);
+    setTimeout(() => { setOpen(false); setSent(false); setText(""); }, 1800);
+  };
+
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        title={`Feedback on ${title}`}
+        style={{
+          background: "transparent", border: "none", cursor: "pointer", padding: "3px 5px",
+          opacity: open ? 0.7 : 0.18, transition: "opacity 0.2s",
+          color: bc, fontSize: 12, lineHeight: 1,
+          borderRadius: 4,
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = "0.6"}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.opacity = "0.18"; }}
+      >↑</button>
+      {open && (
+        <div style={{
+          position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 200,
+          width: 240, background: "#111", border: `1px solid rgba(255,255,255,0.08)`,
+          borderRadius: 10, padding: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+        }}>
+          {sent ? (
+            <div style={{ fontSize: 12, color: "#2ecc71", textAlign: "center", padding: "8px 0" }}>✓ Thanks for the feedback</div>
+          ) : (
+            <>
+              <div style={{ fontSize: 10, color: "#444", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
+                Improve · {title}
+              </div>
+              <textarea
+                value={text}
+                onChange={e => setText(e.target.value)}
+                placeholder="What's missing or off? How could this section be better?"
+                autoFocus
+                style={{
+                  width: "100%", minHeight: 72, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 7, color: "#e0e0e0", fontSize: 12, padding: "8px 10px", resize: "vertical",
+                  fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box",
+                }}
+              />
+              <button
+                onClick={submit}
+                disabled={!text.trim()}
+                style={{
+                  marginTop: 8, width: "100%", padding: "7px 0", borderRadius: 6,
+                  border: "none", cursor: text.trim() ? "pointer" : "default",
+                  background: text.trim() ? `rgba(${hexToRgbStr(bc)},0.2)` : "rgba(255,255,255,0.04)",
+                  color: text.trim() ? bc : "#444",
+                  fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                }}
+              >Send Feedback</button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function hexToRgbStr(hex) {
+  const h = (hex || "#888").replace("#", "").padEnd(6, "0");
+  return `${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)}`;
+}
+
 const SectionHeader = ({ title, subtitle, phase }) => {
   const p = PHASES[phase];
+  const ctx = useBrand();
+  const bc = ctx?.brand?.primaryColor || "#e94560";
+  const sectionId = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   return (
-    <div style={{ marginBottom: "24px" }}>
-      <div style={{ display: "inline-block", padding: "4px 12px", borderRadius: "20px", background: `${p.color}15`, border: `1px solid ${p.color}30`, marginBottom: "12px" }}>
-        <span style={{ fontSize: "10px", fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: "1px" }}>{p.name}</span>
+    <div style={{ marginBottom: "24px", borderLeft: `2px solid rgba(${hexToRgbStr(bc)},0.12)`, paddingLeft: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: "10px" }}>
+        <div style={{ display: "inline-block", padding: "4px 12px", borderRadius: "20px", background: `${p.color}15`, border: `1px solid ${p.color}30` }}>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: "1px" }}>{p.name}</span>
+        </div>
+        <SectionFeedback section={sectionId} title={title} />
       </div>
       <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#fff", margin: "0 0 6px", fontFamily: "'DM Sans', sans-serif" }}>{title}</h2>
       {subtitle && <p style={{ fontSize: "13px", color: "#666", margin: 0 }}>{subtitle}</p>}
@@ -572,8 +672,143 @@ function CompetitiveSection({ brand, update }) {
   );
 }
 
+const ICP_LABELS = [
+  { num: "01", colorKey: "primaryColor" },
+  { num: "02", colorKey: "secondaryColor" },
+  { num: "03", colorKey: "accentColor" },
+];
+
+function ICPCard({ icp, index, brand, onChange }) {
+  const bc = brand?.primaryColor || "#e94560";
+  const cardColor = [brand.primaryColor, brand.accentColor, brand.secondaryColor][index] || bc;
+  const num = ICP_LABELS[index].num;
+
+  const update = (key, val) => onChange({ ...icp, [key]: val });
+  const updateArr = (key, i, val) => {
+    const arr = [...(icp[key] || [])];
+    arr[i] = val;
+    onChange({ ...icp, [key]: arr });
+  };
+  const addItem = (key) => onChange({ ...icp, [key]: [...(icp[key] || []), ""] });
+
+  const fieldStyle = {
+    width: "100%", padding: "9px 12px", borderRadius: 7,
+    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.03)", color: "#e0e0e0",
+    fontSize: 12, fontFamily: "'DM Sans', sans-serif", outline: "none",
+    boxSizing: "border-box",
+  };
+  const labelStyle = { fontSize: 9, fontWeight: 800, color: "#2a2a2a", letterSpacing: 2, textTransform: "uppercase", marginBottom: 5, display: "block" };
+
+  return (
+    <div style={{
+      background: "#090909", borderRadius: 14,
+      border: `1px solid rgba(255,255,255,0.05)`,
+      borderTop: `3px solid ${cardColor}`,
+      overflow: "hidden", padding: "24px",
+    }}>
+      {/* ICP number header */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 800, color: cardColor, letterSpacing: 3, textTransform: "uppercase" }}>ICP {num}</div>
+        <input
+          value={icp.title || ""}
+          onChange={e => update("title", e.target.value)}
+          placeholder={`e.g. "The Roster Asset", "The Peak Executive"`}
+          style={{ ...fieldStyle, flex: 1, fontSize: 15, fontWeight: 700, color: "#fff", background: "transparent", border: "none", padding: "0", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 0 }}
+        />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div>
+          <label style={labelStyle}>Segment</label>
+          <input value={icp.segment || ""} onChange={e => update("segment", e.target.value)} placeholder="Professional athletes, executives…" style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Demographics</label>
+          <input value={icp.demographics || ""} onChange={e => update("demographics", e.target.value)} placeholder="Age, income, location…" style={fieldStyle} />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={labelStyle}>Psychographics — how they see themselves</label>
+        <textarea value={icp.psychographics || ""} onChange={e => update("psychographics", e.target.value)} placeholder="The mental model that governs their purchasing decisions…" style={{ ...fieldStyle, minHeight: 64, resize: "vertical" }} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div>
+          <label style={labelStyle}>Pain Points</label>
+          {(icp.painPoints || [""]).map((p, i) => (
+            <input key={i} value={p} onChange={e => updateArr("painPoints", i, e.target.value)} placeholder={`Pain ${i + 1}`} style={{ ...fieldStyle, marginBottom: 4 }} />
+          ))}
+          <button onClick={() => addItem("painPoints")} style={{ fontSize: 10, color: "#333", background: "transparent", border: "none", cursor: "pointer", padding: "2px 0" }}>+ Add</button>
+        </div>
+        <div>
+          <label style={labelStyle}>Goals</label>
+          {(icp.goals || [""]).map((g, i) => (
+            <input key={i} value={g} onChange={e => updateArr("goals", i, e.target.value)} placeholder={`Goal ${i + 1}`} style={{ ...fieldStyle, marginBottom: 4 }} />
+          ))}
+          <button onClick={() => addItem("goals")} style={{ fontSize: 10, color: "#333", background: "transparent", border: "none", cursor: "pointer", padding: "2px 0" }}>+ Add</button>
+        </div>
+        <div>
+          <label style={labelStyle}>Buying Triggers</label>
+          {(icp.buyingTriggers || [""]).map((t, i) => (
+            <input key={i} value={t} onChange={e => updateArr("buyingTriggers", i, e.target.value)} placeholder={`Trigger ${i + 1}`} style={{ ...fieldStyle, marginBottom: 4 }} />
+          ))}
+          <button onClick={() => addItem("buyingTriggers")} style={{ fontSize: 10, color: "#333", background: "transparent", border: "none", cursor: "pointer", padding: "2px 0" }}>+ Add</button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div>
+          <label style={labelStyle}>Message Angle</label>
+          <textarea value={icp.messageAngle || ""} onChange={e => update("messageAngle", e.target.value)} placeholder="The single most persuasive angle for this segment…" style={{ ...fieldStyle, minHeight: 52, resize: "vertical" }} />
+        </div>
+        <div>
+          <label style={labelStyle}>Preferred Channels</label>
+          <input value={icp.channels || ""} onChange={e => update("channels", e.target.value)} placeholder="Instagram, LinkedIn, agent referrals…" style={fieldStyle} />
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div>
+          <label style={labelStyle}>Estimated LTV</label>
+          <input value={icp.ltv || ""} onChange={e => update("ltv", e.target.value)} placeholder="$24K–$120K/year" style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Acquisition Strategy</label>
+          <input value={icp.acquisition || ""} onChange={e => update("acquisition", e.target.value)} placeholder="Highest-leverage channel + tactic…" style={fieldStyle} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ICPSection({ brand, update }) {
+  const icps = brand.icps || DEFAULT_BRAND.icps;
+  const updateICP = (i, updated) => {
+    const next = [...icps];
+    next[i] = updated;
+    update("icps", next);
+  };
+
+  return (
+    <div>
+      <SectionHeader
+        title="Ideal Customer Profiles"
+        subtitle="Your top 3 customer segments — psychographic profiles, buying triggers, and acquisition strategy for each."
+        phase={1}
+      />
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {icps.map((icp, i) => (
+          <ICPCard key={icp.id || i} icp={icp} index={i} brand={brand} onChange={updated => updateICP(i, updated)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ScoreSection({ brand }) {
-  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled"].includes(k));
+  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
     if (typeof v === "boolean") return true;
@@ -790,6 +1025,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       pillars: <PillarsSection brand={brand} update={update} />,
       voice: <VoiceSection brand={brand} update={update} />,
       audience: <AudienceSection brand={brand} update={update} />,
+      icps: <ICPSection brand={brand} update={update} />,
       socialvoice: <SocialVoiceSection brand={brand} update={update} />,
       vocabulary: <VocabularySection brand={brand} update={update} />,
       competitive: <CompetitiveSection brand={brand} update={update} />,
@@ -835,7 +1071,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             )}
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <div style={{ width: "80px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
-                <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg, #e94560, #f39c12)", transition: "width 0.5s" }} />
+                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg, ${brand.primaryColor || "#e94560"}, ${brand.accentColor || "#f39c12"})`, transition: "width 0.5s" }} />
               </div>
               <span style={{ fontSize: "11px", color: "#666" }}>{progress}%</span>
             </div>
@@ -860,19 +1096,23 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             {PHASES.map((phase, pi) => (
               <div key={pi}>
                 <div style={{ padding: "8px 20px", fontSize: "10px", fontWeight: 700, color: phase.color, textTransform: "uppercase", letterSpacing: "1.5px", marginTop: pi > 0 ? "8px" : 0 }}>{phase.name}</div>
-                {SECTIONS.filter((s) => s.phase === pi).map((s) => (
-                  <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
-                    display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 20px",
-                    border: "none", cursor: "pointer", fontSize: "13px", textAlign: "left",
-                    background: activeSection === s.id ? "rgba(233,69,96,0.08)" : "transparent",
-                    color: activeSection === s.id ? "#e94560" : "#888",
-                    borderLeft: activeSection === s.id ? "2px solid #e94560" : "2px solid transparent",
-                    fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s",
-                  }}>
-                    <span style={{ fontSize: "14px", width: "20px" }}>{s.icon}</span>
-                    {s.label}
-                  </button>
-                ))}
+                {SECTIONS.filter((s) => s.phase === pi).map((s) => {
+                  const isActive = activeSection === s.id;
+                  const ac = brand.primaryColor || "#e94560";
+                  return (
+                    <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
+                      display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 20px",
+                      border: "none", cursor: "pointer", fontSize: "13px", textAlign: "left",
+                      background: isActive ? `rgba(${hexToRgbStr(ac)},0.08)` : "transparent",
+                      color: isActive ? ac : "#888",
+                      borderLeft: isActive ? `2px solid ${ac}` : "2px solid transparent",
+                      fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s",
+                    }}>
+                      <span style={{ fontSize: "14px", width: "20px" }}>{s.icon}</span>
+                      {s.label}
+                    </button>
+                  );
+                })}
               </div>
             ))}
           </nav>

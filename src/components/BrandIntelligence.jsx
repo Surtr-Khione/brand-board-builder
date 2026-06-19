@@ -171,9 +171,29 @@ export default function BrandIntelligence({ onApply }) {
           updates.contentPillars = s.contentPillars.map(p =>
             typeof p === "string"
               ? { name: p, description: "", topics: ["", ""], audience: "" }
-              : { name: p.name || "", description: p.description || "", topics: ["", ""], audience: "" }
+              : { name: p.name || "", description: p.description || "", topics: Array.isArray(p.topics) ? p.topics : ["", ""], audience: p.rationale || "" }
           );
         }
+        // ICPs — top 3 customer profiles
+        if (s.icps?.length) {
+          updates.icps = s.icps.slice(0, 3).map((icp, i) => ({
+            id: String(i + 1),
+            title: icp.title || "",
+            segment: icp.segment || "",
+            demographics: icp.demographics || "",
+            psychographics: icp.psychographics || "",
+            painPoints: icp.painPoints || ["", ""],
+            goals: icp.goals || ["", ""],
+            buyingTriggers: icp.buyingTriggers || ["", ""],
+            channels: icp.channels || "",
+            messageAngle: icp.messageAngle || "",
+            ltv: icp.ltv || "",
+            acquisition: icp.acquisition || "",
+          }));
+        }
+        // Color rationale stored in notes if present
+        if (s.primaryFont) updates.primaryFont = s.primaryFont;
+        if (s.bodyFont) updates.bodyFont = s.bodyFont;
         // Sources map
         updates.sources = urls;
         onApply(updates);
