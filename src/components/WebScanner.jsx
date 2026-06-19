@@ -92,6 +92,10 @@ export default function WebScanner({ onApply }) {
     if (a.photoStyle)                      updates.photoStyle     = a.photoStyle;
     if (a.photoMood)                       updates.photoMood      = a.photoMood;
     if (a.socialPersonality)               updates.socialPersonality = a.socialPersonality;
+    // Store auto-detected social + podcast URLs for BrandIntelligence auto-fill
+    if (result.discoveredUrls && Object.keys(result.discoveredUrls).length > 0) {
+      updates.discoveredUrls = result.discoveredUrls;
+    }
     onApply(updates);
     setApplied(true);
   };

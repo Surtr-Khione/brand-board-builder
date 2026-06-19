@@ -2,16 +2,31 @@ import { useState, useRef } from "react";
 import { scanSocial, analyzePDF, synthesizeBrand } from "../lib/ai";
 
 const PLATFORMS = [
-  { type: "website",   label: "Website",   icon: "🌐", placeholder: "yourbrand.com", color: "#e94560",  hint: "Colors, fonts, meta, CSS vars" },
-  { type: "linkedin",  label: "LinkedIn",  icon: "💼", placeholder: "linkedin.com/company/yourbrand", color: "#0077b5", hint: "Mission, industry, specialties, B2B voice" },
-  { type: "instagram", label: "Instagram", icon: "📸", placeholder: "instagram.com/yourbrand", color: "#e1306c", hint: "Visual style, content topics, caption voice" },
-  { type: "youtube",   label: "YouTube",   icon: "▶", placeholder: "youtube.com/@yourbrand", color: "#ff0000",  hint: "Channel description, content pillars, video style" },
-  { type: "tiktok",   label: "TikTok",    icon: "🎵", placeholder: "tiktok.com/@yourbrand", color: "#00f2ea",  hint: "Bio, content style, personality" },
-  { type: "pinterest", label: "Pinterest", icon: "📌", placeholder: "pinterest.com/yourbrand", color: "#e60023", hint: "Aesthetic direction, visual mood, board themes" },
-  { type: "facebook",  label: "Facebook",  icon: "👥", placeholder: "facebook.com/yourbrand", color: "#1877f2", hint: "About section, community tone" },
-  { type: "twitter",   label: "Twitter/X", icon: "✕",  placeholder: "x.com/yourbrand", color: "#1da1f2",  hint: "Brand voice, bio, key topics" },
-  { type: "pdf",       label: "Brand PDF", icon: "📄", placeholder: null, color: "#9b59b6", hint: "Brand guide, style guide, pitch deck — extracts everything" },
+  // Social
+  { type: "website",       label: "Website",        icon: "🌐", group: "social", placeholder: "yourbrand.com",                          color: "#e94560", hint: "Colors, fonts, meta, CSS vars" },
+  { type: "linkedin",      label: "LinkedIn",       icon: "💼", group: "social", placeholder: "linkedin.com/company/yourbrand",          color: "#0077b5", hint: "Mission, industry, specialties, B2B voice" },
+  { type: "instagram",     label: "Instagram",      icon: "📸", group: "social", placeholder: "instagram.com/yourbrand",                 color: "#e1306c", hint: "Visual style, content topics, caption voice" },
+  { type: "youtube",       label: "YouTube",        icon: "▶",  group: "social", placeholder: "youtube.com/@yourbrand",                  color: "#ff0000", hint: "Channel description, content pillars, video style" },
+  { type: "tiktok",        label: "TikTok",         icon: "🎵", group: "social", placeholder: "tiktok.com/@yourbrand",                   color: "#00f2ea", hint: "Bio, content style, personality" },
+  { type: "pinterest",     label: "Pinterest",      icon: "📌", group: "social", placeholder: "pinterest.com/yourbrand",                 color: "#e60023", hint: "Aesthetic direction, visual mood, board themes" },
+  { type: "facebook",      label: "Facebook",       icon: "👥", group: "social", placeholder: "facebook.com/yourbrand",                  color: "#1877f2", hint: "About section, community tone" },
+  { type: "twitter",       label: "Twitter/X",      icon: "✕",  group: "social", placeholder: "x.com/yourbrand",                        color: "#1da1f2", hint: "Brand voice, bio, key topics" },
+  // Podcast & Audio
+  { type: "spotify",       label: "Spotify Podcast",icon: "🎙", group: "audio",  placeholder: "open.spotify.com/show/...",              color: "#1DB954", hint: "Episode topics, host voice, audience signals" },
+  { type: "applepodcasts", label: "Apple Podcasts", icon: "🎧", group: "audio",  placeholder: "podcasts.apple.com/podcast/...",          color: "#9B59B6", hint: "Show reviews, episode themes, audience" },
+  { type: "soundcloud",    label: "SoundCloud",     icon: "☁",  group: "audio",  placeholder: "soundcloud.com/yourbrand",               color: "#FF5500", hint: "Audio personality, tracks, content style" },
+  { type: "amazonmusic",   label: "Amazon Music",   icon: "🎶", group: "audio",  placeholder: "music.amazon.com/podcasts/...",           color: "#FF9900", hint: "Podcast presence, episode themes" },
+  { type: "iheartradio",   label: "iHeartRadio",    icon: "📻", group: "audio",  placeholder: "iheart.com/podcast/...",                  color: "#C6002B", hint: "Podcast topics, radio voice" },
+  { type: "podcastrss",    label: "Podcast RSS",    icon: "⊡",  group: "audio",  placeholder: "feeds.yourbrand.com/podcast.rss",         color: "#F26522", hint: "Full episode catalog, topics, audience" },
+  // Documents
+  { type: "pdf",           label: "Brand PDF",      icon: "📄", group: "doc",    placeholder: null,                                      color: "#9b59b6", hint: "Brand guide, style guide, pitch deck — extracts everything" },
 ];
+
+const GROUP_LABELS = {
+  social: "Social Channels",
+  audio:  "Podcasts & Audio",
+  doc:    "Documents",
+};
 
 function SourceRow({ platform, status, url, onUrlChange, onScan, onRemove }) {
   const fileRef = useRef(null);
@@ -97,7 +112,7 @@ function SourceRow({ platform, status, url, onUrlChange, onScan, onRemove }) {
   );
 }
 
-export default function BrandIntelligence({ onApply }) {
+export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
   const [expanded, setExpanded] = useState(false);
   const [urls, setUrls] = useState({});
   const [statuses, setStatuses] = useState({});
@@ -105,10 +120,16 @@ export default function BrandIntelligence({ onApply }) {
   const [synthesizing, setSynthesizing] = useState(false);
   const [synthDone, setSynthDone] = useState(false);
   const [error, setError] = useState(null);
+  const [dismissedDiscovered, setDismissedDiscovered] = useState(false);
 
   const setStatus = (type, s) => setStatuses(p => ({ ...p, [type]: s }));
   const setUrl = (type, u) => setUrls(p => ({ ...p, [type]: u }));
   const setData = (type, d) => setSourceData(p => ({ ...p, [type]: d }));
+
+  // New discovered URLs not yet populated in inputs
+  const newDiscovered = Object.entries(discoveredUrls).filter(
+    ([type, u]) => u && !urls[type] && PLATFORMS.find(p => p.type === type)
+  );
 
   const scanSource = async (type, urlOrNull, fileOrNull) => {
     setStatus(type, "scanning");
@@ -240,17 +261,76 @@ export default function BrandIntelligence({ onApply }) {
         <div style={{ padding: "0 20px 20px" }}>
           <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 16 }} />
 
-          {/* Platform rows */}
-          {PLATFORMS.map(p => (
-            <SourceRow
-              key={p.type}
-              platform={p}
-              url={urls[p.type] || ""}
-              status={statuses[p.type]}
-              onUrlChange={u => setUrl(p.type, u)}
-              onScan={(url, file) => scanSource(p.type, url, file)}
-            />
-          ))}
+          {/* Discovered URLs from website scan */}
+          {newDiscovered.length > 0 && !dismissedDiscovered && (
+            <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(46,204,113,0.18)", background: "rgba(46,204,113,0.04)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#2ecc71", letterSpacing: 0.5 }}>
+                  ✦ {newDiscovered.length} profile{newDiscovered.length > 1 ? "s" : ""} discovered from your website scan
+                </div>
+                <button onClick={() => setDismissedDiscovered(true)} style={{ background: "transparent", border: "none", color: "#333", cursor: "pointer", fontSize: 12 }}>×</button>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {newDiscovered.map(([type, url]) => {
+                  const plat = PLATFORMS.find(p => p.type === type);
+                  if (!plat) return null;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        setUrl(type, url);
+                        if (!expanded) setExpanded(true);
+                      }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "5px 10px", borderRadius: 7,
+                        border: `1px solid rgba(${hexToRgb(plat.color)},0.25)`,
+                        background: `rgba(${hexToRgb(plat.color)},0.08)`,
+                        color: plat.color, fontSize: 11, fontWeight: 600,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      {plat.icon} {plat.label}
+                      <span style={{ fontSize: 9, opacity: 0.6, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {url.replace(/^https?:\/\//, "").slice(0, 30)}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => {
+                    newDiscovered.forEach(([type, url]) => setUrl(type, url));
+                    setDismissedDiscovered(true);
+                  }}
+                  style={{ padding: "5px 10px", borderRadius: 7, border: "1px solid rgba(46,204,113,0.25)", background: "rgba(46,204,113,0.08)", color: "#2ecc71", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Fill all →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Platform rows grouped */}
+          {["social", "audio", "doc"].map(group => {
+            const groupPlatforms = PLATFORMS.filter(p => p.group === group);
+            return (
+              <div key={group}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: "#1e1e1e", letterSpacing: 2, textTransform: "uppercase", margin: "12px 0 6px", paddingLeft: 2 }}>
+                  {GROUP_LABELS[group]}
+                </div>
+                {groupPlatforms.map(p => (
+                  <SourceRow
+                    key={p.type}
+                    platform={p}
+                    url={urls[p.type] || ""}
+                    status={statuses[p.type]}
+                    onUrlChange={u => setUrl(p.type, u)}
+                    onScan={(url, file) => scanSource(p.type, url, file)}
+                  />
+                ))}
+              </div>
+            );
+          })}
 
           {/* Synthesize CTA */}
           {doneSources >= 1 && !synthDone && (

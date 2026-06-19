@@ -155,6 +155,37 @@ function extractFonts(css: string): string[] {
 
 // ── icon / favicon extraction ─────────────────────────────────────────────────
 
+// ── social / podcast URL auto-detection ──────────────────────────────────────
+
+const SOCIAL_PATTERNS: Record<string, RegExp> = {
+  instagram:      /https?:\/\/(?:www\.)?instagram\.com\/(?!p\/|reel\/|stories\/)([a-zA-Z0-9_.]{1,30})\/?(?=[^a-zA-Z0-9_.]|$)/g,
+  linkedin:       /https?:\/\/(?:www\.)?linkedin\.com\/(?:company|in)\/([a-zA-Z0-9_-]{2,50})\/?/g,
+  facebook:       /https?:\/\/(?:www\.)?facebook\.com\/(?!sharer|share|dialog)([a-zA-Z0-9_.]{3,50})\/?(?=[^a-zA-Z0-9_.]|$)/g,
+  twitter:        /https?:\/\/(?:www\.)?(?:twitter|x)\.com\/([a-zA-Z0-9_]{1,15})\/?(?=[^a-zA-Z0-9_]|$)/g,
+  youtube:        /https?:\/\/(?:www\.)?youtube\.com\/(?:@[a-zA-Z0-9_.-]+|channel\/[a-zA-Z0-9_-]+|user\/[a-zA-Z0-9_-]+)/g,
+  tiktok:         /https?:\/\/(?:www\.)?tiktok\.com\/@([a-zA-Z0-9_.]{2,30})/g,
+  pinterest:      /https?:\/\/(?:www\.)?pinterest\.com\/([a-zA-Z0-9_]{3,30})\/?(?=[^a-zA-Z0-9_]|$)/g,
+  spotify:        /https?:\/\/open\.spotify\.com\/show\/[a-zA-Z0-9]{10,}/g,
+  applepodcasts:  /https?:\/\/podcasts\.apple\.com\/[a-z-]+\/podcast\/[^"'\s>]+/g,
+  soundcloud:     /https?:\/\/soundcloud\.com\/([a-zA-Z0-9_-]{3,50})(?:\/[a-zA-Z0-9_-]+)?/g,
+  amazonmusic:    /https?:\/\/music\.amazon\.com\/podcasts\/[a-zA-Z0-9_-]+/g,
+  iheartradio:    /https?:\/\/(?:www\.)?iheart\.com\/podcast\/[a-zA-Z0-9_-]+/g,
+  podcastrss:     /<link[^>]*type="application\/rss\+xml"[^>]*href="([^"]+)"/gi,
+};
+
+function detectSocialUrls(html: string): Record<string, string> {
+  const discovered: Record<string, string> = {};
+  for (const [platform, pattern] of Object.entries(SOCIAL_PATTERNS)) {
+    pattern.lastIndex = 0;
+    const m = pattern.exec(html);
+    if (m) {
+      // For RSS, capture group 1 is the href; for others use full match
+      discovered[platform] = platform === "podcastrss" ? m[1] : m[0];
+    }
+  }
+  return discovered;
+}
+
 function extractIcons(html: string, baseUrl: string): { faviconUrl: string | null; appleIconUrl: string | null; ogImage: string | null } {
   const resolve = (u: string) => {
     try { return u.startsWith("http") ? u : new URL(u, baseUrl).href; }
@@ -340,6 +371,7 @@ Deno.serve(async (req) => {
     const counts = countAllColors(css);
     const { primary, secondary, accent, colorMap } = pickColors(roles, counts);
     const icons = extractIcons(html, target);
+    const discoveredUrls = detectSocialUrls(html);
 
     // Derive domain for Clearbit + Google Favicon fallbacks
     let domain = "";
@@ -427,10 +459,11 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
       analysis,
       hasAI: !!ANTHROPIC_KEY,
       // Brand icon sources — priority order
-      faviconUrl: icons.appleIconUrl || icons.faviconUrl,   // highest-res discovered icon
-      logoUrl: clearbitUrl,                                   // Clearbit vector logo
-      googleFaviconUrl,                                       // Google S2 fallback
-      ogImage: icons.ogImage,                                 // og:image (hero/cover)
+      faviconUrl: icons.appleIconUrl || icons.faviconUrl,
+      logoUrl: clearbitUrl,
+      googleFaviconUrl,
+      ogImage: icons.ogImage,
+      discoveredUrls,     // auto-detected social + podcast URLs from page links
       iconSources: {
         appleIcon: icons.appleIconUrl,
         favicon: icons.faviconUrl,

@@ -92,6 +92,8 @@ const DEFAULT_BRAND = {
   integrations: [],
   // Brand Intelligence sources
   sources: {},
+  // Auto-detected URLs from website scan (social + podcast)
+  discoveredUrls: {},
   // Audience
   audienceAge: "", audienceRole: "", audiencePains: "", audienceGoals: "",
   // Ideal Customer Profiles
@@ -360,7 +362,7 @@ function OverviewSection({ brand, update, onApplyScanned }) {
   return (
     <div>
       <SectionHeader title="Brand Overview" subtitle="Connect your sources — website, socials, PDFs — and AI builds your entire brand profile." phase={0} />
-      <BrandIntelligence onApply={onApplyScanned} />
+      <BrandIntelligence onApply={onApplyScanned} discoveredUrls={brand.discoveredUrls || {}} />
       <div style={{ fontSize: 11, color: "#333", marginBottom: 12, textAlign: "center" }}>— or scan just your website —</div>
       <WebScanner onApply={onApplyScanned} />
       <TextInput label="Brand Name" value={brand.brandName} onChange={(v) => update("brandName", v)} hint="Your brand or company name" />
