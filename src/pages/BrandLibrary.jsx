@@ -10,62 +10,157 @@ function rgb(hex = "") {
   return isNaN(r + g + b) ? "102,102,102" : `${r},${g},${b}`;
 }
 
+function luma(hex = "") {
+  const h = hex.replace("#", "").padEnd(6, "0");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
+}
+
+function getBrandLogo(website) {
+  if (!website) return null;
+  const domain = website.replace(/^https?:\/\//, "").split("/")[0];
+  return `https://logo.clearbit.com/${domain}`;
+}
+
 function BrandCard({ brand }) {
   const [hov, setHov] = useState(false);
-  const pc = brand.primary_color || "#666";
+  const [imgErr, setImgErr] = useState(false);
+  const pc = brand.primary_color || "#333";
+  const sc = brand.secondary_color || "#1a1a1a";
+  const ac = brand.accent_color || "#555";
+  const logo = !imgErr ? getBrandLogo(brand.website) : null;
+  const headerLight = luma(pc) > 150;
+
   return (
     <Link to={`/brands/${brand.slug}`} style={{ textDecoration: "none" }}>
       <div
         onMouseEnter={() => setHov(true)}
         onMouseLeave={() => setHov(false)}
         style={{
-          background: "#111",
-          borderRadius: 14,
+          background: "#0e0e0e",
+          borderRadius: 16,
           overflow: "hidden",
-          border: `1px solid ${hov ? `rgba(${rgb(pc)},0.5)` : "#1e1e1e"}`,
-          transition: "transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease",
-          transform: hov ? "translateY(-4px)" : "translateY(0)",
+          border: `1px solid ${hov ? `rgba(${rgb(pc)},0.55)` : "#1a1a1a"}`,
+          transition: "transform 0.22s, box-shadow 0.22s, border-color 0.22s",
+          transform: hov ? "translateY(-5px)" : "none",
           boxShadow: hov
-            ? `0 16px 40px rgba(${rgb(pc)},0.2), 0 4px 12px rgba(0,0,0,0.4)`
-            : "0 2px 8px rgba(0,0,0,0.3)",
+            ? `0 20px 50px rgba(${rgb(pc)},0.28), 0 4px 12px rgba(0,0,0,0.5)`
+            : "0 2px 8px rgba(0,0,0,0.4)",
           cursor: "pointer",
         }}
       >
-        {/* color bar */}
-        <div style={{ height: 6, background: pc }} />
-        <div style={{ padding: "20px 20px 16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#f0ece3", lineHeight: 1.2, letterSpacing: "-0.3px" }}>
+        {/* BRAND COLOR HEADER */}
+        <div style={{
+          height: 100,
+          background: `linear-gradient(135deg, ${pc} 0%, rgba(${rgb(pc)},0.65) 100%)`,
+          display: "flex",
+          alignItems: "center",
+          padding: "0 20px",
+          gap: 16,
+          position: "relative",
+        }}>
+          {/* Logo in white app-icon square */}
+          <div style={{
+            width: 52, height: 52,
+            background: "#fff",
+            borderRadius: 12,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            flexShrink: 0,
+            overflow: "hidden",
+          }}>
+            {logo ? (
+              <img
+                src={logo}
+                onError={() => setImgErr(true)}
+                alt={brand.brand_name}
+                style={{ width: 34, height: 34, objectFit: "contain" }}
+              />
+            ) : (
+              <span style={{ fontSize: 22, fontWeight: 900, color: pc, fontFamily: "sans-serif" }}>
+                {brand.brand_name.charAt(0)}
+              </span>
+            )}
+          </div>
+
+          {/* Brand name + industry on header */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 19, fontWeight: 800, letterSpacing: "-0.4px", lineHeight: 1.1,
+              color: headerLight ? "rgba(0,0,0,0.88)" : "#fff",
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+            }}>
               {brand.brand_name}
             </div>
-            {brand.is_featured && (
-              <span style={{ fontSize: 9, fontWeight: 800, color: "#D4AF37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 4, padding: "2px 6px", letterSpacing: 1.2, textTransform: "uppercase", flexShrink: 0, marginLeft: 8 }}>
-                Featured
-              </span>
+            {brand.industry && (
+              <div style={{
+                fontSize: 10, fontWeight: 600, marginTop: 3, letterSpacing: 0.5,
+                color: headerLight ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.6)",
+              }}>
+                {brand.industry}
+              </div>
             )}
           </div>
-          <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55, marginBottom: 14, minHeight: 36 }}>
-            {brand.tagline || (brand.description || "").slice(0, 80) || "—"}
+
+          {brand.is_featured && (
+            <div style={{
+              position: "absolute", top: 8, right: 10,
+              fontSize: 9, fontWeight: 800, color: "#D4AF37",
+              background: "rgba(0,0,0,0.35)", border: "1px solid rgba(212,175,55,0.35)",
+              borderRadius: 4, padding: "2px 6px", letterSpacing: 1.2, textTransform: "uppercase",
+            }}>★</div>
+          )}
+        </div>
+
+        {/* BODY */}
+        <div style={{ padding: "14px 18px 10px" }}>
+          {/* Tagline in brand color */}
+          <div style={{ fontSize: 12, color: pc, fontStyle: "italic", lineHeight: 1.5, minHeight: 34, marginBottom: 10 }}>
+            {brand.tagline ? `"${brand.tagline}"` : ""}
           </div>
-          {brand.archetype && (
-            <div style={{ marginBottom: 12 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: pc, background: `rgba(${rgb(pc)},0.1)`, border: `1px solid rgba(${rgb(pc)},0.22)`, borderRadius: 20, padding: "3px 10px" }}>
-                {brand.archetype}
-              </span>
+
+          {/* Archetype + year */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+            {brand.archetype && (
+              <span style={{
+                fontSize: 9, fontWeight: 700, color: pc,
+                background: `rgba(${rgb(pc)},0.1)`, border: `1px solid rgba(${rgb(pc)},0.25)`,
+                borderRadius: 4, padding: "3px 8px",
+              }}>{brand.archetype}</span>
+            )}
+            {brand.founded_year && (
+              <span style={{ fontSize: 9, color: "#3a3a3a", fontWeight: 600 }}>Est. {brand.founded_year}</span>
+            )}
+          </div>
+
+          {/* Valuation */}
+          {brand.brand_valuation && (
+            <div style={{ fontSize: 10, color: "#555", marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ color: "#D4AF37", fontSize: 9 }}>◆</span>
+              {brand.brand_valuation}
             </div>
           )}
-          <div style={{ fontSize: 10, color: "#3a3a3a", marginBottom: 14 }}>
-            {[brand.industry, brand.founded_year ? `Est. ${brand.founded_year}` : null]
-              .filter(Boolean).join("  ·  ")}
-          </div>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            {[brand.primary_color, brand.secondary_color, brand.accent_color].filter(Boolean).map((c, i) => (
-              <div key={i} title={c} style={{ width: 18, height: 18, borderRadius: "50%", background: c, border: "1.5px solid rgba(255,255,255,0.08)" }} />
-            ))}
-            {brand.primary_font && (
-              <span style={{ fontSize: 10, color: "#3a3a3a", marginLeft: 4 }}>{brand.primary_font}</span>
-            )}
-          </div>
+
+          {/* Font name */}
+          {brand.primary_font && (
+            <div style={{ fontSize: 9, color: "#2e2e2e", marginBottom: 10, letterSpacing: 0.3 }}>
+              Aa  {brand.primary_font}
+            </div>
+          )}
+        </div>
+
+        {/* COLOR BAR */}
+        <div style={{ display: "flex", height: 7, margin: "0 18px 4px", borderRadius: 4, overflow: "hidden", gap: 2 }}>
+          <div style={{ flex: 1, background: pc }} />
+          <div style={{ flex: 1, background: sc }} />
+          <div style={{ flex: 1, background: ac }} />
+        </div>
+        <div style={{ display: "flex", padding: "0 18px 14px" }}>
+          <span style={{ flex: 1, fontSize: 8, color: "#2e2e2e", fontFamily: "monospace" }}>{pc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#2e2e2e", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#2e2e2e", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
         </div>
       </div>
     </Link>
@@ -74,16 +169,16 @@ function BrandCard({ brand }) {
 
 function SkeletonCard() {
   return (
-    <div style={{ background: "#111", borderRadius: 14, overflow: "hidden", border: "1px solid #1a1a1a" }}>
-      <div style={{ height: 6, background: "#1e1e1e" }} />
-      <div style={{ padding: "20px 20px 16px" }}>
-        <div style={{ height: 20, width: "55%", background: "#1e1e1e", borderRadius: 4, marginBottom: 8 }} />
-        <div style={{ height: 12, width: "90%", background: "#181818", borderRadius: 4, marginBottom: 6 }} />
-        <div style={{ height: 12, width: "65%", background: "#181818", borderRadius: 4, marginBottom: 16 }} />
-        <div style={{ height: 22, width: 90, background: "#1e1e1e", borderRadius: 20, marginBottom: 12 }} />
-        <div style={{ display: "flex", gap: 6 }}>
-          {[0, 1, 2].map(i => <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: "#1e1e1e" }} />)}
-        </div>
+    <div style={{ background: "#0e0e0e", borderRadius: 16, overflow: "hidden", border: "1px solid #1a1a1a" }}>
+      <div style={{ height: 100, background: "#161616" }} />
+      <div style={{ padding: "14px 18px 14px" }}>
+        <div style={{ height: 12, width: "75%", background: "#1e1e1e", borderRadius: 4, marginBottom: 8 }} />
+        <div style={{ height: 10, width: "55%", background: "#181818", borderRadius: 4, marginBottom: 14 }} />
+        <div style={{ height: 9, width: 90, background: "#1a1a1a", borderRadius: 20, marginBottom: 8 }} />
+        <div style={{ height: 9, width: "80%", background: "#161616", borderRadius: 4, marginBottom: 10 }} />
+      </div>
+      <div style={{ display: "flex", height: 7, margin: "0 18px 14px", borderRadius: 4, overflow: "hidden", gap: 2 }}>
+        {[0,1,2].map(i => <div key={i} style={{ flex: 1, background: "#1e1e1e" }} />)}
       </div>
     </div>
   );
@@ -124,12 +219,17 @@ export default function BrandLibrary() {
   const isFiltered = !!debounced || !!archetype;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#080808", color: "#f0ece3", fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+    <div style={{ background: "#080808", color: "#f0ece3", fontFamily: "'DM Sans', -apple-system, sans-serif", minHeight: "100vh" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
       {/* NAV */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid #111", background: "rgba(8,8,8,0.97)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 }}>
-        <Link to="/" style={{ fontSize: 12, color: "#555", textDecoration: "none", transition: "color 0.18s" }}
+      <nav style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "16px 40px", borderBottom: "1px solid #111",
+        background: "rgba(8,8,8,0.97)", backdropFilter: "blur(12px)",
+        position: "sticky", top: 0, zIndex: 100,
+      }}>
+        <Link to="/" style={{ fontSize: 12, color: "#555", textDecoration: "none" }}
           onMouseEnter={e => e.currentTarget.style.color = "#f0ece3"}
           onMouseLeave={e => e.currentTarget.style.color = "#555"}
         >← Home</Link>
@@ -151,8 +251,6 @@ export default function BrandLibrary() {
         <p style={{ fontSize: 15, color: "#555", maxWidth: 480, margin: "0 auto 32px", lineHeight: 1.65 }}>
           {brands.length || 15} iconic brands decoded — colors, fonts, archetype, mission, and year-by-year evolution.
         </p>
-
-        {/* SEARCH */}
         <div style={{ position: "relative", maxWidth: 560, margin: "0 auto" }}>
           <input
             value={q}
@@ -166,43 +264,16 @@ export default function BrandLibrary() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 40px 80px" }}>
-
-        {/* QUICK-ACCESS INDEX — all brand names as chips */}
-        {!isFiltered && !loading && brands.length > 0 && (
-          <div style={{ marginBottom: 40, padding: "20px 24px", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#444", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 16 }}>
-              All {brands.length} Brands — Quick Access
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {[...brands].sort((a, b) => a.brand_name.localeCompare(b.brand_name)).map(b => (
-                <Link key={b.slug} to={`/brands/${b.slug}`} style={{ textDecoration: "none" }}>
-                  <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "6px 12px", borderRadius: 8,
-                    background: "#141414", border: "1px solid #222",
-                    fontSize: 13, fontWeight: 600, color: "#aaa",
-                    transition: "all 0.15s", cursor: "pointer",
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `rgba(${rgb(b.primary_color || "#666")},0.15)`; e.currentTarget.style.borderColor = b.primary_color || "#666"; e.currentTarget.style.color = "#f0ece3"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#141414"; e.currentTarget.style.borderColor = "#222"; e.currentTarget.style.color = "#aaa"; }}
-                  >
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: b.primary_color || "#555", flexShrink: 0 }} />
-                    {b.brand_name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 40px 80px" }}>
         {/* ARCHETYPE FILTERS */}
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "#444", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14 }}>Filter by Archetype</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button onClick={() => setArchetype("")} style={{
-              padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", border: !archetype ? "1px solid #e94560" : "1px solid #222",
-              background: !archetype ? "rgba(233,69,96,0.12)" : "#111", color: !archetype ? "#e94560" : "#555", transition: "all 0.18s",
+              padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
+              border: !archetype ? "1px solid #e94560" : "1px solid #222",
+              background: !archetype ? "rgba(233,69,96,0.12)" : "#111",
+              color: !archetype ? "#e94560" : "#555", transition: "all 0.18s",
             }}>All {brands.length || 15}</button>
             {facets.archetypes.map(a => (
               <button key={a} onClick={() => setArchetype(a === archetype ? "" : a)} style={{
@@ -216,7 +287,6 @@ export default function BrandLibrary() {
           </div>
         </div>
 
-        {/* RESULT COUNT when filtered */}
         {isFiltered && (
           <div style={{ fontSize: 12, color: "#444", marginBottom: 20 }}>
             {brands.length} brand{brands.length !== 1 ? "s" : ""}{q ? ` matching "${q}"` : ""}{archetype ? ` · ${archetype}` : ""}
@@ -224,9 +294,8 @@ export default function BrandLibrary() {
           </div>
         )}
 
-        {/* BRAND GRID — all brands in one flat view */}
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
             {Array.from({ length: 15 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : brands.length === 0 ? (
@@ -238,12 +307,11 @@ export default function BrandLibrary() {
             </button>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
             {brands.map(b => <BrandCard key={b.slug} brand={b} />)}
           </div>
         )}
 
-        {/* API NOTE */}
         <div style={{ marginTop: 60, padding: "22px 26px", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 12 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "#444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Open API — For Developers & AI</div>
           <div style={{ fontSize: 13, color: "#3a3a3a", lineHeight: 1.7 }}>
