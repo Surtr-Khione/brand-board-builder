@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers
+name: Deploy to Cloudflare Pages
 
 on:
   push:
@@ -24,3 +24,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: "93e85fef8bebc6911533bb563e09af9f"
+          command: pages deploy dist --project-name brand-board-builder --branch main --commit-dirty=true
