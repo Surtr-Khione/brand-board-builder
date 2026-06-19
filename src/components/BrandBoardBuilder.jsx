@@ -4,6 +4,7 @@ import { saveBoard, loadBoard, generateBoardId } from "../lib/storage";
 import { sendLeadToGHL } from "../lib/ghl";
 import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
+import { getTier, isUnlocked, register as _register, upgradePro as _upgradePro, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
@@ -26,38 +27,39 @@ const PHASES = [
   { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
 ];
 
+// tier: free | registered | pro
 const SECTIONS = [
-  { id: "overview", label: "Overview", icon: "◈", phase: 0 },
-  { id: "identity", label: "Identity & Story", icon: "◎", phase: 1 },
-  { id: "archetype", label: "Archetype", icon: "⬡", phase: 1 },
-  { id: "storybrand", label: "StoryBrand Script", icon: "📖", phase: 1 },
-  { id: "pillars", label: "Content Pillars", icon: "◆", phase: 1 },
-  { id: "voice", label: "Voice & Messaging", icon: "❝", phase: 1 },
-  { id: "language", label: "Writing System", icon: "¶", phase: 1 },
-  { id: "manifesto", label: "Brand Manifesto", icon: "⚑", phase: 1 },
-  { id: "audience", label: "Audience", icon: "👥", phase: 1 },
-  { id: "icps", label: "Ideal Customers", icon: "◈", phase: 1 },
-  { id: "journey", label: "Customer Journey", icon: "→", phase: 1 },
-  { id: "proof", label: "Proof Framework", icon: "◉", phase: 1 },
-  { id: "market", label: "Market Position", icon: "◇", phase: 1 },
-  { id: "offer", label: "Offer Architecture", icon: "◆", phase: 1 },
-  { id: "stories", label: "Brand Stories", icon: "◎", phase: 1 },
-  { id: "calendar", label: "Content Calendar", icon: "◈", phase: 1 },
-  { id: "socialvoice", label: "Platform Voice", icon: "📡", phase: 1 },
-  { id: "vocabulary", label: "Brand Vocabulary", icon: "📝", phase: 1 },
-  { id: "competitive", label: "Positioning", icon: "◧", phase: 1 },
-  { id: "colors", label: "Colors & Modes", icon: "◐", phase: 2 },
-  { id: "typography", label: "Typography", icon: "Aa", phase: 2 },
-  { id: "photography", label: "Photography", icon: "📷", phase: 2 },
-  { id: "sensory", label: "Brand Sensory", icon: "◌", phase: 2 },
-  { id: "logo", label: "Logo & Icons", icon: "◫", phase: 2 },
-  { id: "motion", label: "Motion", icon: "▸▸", phase: 2 },
-  { id: "media", label: "Media & Sound", icon: "▶", phase: 2 },
-  { id: "accessibility", label: "Accessibility", icon: "♿", phase: 3 },
-  { id: "guidelines", label: "Custom Fields", icon: "☰", phase: 3 },
-  { id: "score", label: "Brand Score", icon: "★", phase: 4 },
-  { id: "integrations", label: "Integrations", icon: "🔗", phase: 4 },
-  { id: "export", label: "Export", icon: "↗", phase: 4 },
+  { id: "overview",     label: "Overview",          icon: "◈",  phase: 0, tier: "free" },
+  { id: "identity",     label: "Identity & Story",  icon: "◎",  phase: 1, tier: "free" },
+  { id: "archetype",    label: "Archetype",          icon: "⬡",  phase: 1, tier: "registered", gateHint: "Discover your brand personality archetype and secondary archetype." },
+  { id: "storybrand",   label: "StoryBrand Script",  icon: "📖", phase: 1, tier: "registered", gateHint: "Build your 7-part StoryBrand framework — hero, villain, plan, CTA." },
+  { id: "pillars",      label: "Content Pillars",    icon: "◆",  phase: 1, tier: "registered", gateHint: "Define the content pillars that structure all communications." },
+  { id: "voice",        label: "Voice & Messaging",  icon: "❝",  phase: 1, tier: "registered", gateHint: "Nail your tone, messaging dos/don'ts, and brand voice rules." },
+  { id: "language",     label: "Writing System",     icon: "¶",  phase: 1, tier: "pro",        gateHint: "Advanced writing: register, sentence style, grammar, jargon policy, reading level." },
+  { id: "manifesto",    label: "Brand Manifesto",    icon: "⚑",  phase: 1, tier: "pro",        gateHint: "5 brand commandments, red lines, controversy stance, owned cultural moment." },
+  { id: "audience",     label: "Audience",           icon: "👥", phase: 1, tier: "registered", gateHint: "Define target market, psychographics, demographics, and customer motivations." },
+  { id: "icps",         label: "Ideal Customers",    icon: "◈",  phase: 1, tier: "pro",        gateHint: "Build 3 detailed ICPs with pain points, goals, and acquisition channels." },
+  { id: "journey",      label: "Customer Journey",   icon: "→",  phase: 1, tier: "pro",        gateHint: "Map emotion at every stage: Awareness → Consideration → Purchase → Advocacy." },
+  { id: "proof",        label: "Proof Framework",    icon: "◉",  phase: 1, tier: "pro",        gateHint: "Rank your evidence hierarchy, key stats, and social proof criteria." },
+  { id: "market",       label: "Market Position",    icon: "◇",  phase: 1, tier: "pro",        gateHint: "Price tier, category ownership, scope, niche depth, anti-positioning." },
+  { id: "offer",        label: "Offer Architecture", icon: "◆",  phase: 1, tier: "pro",        gateHint: "Full offer ladder: lead magnet → intro → core → premium + upsell sequence." },
+  { id: "stories",      label: "Brand Stories",      icon: "◎",  phase: 1, tier: "pro",        gateHint: "5 canonical brand stories the AI draws from for every content generation." },
+  { id: "calendar",     label: "Content Calendar",   icon: "◈",  phase: 1, tier: "pro",        gateHint: "Content mix, platform cadences, topic rotation, seasonal campaign anchors." },
+  { id: "socialvoice",  label: "Platform Voice",     icon: "📡", phase: 1, tier: "pro",        gateHint: "Customize voice per platform: Instagram, LinkedIn, TikTok, YouTube, X." },
+  { id: "vocabulary",   label: "Brand Vocabulary",   icon: "📝", phase: 1, tier: "registered", gateHint: "Owned words, phrases to avoid, and brand-specific terminology." },
+  { id: "competitive",  label: "Positioning",        icon: "◧",  phase: 1, tier: "registered", gateHint: "Competitive landscape map and unique positioning statement." },
+  { id: "colors",       label: "Colors & Modes",     icon: "◐",  phase: 2, tier: "free" },
+  { id: "typography",   label: "Typography",         icon: "Aa", phase: 2, tier: "free" },
+  { id: "photography",  label: "Photography",        icon: "📷", phase: 2, tier: "registered", gateHint: "Photo style, mood direction, and visual storytelling rules." },
+  { id: "sensory",      label: "Brand Sensory",      icon: "◌",  phase: 2, tier: "pro",        gateHint: "Brand physics: speed, weight, temperature, texture, density sliders + preview." },
+  { id: "logo",         label: "Logo & Icons",       icon: "◫",  phase: 2, tier: "registered", gateHint: "Logo usage, clear space, icon library, and misuse guidelines." },
+  { id: "motion",       label: "Motion",             icon: "▸▸", phase: 2, tier: "pro",        gateHint: "Brand motion principles, animation style, and video feel." },
+  { id: "media",        label: "Media & Sound",      icon: "▶",  phase: 2, tier: "pro",        gateHint: "Sonic identity, media standards, and audio branding guidelines." },
+  { id: "accessibility",label: "Accessibility",      icon: "♿", phase: 3, tier: "registered", gateHint: "Color contrast, font accessibility, and inclusive design standards." },
+  { id: "guidelines",   label: "Custom Fields",      icon: "☰",  phase: 3, tier: "registered", gateHint: "Add custom brand guideline fields specific to your brand." },
+  { id: "score",        label: "Brand Score",        icon: "★",  phase: 4, tier: "free" },
+  { id: "integrations", label: "Integrations",       icon: "🔗", phase: 4, tier: "registered", gateHint: "Connect your brand data to your CRM, website, and content tools." },
+  { id: "export",       label: "Export",             icon: "↗",  phase: 4, tier: "free" },
 ];
 
 const ARCHETYPES = [
@@ -1508,6 +1510,142 @@ function ExportSection({ brand, onSave, email }) {
 }
 
 // ═══════════════════════════════════════════════
+// SECTION GATE MODAL
+// ═══════════════════════════════════════════════
+function SectionGateModal({ section, onClose, onUnlocked }) {
+  const isRegGate  = section.tier === "registered";
+  const [email, setEmail]   = useState("");
+  const [phase, setPhase]   = useState("main"); // main | email | credits | earn
+  const [contactText, setContactText] = useState("");
+  const [earnMsg, setEarnMsg] = useState("");
+
+  const refUrl = getReferralUrl();
+
+  const doRegister = () => {
+    if (!email.includes("@")) return;
+    _register(email);
+    setPhase("done");
+  };
+
+  const doShare = (action, url) => {
+    if (url) window.open(url, "_blank", "width=600,height=500");
+    const gained = claimEarnAction(action);
+    setEarnMsg(gained ? "+1 credit earned!" : "Already claimed.");
+  };
+
+  const doImport = () => {
+    const emails = contactText.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
+    const { added } = importContacts(emails);
+    setEarnMsg(added > 0 ? `+${added} credit${added !== 1 ? "s" : ""} earned!` : "All contacts already imported.");
+  };
+
+  const copyRef = () => { navigator.clipboard.writeText(refUrl); setEarnMsg("Referral link copied! You earn 1 credit for each friend who registers."); };
+
+  return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
+      <div style={{ maxWidth:480,width:"100%",background:"#0e0e14",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden" }}>
+
+        {phase === "done" ? (
+          <div style={{ padding:"48px 32px",textAlign:"center" }}>
+            <div style={{ fontSize:40,marginBottom:16 }}>✓</div>
+            <div style={{ fontSize:22,fontWeight:800,color:"#2ecc71",marginBottom:8 }}>You're in!</div>
+            <div style={{ fontSize:14,color:"#555",marginBottom:24 }}>3 free credits added to your account. Sections unlocked.</div>
+            <button onClick={onUnlocked} style={{ padding:"12px 32px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Continue Building →</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ padding:"24px 28px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:6 }}>
+                <span style={{ fontSize:20 }}>{section.icon}</span>
+                <span style={{ fontSize:16,fontWeight:800,color:"#fff" }}>{section.label}</span>
+                <span style={{ fontSize:10,padding:"2px 8px",borderRadius:10,background:isRegGate?"rgba(46,204,113,0.1)":"rgba(243,156,18,0.1)",color:isRegGate?"#2ecc71":"#f39c12",fontWeight:700 }}>{isRegGate?"FREE":"PRO"}</span>
+              </div>
+              <div style={{ fontSize:13,color:"#444" }}>{section.gateHint}</div>
+            </div>
+
+            <div style={{ padding:"20px 28px" }}>
+              {/* Tabs */}
+              <div style={{ display:"flex",gap:6,marginBottom:18 }}>
+                {[["main", isRegGate?"Register Free":"Upgrade"], ["earn","Earn Credits"]].map(([id,label]) => (
+                  <button key={id} onClick={() => setPhase(id)}
+                    style={{ padding:"6px 14px",borderRadius:20,border:`1px solid ${phase===id?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.06)"}`,background:phase===id?"rgba(255,255,255,0.06)":"transparent",color:phase===id?"#fff":"#444",fontSize:12,fontWeight:phase===id?700:400,cursor:"pointer",fontFamily:"inherit" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {phase === "main" && isRegGate && (
+                <div>
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Register free and get <strong style={{color:"#2ecc71"}}>3 content credits</strong> — no credit card required.</div>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()}
+                    placeholder="your@email.com"
+                    style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
+                  />
+                  <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                    Register Free — Get 3 Credits →
+                  </button>
+                </div>
+              )}
+
+              {phase === "main" && !isRegGate && (
+                <div>
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Pro sections include advanced intelligence: ICPs, offer architecture, brand stories, content calendar, sensory physics, and more.</div>
+                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14 }}>
+                    {CREDIT_PACKS.map(p => (
+                      <button key={p.id} onClick={() => { _upgradePro(p.credits); onUnlocked(); }}
+                        style={{ padding:"12px 10px",borderRadius:9,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",textAlign:"left" }}>
+                        <div style={{ fontSize:12,fontWeight:700,color:"#ccc" }}>{p.label}</div>
+                        <div style={{ fontSize:18,fontWeight:800,color:"#fff" }}>{p.credits} <span style={{ fontSize:10,color:"#444" }}>credits</span></div>
+                        <div style={{ fontSize:14,fontWeight:700,color:"#e94560" }}>{p.price}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {phase === "earn" && (
+                <div>
+                  <div style={{ fontSize:12,color:"#444",marginBottom:14 }}>Do any of the below to earn free content credits.</div>
+                  <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:14 }}>
+                    {[
+                      { action:"share_fb",  label:"Share on Facebook",  icon:"f",  url:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refUrl)}` },
+                      { action:"share_li",  label:"Post on LinkedIn",    icon:"in", url:`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(refUrl)}` },
+                      { action:"share_x",   label:"Post on X / Twitter", icon:"✕",  url:`https://x.com/intent/tweet?text=${encodeURIComponent("Just built my brand identity with BrandMD — it's incredible. Try it free:")}%20${encodeURIComponent(refUrl)}` },
+                      { action:"share_link",label:"Copy referral link",  icon:"◈",  url: null },
+                    ].map(item => (
+                      <button key={item.action} onClick={() => item.action==="share_link" ? copyRef() : doShare(item.action, item.url)}
+                        style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${hasEarnedAction(item.action)?"rgba(46,204,113,0.2)":"rgba(255,255,255,0.07)"}`,background:hasEarnedAction(item.action)?"rgba(46,204,113,0.04)":"rgba(255,255,255,0.02)" }}>
+                        <span style={{ fontSize:13,color:hasEarnedAction(item.action)?"#2ecc71":"#aaa" }}>{item.icon} {item.label}</span>
+                        <span style={{ fontSize:11,color:hasEarnedAction(item.action)?"#2ecc71":"#555",fontWeight:700 }}>{hasEarnedAction(item.action)?"✓ Claimed":"+1 credit"}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ marginBottom:14 }}>
+                    <div style={{ fontSize:11,fontWeight:700,color:"#555",textTransform:"uppercase",letterSpacing:0.5,marginBottom:6 }}>Import contacts — 1 credit per contact (max 25)</div>
+                    <textarea value={contactText} onChange={e=>setContactText(e.target.value)} rows={3}
+                      placeholder="Paste email addresses separated by commas, semicolons, or line breaks…"
+                      style={{ width:"100%",padding:"9px 11px",borderRadius:7,border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",color:"#ccc",fontSize:12,fontFamily:"inherit",outline:"none",resize:"none",boxSizing:"border-box" }}
+                    />
+                    <button onClick={doImport} style={{ marginTop:7,width:"100%",padding:"9px 0",borderRadius:7,border:"none",background:"rgba(46,204,113,0.1)",color:"#2ecc71",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                      Import & Earn Credits
+                    </button>
+                  </div>
+                  {earnMsg && <div style={{ fontSize:12,color:"#2ecc71",fontWeight:600,marginTop:6 }}>{earnMsg}</div>}
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding:"12px 28px",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",justifyContent:"flex-end" }}>
+              <button onClick={onClose} style={{ padding:"8px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,0.07)",background:"transparent",color:"#444",fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>Close</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════
 export default function BrandBoardBuilder({ boardId: initialBoardId }) {
@@ -1519,6 +1657,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [saved, setSaved] = useState(false);
   const [shareUrl, setShareUrl] = useState(null);
   const [loading, setLoading] = useState(!!initialBoardId);
+  const [gateTarget, setGateTarget] = useState(null);
   const scrollRef = useRef(null);
   const sectionRefs = useRef({});
   const aiEnabled = isAIAvailable();
@@ -1633,6 +1772,55 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   }
 
   const renderSection = (id) => {
+    const sectionDef = SECTIONS.find(s => s.id === id);
+    if (sectionDef && !isUnlocked(sectionDef.tier || "free")) {
+      const isRegistered = sectionDef.tier === "registered";
+      const bc = brand.primaryColor || "#e94560";
+      return (
+        <div style={{ padding: "60px 40px", textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: isRegistered ? "rgba(46,204,113,0.08)" : `rgba(${hexToRgbStr(bc)},0.08)`, border: `1px solid ${isRegistered ? "rgba(46,204,113,0.2)" : `rgba(${hexToRgbStr(bc)},0.2)`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 20px" }}>
+            {isRegistered ? "◈" : "◆"}
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 8 }}>
+            {sectionDef.label}
+          </div>
+          <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7, marginBottom: 6 }}>
+            {sectionDef.gateHint || (isRegistered ? "Register free to unlock this section." : "Upgrade to Pro to unlock this section.")}
+          </div>
+          <div style={{ fontSize: 11, color: "#2a2a2a", marginBottom: 28 }}>
+            {isRegistered ? "Free · No credit card" : "Pro plan · Buy credits to generate content"}
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <button
+              onClick={() => setGateTarget(sectionDef)}
+              style={{ padding: "11px 24px", borderRadius: 9, border: "none", background: isRegistered ? "linear-gradient(135deg,#2ecc71,#27ae60)" : `linear-gradient(135deg,${bc},${bc}cc)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              {isRegistered ? "Register Free →" : "Upgrade to Pro →"}
+            </button>
+          </div>
+          <div style={{ marginTop: 32, padding: "12px 16px", borderRadius: 8, background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", textAlign: "left" }}>
+            <div style={{ fontSize: 10, color: "#333", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>
+              {isRegistered ? "Free registration unlocks" : "Pro unlocks"}
+            </div>
+            {isRegistered ? (
+              <div style={{ fontSize: 11, color: "#3a3a3a", lineHeight: 1.8 }}>
+                Archetype · StoryBrand · Content Pillars · Voice & Messaging<br />
+                Audience · Vocabulary · Competitive · Photography · Logo<br />
+                Accessibility · Integrations · Custom Fields
+              </div>
+            ) : (
+              <div style={{ fontSize: 11, color: "#3a3a3a", lineHeight: 1.8 }}>
+                Writing System · Brand Manifesto · Ideal Customers (ICPs)<br />
+                Customer Journey · Proof Framework · Market Position<br />
+                Offer Architecture · Brand Stories · Content Calendar<br />
+                Platform Voice · Brand Sensory · Motion · Media<br />
+                + Content Studio with AI content generation
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
     const map = {
       overview: <OverviewSection brand={brand} update={update} onApplyScanned={applyScannedData} />,
       identity: <IdentitySection brand={brand} update={update} />,
@@ -1736,17 +1924,20 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
                 {SECTIONS.filter((s) => s.phase === pi).map((s) => {
                   const isActive = activeSection === s.id;
                   const ac = brand.primaryColor || "#e94560";
+                  const locked = !isUnlocked(s.tier || "free");
+                  const lockColor = s.tier === "registered" ? "#2ecc71" : "#f39c12";
                   return (
                     <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
                       display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 20px",
                       border: "none", cursor: "pointer", fontSize: "13px", textAlign: "left",
                       background: isActive ? `rgba(${hexToRgbStr(ac)},0.08)` : "transparent",
-                      color: isActive ? ac : "#888",
+                      color: isActive ? ac : locked ? "#3a3a3a" : "#888",
                       borderLeft: isActive ? `2px solid ${ac}` : "2px solid transparent",
                       fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s",
                     }}>
-                      <span style={{ fontSize: "14px", width: "20px" }}>{s.icon}</span>
-                      {s.label}
+                      <span style={{ fontSize: "14px", width: "20px", opacity: locked ? 0.4 : 1 }}>{s.icon}</span>
+                      <span style={{ flex: 1 }}>{s.label}</span>
+                      {locked && <span style={{ fontSize: "9px", color: lockColor, opacity: 0.7 }}>🔒</span>}
                     </button>
                   );
                 })}
@@ -1763,6 +1954,15 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             ))}
           </main>
         </div>
+
+        {/* SECTION GATE MODAL */}
+        {gateTarget && (
+          <SectionGateModal
+            section={gateTarget}
+            onClose={() => setGateTarget(null)}
+            onUnlocked={() => { setGateTarget(null); window.location.reload(); }}
+          />
+        )}
 
         {/* EMAIL GATE */}
         <EmailGate

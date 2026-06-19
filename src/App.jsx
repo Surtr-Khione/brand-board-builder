@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import BrandBoardBuilder from './components/BrandBoardBuilder';
 import BrandLibrary from './pages/BrandLibrary';
@@ -5,6 +6,7 @@ import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
 import ContentStudio from './pages/ContentStudio';
 import { FloatingFeedback } from './components/FeedbackButton';
+import { captureReferral } from './lib/auth';
 
 function BoardPage() {
   const { boardId } = useParams();
@@ -17,6 +19,7 @@ function BrandProfilePage() {
 }
 
 export default function App() {
+  useEffect(() => { captureReferral(); }, []);
   return (
     <BrowserRouter>
       <Routes>
