@@ -22,4 +22,5 @@ export const synthesizeBrand = (sources, existingBrand) => callFn("synthesize-br
 export const analyzeImages = (images) => callFn("analyze-image", { images });
 export const suggestField = (field, brand) =>
   callFn("ai-suggest", { field, brand }).then((d) => d.suggestion);
+export const generateContent = (payload) => callFn("generate-content", payload);
 export const isAIAvailable = () => !!BASE;

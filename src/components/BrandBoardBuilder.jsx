@@ -20,7 +20,7 @@ const useBrand = () => useContext(BrandCtx);
 // ═══════════════════════════════════════════════
 const PHASES = [
   { name: "Discover", color: "#e94560", sections: ["overview"] },
-  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "language", "manifesto", "audience", "icps", "journey", "proof", "market", "socialvoice", "vocabulary", "competitive"] },
+  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "language", "manifesto", "audience", "icps", "journey", "proof", "market", "offer", "stories", "calendar", "socialvoice", "vocabulary", "competitive"] },
   { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "sensory", "logo", "motion", "media"] },
   { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
   { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
@@ -40,6 +40,9 @@ const SECTIONS = [
   { id: "journey", label: "Customer Journey", icon: "→", phase: 1 },
   { id: "proof", label: "Proof Framework", icon: "◉", phase: 1 },
   { id: "market", label: "Market Position", icon: "◇", phase: 1 },
+  { id: "offer", label: "Offer Architecture", icon: "◆", phase: 1 },
+  { id: "stories", label: "Brand Stories", icon: "◎", phase: 1 },
+  { id: "calendar", label: "Content Calendar", icon: "◈", phase: 1 },
   { id: "socialvoice", label: "Platform Voice", icon: "📡", phase: 1 },
   { id: "vocabulary", label: "Brand Vocabulary", icon: "📝", phase: 1 },
   { id: "competitive", label: "Positioning", icon: "◧", phase: 1 },
@@ -138,6 +141,26 @@ const DEFAULT_BRAND = {
   // Brand Sensory Physics
   brandSpeed: 50, brandWeight: 50, brandTemperature: 50, brandTexture: 50, brandDensity: 50,
   brandSensoryNotes: "",
+  // Offer Architecture
+  offerLeadMagnet: "", offerLeadMagnetFormat: "",
+  offerIntroOffer: "", offerIntroPrice: "",
+  offerCoreOffer: "", offerCorePrice: "",
+  offerPremiumOffer: "", offerPremiumPrice: "",
+  offerUpsells: [""],
+  offerCTA: "", offerValueProp: "",
+  // Brand Story Library
+  brandStories: [
+    { id: "1", type: "origin",         label: "Origin Story",            title: "", story: "" },
+    { id: "2", type: "first-win",      label: "First Big Win",           title: "", story: "" },
+    { id: "3", type: "failure",        label: "Failure & Pivot",         title: "", story: "" },
+    { id: "4", type: "transformation", label: "Customer Transformation", title: "", story: "" },
+    { id: "5", type: "proof",          label: "Proof Moment",            title: "", story: "" },
+  ],
+  // Content Calendar
+  contentMixEducational: 40, contentMixPromotional: 20, contentMixEntertainment: 40,
+  contentRotation: "", seasonalMoments: [""],
+  contentCadenceInstagram: "", contentCadenceLinkedIn: "",
+  contentCadenceEmail: "", contentCadenceTikTok: "",
 };
 
 // ═══════════════════════════════════════════════
@@ -1246,8 +1269,162 @@ function SensorySection({ brand, update }) {
   );
 }
 
+// ─── OFFER ARCHITECTURE ──────────────────────────────────────────────────────
+function OfferSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const ac = brand.accentColor || "#f39c12";
+  const tiers = [
+    { key: "LeadMagnet", label: "Lead Magnet", desc: "Free — exchange for attention/email", color: "#2ecc71", priceKey: "LeadMagnetFormat", priceLabel: "Format", pricePlaceholder: "PDF guide · Quiz · Free training · Template" },
+    { key: "IntroOffer",  label: "Intro Offer",  desc: "Low-cost entry point",              color: "#3498db", priceKey: "IntroPrice",       priceLabel: "Price",  pricePlaceholder: "$47 – $197" },
+    { key: "CoreOffer",   label: "Core Offer",   desc: "Primary revenue product",           color: bc,        priceKey: "CorePrice",        priceLabel: "Price",  pricePlaceholder: "$497 – $2,997" },
+    { key: "PremiumOffer",label: "Premium",      desc: "High-touch, highest LTV",           color: ac,        priceKey: "PremiumPrice",     priceLabel: "Price",  pricePlaceholder: "$5,000+" },
+  ];
+  return (
+    <div>
+      <SectionHeader title="Offer Architecture" subtitle="The complete offer ladder — from free to premium. This is what every piece of content ultimately leads to." phase={1} />
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>Primary CTA / Call to Action</label>
+        <input type="text" value={brand.offerCTA || ""} onChange={e => update("offerCTA", e.target.value)}
+          placeholder="e.g. Book a free strategy call · Download the guide · Start your free trial"
+          style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid rgba(${hexToRgbStr(bc)},0.2)`, background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+        <div style={{ fontSize: 10, color: "#333", marginTop: 5 }}>This CTA is injected into every piece of AI-generated content</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+        {tiers.map(t => (
+          <div key={t.key} style={{ padding: "14px 16px", borderRadius: 10, border: `1px solid rgba(${hexToRgbStr(t.color)},0.18)`, background: `rgba(${hexToRgbStr(t.color)},0.04)` }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: t.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 800, color: t.color, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.label}</span>
+              <span style={{ fontSize: 10, color: "#444" }}>{t.desc}</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: 8 }}>
+              <input type="text" value={brand[`offer${t.key}`] || ""} onChange={e => update(`offer${t.key}`, e.target.value)}
+                placeholder={`Name of your ${t.label.toLowerCase()}`}
+                style={{ padding: "8px 12px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", color: "#e0e0e0", fontSize: 13, fontFamily: "inherit", outline: "none" }} />
+              <input type="text" value={brand[`offer${t.priceKey}`] || ""} onChange={e => update(`offer${t.priceKey}`, e.target.value)}
+                placeholder={t.pricePlaceholder}
+                style={{ padding: "8px 12px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", color: "#e0e0e0", fontSize: 13, fontFamily: "inherit", outline: "none" }} />
+            </div>
+            <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+              <span style={{ fontSize: 9, color: "#333", textTransform: "uppercase", letterSpacing: 1, paddingTop: 3 }}>Name</span>
+              <span style={{ flex: 1 }} />
+              <span style={{ fontSize: 9, color: "#333", textTransform: "uppercase", letterSpacing: 1, paddingTop: 3, marginRight: 8 }}>{t.priceLabel}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <ArrayInput label="Upsell / Post-Purchase Sequence" values={brand.offerUpsells || [""]} onChange={v => update("offerUpsells", v)} hint="e.g. Add-on implementation · Annual membership · Done-for-you upgrade" />
+      <TextInput label="Value Proposition Statement" value={brand.offerValueProp} onChange={v => update("offerValueProp", v)} hint='The single sentence that makes someone say "I need that." Bridges ICP pain → your core offer.' aiField="offerValueProp" />
+    </div>
+  );
+}
+
+// ─── BRAND STORY LIBRARY ──────────────────────────────────────────────────────
+function StoriesSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const STORY_COLORS = [bc, brand.accentColor || "#f39c12", brand.secondaryColor || "#3498db", "#9b59b6", "#2ecc71"];
+  const updateStory = (i, field, v) => {
+    const arr = [...(brand.brandStories || [])];
+    arr[i] = { ...arr[i], [field]: v };
+    update("brandStories", arr);
+  };
+  const stories = brand.brandStories || [];
+  return (
+    <div>
+      <SectionHeader title="Brand Story Library" subtitle="The 5 true stories your brand can draw from for any piece of content — social, email, webinar, press, or sales." phase={1} />
+      <div style={{ fontSize: 12, color: "#444", marginBottom: 16, lineHeight: 1.6 }}>
+        Every story has a structure: <strong style={{ color: "#777" }}>Setup → Conflict → Resolution → Lesson</strong>. Write them in your brand's voice.
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {stories.map((story, i) => (
+          <div key={story.id} style={{ borderRadius: 10, border: `1px solid rgba(${hexToRgbStr(STORY_COLORS[i] || bc)},0.15)`, background: "rgba(255,255,255,0.015)", overflow: "hidden" }}>
+            <div style={{ padding: "10px 14px", background: `rgba(${hexToRgbStr(STORY_COLORS[i] || bc)},0.07)`, borderBottom: `1px solid rgba(${hexToRgbStr(STORY_COLORS[i] || bc)},0.1)`, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 20, height: 20, borderRadius: "50%", background: `rgba(${hexToRgbStr(STORY_COLORS[i] || bc)},0.2)`, border: `1px solid rgba(${hexToRgbStr(STORY_COLORS[i] || bc)},0.3)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: STORY_COLORS[i] || bc, flexShrink: 0 }}>
+                {i + 1}
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: STORY_COLORS[i] || bc, textTransform: "uppercase", letterSpacing: 0.5 }}>{story.label}</div>
+                <div style={{ fontSize: 9, color: "#444", marginTop: 1 }}>
+                  {["The moment it all started", "Your first proof of concept", "The breakdown before the breakthrough", "A customer's before/after transformation", "The moment that proved everything"][i]}
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: "12px 14px" }}>
+              <input type="text" value={story.title} onChange={e => updateStory(i, "title", e.target.value)}
+                placeholder="Story headline / working title"
+                style={{ width: "100%", padding: "7px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", color: "#e0e0e0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box", marginBottom: 8 }} />
+              <textarea value={story.story} onChange={e => updateStory(i, "story", e.target.value)}
+                placeholder={["Tell the origin moment. The specific day, place, and feeling that started everything. Make it cinematic.", "The first time it worked. Who was the customer? What happened? What did it prove?", "The thing that almost killed it. The pivot, the failure, the dark moment — and what changed.", "One real customer transformation, told in their words. Before → after → what made the difference.", "The piece of proof that changed everything. A stat, a moment, a result that validated the whole thing."][i]}
+                rows={4}
+                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", color: "#d0d0d0", fontSize: 12, fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── CONTENT CALENDAR BLUEPRINT ───────────────────────────────────────────────
+function CalendarSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const edu = brand.contentMixEducational ?? 40;
+  const promo = brand.contentMixPromotional ?? 20;
+  const ent = brand.contentMixEntertainment ?? 40;
+  const total = edu + promo + ent;
+  const platformCadences = [
+    { key: "contentCadenceInstagram", label: "Instagram", icon: "📸" },
+    { key: "contentCadenceLinkedIn",  label: "LinkedIn",  icon: "💼" },
+    { key: "contentCadenceEmail",     label: "Email",     icon: "✉" },
+    { key: "contentCadenceTikTok",    label: "TikTok",    icon: "🎵" },
+  ];
+  return (
+    <div>
+      <SectionHeader title="Content Calendar" subtitle="Your posting cadence, content mix, and topic rotation framework — the engine behind consistent content creation." phase={1} />
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 }}>Content Mix</label>
+          <span style={{ fontSize: 10, color: total === 100 ? "#2ecc71" : "#e94560", fontWeight: 700 }}>{total}% total {total !== 100 ? "— adjust to reach 100%" : "✓"}</span>
+        </div>
+        <div style={{ height: 8, borderRadius: 4, overflow: "hidden", display: "flex", marginBottom: 14 }}>
+          <div style={{ flex: edu, background: "#3498db", transition: "flex 0.3s" }} />
+          <div style={{ flex: promo, background: bc, transition: "flex 0.3s" }} />
+          <div style={{ flex: ent, background: "#9b59b6", transition: "flex 0.3s" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          {[
+            { key: "contentMixEducational",    label: "Educational", color: "#3498db", val: edu,   desc: "Teach, inform, how-to" },
+            { key: "contentMixPromotional",    label: "Promotional", color: bc,        val: promo, desc: "Offers, products, CTA" },
+            { key: "contentMixEntertainment",  label: "Entertainment",color: "#9b59b6", val: ent,   desc: "Stories, culture, fun" },
+          ].map(m => (
+            <div key={m.key} style={{ padding: "12px", borderRadius: 8, border: `1px solid rgba(${hexToRgbStr(m.color)},0.2)`, background: `rgba(${hexToRgbStr(m.color)},0.05)`, textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: m.color, marginBottom: 4 }}>{m.val}%</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", marginBottom: 2 }}>{m.label}</div>
+              <div style={{ fontSize: 9, color: "#333", marginBottom: 8 }}>{m.desc}</div>
+              <input type="range" min={0} max={100} value={m.val} onChange={e => update(m.key, parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: m.color, cursor: "pointer" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+        {platformCadences.map(p => (
+          <div key={p.key}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#555", marginBottom: 5 }}>{p.icon} {p.label}</label>
+            <input type="text" value={brand[p.key] || ""} onChange={e => update(p.key, e.target.value)}
+              placeholder="e.g. 5x/week · Reels + Stories daily"
+              style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", color: "#ccc", fontSize: 12, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+          </div>
+        ))}
+      </div>
+      <TextInput label="Topic Rotation Formula" value={brand.contentRotation} onChange={v => update("contentRotation", v)} hint="e.g. Mon: Educational tutorial · Wed: Customer story · Fri: Behind-the-scenes · Sun: Promotional" multiline aiField="contentRotation" />
+      <ArrayInput label="Seasonal Moments & Campaign Anchors" values={brand.seasonalMoments || [""]} onChange={v => update("seasonalMoments", v)} hint="e.g. Q1 New Year campaign · Summer product launch · Black Friday · Annual report release" />
+    </div>
+  );
+}
+
 function ScoreSection({ brand }) {
-  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps","discoveredUrls","grammarRules","brandCommandments","brandNeverDoes","keyProofStats","proofHierarchy"].includes(k));
+  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps","discoveredUrls","grammarRules","brandCommandments","brandNeverDoes","keyProofStats","proofHierarchy","brandStories","offerUpsells","seasonalMoments"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
     if (typeof v === "boolean") return true;
@@ -1473,6 +1650,9 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       journey: <JourneySection brand={brand} update={update} />,
       proof: <ProofSection brand={brand} update={update} />,
       market: <MarketSection brand={brand} update={update} />,
+      offer: <OfferSection brand={brand} update={update} />,
+      stories: <StoriesSection brand={brand} update={update} />,
+      calendar: <CalendarSection brand={brand} update={update} />,
       sensory: <SensorySection brand={brand} update={update} />,
       colors: <ColorsSection brand={brand} update={update} />,
       typography: <TypographySection brand={brand} update={update} />,
@@ -1522,6 +1702,18 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             </div>
             <button onClick={handleSave} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: saved ? "rgba(46,204,113,0.15)" : "rgba(255,255,255,0.06)", border: saved ? "1px solid rgba(46,204,113,0.3)" : "1px solid rgba(255,255,255,0.08)", color: saved ? "#2ecc71" : "#aaa", fontSize: "12px", fontWeight: 500, transition: "all 0.3s" }}>
               {saved ? "✓ Saved" : "Save"}
+            </button>
+            <button
+              onClick={() => { sessionStorage.setItem("studio_brand", JSON.stringify(brand)); }}
+              style={{ padding: "0", border: "none", background: "transparent", cursor: "pointer" }}
+            >
+              <Link
+                to={boardId ? `/studio/${boardId}` : "/studio"}
+                onClick={() => sessionStorage.setItem("studio_brand", JSON.stringify(brand))}
+                style={{ padding: "6px 16px", borderRadius: "7px", background: `linear-gradient(135deg, ${brand.primaryColor || "#e94560"}, ${brand.accentColor || "#f39c12"})`, color: "#fff", fontSize: "12px", fontWeight: 700, textDecoration: "none", display: "inline-block", letterSpacing: 0.2 }}
+              >
+                ✦ Content Studio
+              </Link>
             </button>
           </div>
         </header>

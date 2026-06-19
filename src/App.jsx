@@ -3,6 +3,7 @@ import BrandBoardBuilder from './components/BrandBoardBuilder';
 import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
+import ContentStudio from './pages/ContentStudio';
 import { FloatingFeedback } from './components/FeedbackButton';
 
 function BoardPage() {
@@ -24,6 +25,8 @@ export default function App() {
         <Route path="/board/:boardId" element={<BoardPage />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
+        <Route path="/studio" element={<ContentStudio />} />
+        <Route path="/studio/:boardId" element={<ContentStudio />} />
       </Routes>
       <FloatingFeedback />
     </BrowserRouter>
