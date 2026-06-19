@@ -20,8 +20,8 @@ const useBrand = () => useContext(BrandCtx);
 // ═══════════════════════════════════════════════
 const PHASES = [
   { name: "Discover", color: "#e94560", sections: ["overview"] },
-  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "audience", "icps", "socialvoice", "vocabulary", "competitive"] },
-  { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "logo", "motion", "media"] },
+  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "language", "manifesto", "audience", "icps", "journey", "proof", "market", "socialvoice", "vocabulary", "competitive"] },
+  { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "sensory", "logo", "motion", "media"] },
   { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
   { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
 ];
@@ -33,14 +33,20 @@ const SECTIONS = [
   { id: "storybrand", label: "StoryBrand Script", icon: "📖", phase: 1 },
   { id: "pillars", label: "Content Pillars", icon: "◆", phase: 1 },
   { id: "voice", label: "Voice & Messaging", icon: "❝", phase: 1 },
+  { id: "language", label: "Writing System", icon: "¶", phase: 1 },
+  { id: "manifesto", label: "Brand Manifesto", icon: "⚑", phase: 1 },
   { id: "audience", label: "Audience", icon: "👥", phase: 1 },
   { id: "icps", label: "Ideal Customers", icon: "◈", phase: 1 },
+  { id: "journey", label: "Customer Journey", icon: "→", phase: 1 },
+  { id: "proof", label: "Proof Framework", icon: "◉", phase: 1 },
+  { id: "market", label: "Market Position", icon: "◇", phase: 1 },
   { id: "socialvoice", label: "Platform Voice", icon: "📡", phase: 1 },
   { id: "vocabulary", label: "Brand Vocabulary", icon: "📝", phase: 1 },
-  { id: "competitive", label: "Positioning", icon: "◇", phase: 1 },
+  { id: "competitive", label: "Positioning", icon: "◧", phase: 1 },
   { id: "colors", label: "Colors & Modes", icon: "◐", phase: 2 },
   { id: "typography", label: "Typography", icon: "Aa", phase: 2 },
   { id: "photography", label: "Photography", icon: "📷", phase: 2 },
+  { id: "sensory", label: "Brand Sensory", icon: "◌", phase: 2 },
   { id: "logo", label: "Logo & Icons", icon: "◫", phase: 2 },
   { id: "motion", label: "Motion", icon: "▸▸", phase: 2 },
   { id: "media", label: "Media & Sound", icon: "▶", phase: 2 },
@@ -111,6 +117,27 @@ const DEFAULT_BRAND = {
   competitivePositioning: "", competitors: ["", ""], differentiators: ["", "", ""],
   // Content strategy / moodboard
   moodboardKeywords: ["", "", ""],
+  // Language & Writing System
+  languageRegister: "", sentenceStyle: "", humorRegister: "", personPreference: "",
+  readingLevel: "", numberStyle: "", capitalizationStyle: "", jargonPolicy: "",
+  grammarRules: [""],
+  // Brand Manifesto
+  brandCommandments: ["", "", "", "", ""],
+  brandNeverDoes: [""],
+  controversyStance: "", crisisVoice: "", brandOwnedMoment: "",
+  // Customer Journey Emotional Map
+  journeyAwareness: "", journeyConsideration: "", journeyPurchase: "",
+  journeyOnboarding: "", journeyRetention: "", journeyAdvocacy: "",
+  // Proof & Evidence Architecture
+  proofHierarchy: [],
+  keyProofStats: [""],
+  socialProofCriteria: "", claimStandards: "",
+  // Market Positioning
+  priceTier: "", marketScope: "", nicheDepth: "",
+  antiPositioning: "", categoryOwnership: "",
+  // Brand Sensory Physics
+  brandSpeed: 50, brandWeight: 50, brandTemperature: 50, brandTexture: 50, brandDensity: 50,
+  brandSensoryNotes: "",
 };
 
 // ═══════════════════════════════════════════════
@@ -856,8 +883,371 @@ function ICPSection({ brand, update }) {
   );
 }
 
+// ─── LANGUAGE & WRITING SYSTEM ──────────────────────────────────────────────
+function LanguageSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const ac = brand.accentColor || "#f39c12";
+  const registers = [
+    { value: "formal", label: "Formal", desc: "Legal, government, financial" },
+    { value: "professional", label: "Professional", desc: "Corporate, B2B, expert-tier" },
+    { value: "conversational", label: "Conversational", desc: "Direct, human, plain-spoken" },
+    { value: "casual", label: "Casual", desc: "Friendly, warm, approachable" },
+    { value: "street", label: "Culture-Native", desc: "Vernacular, community-first" },
+  ];
+  const humors = ["None", "Dry/Wit", "Playful", "Self-deprecating", "Absurdist", "Sardonic"];
+  const persons = [
+    { value: "first-singular", label: "I / Me", desc: "Founder-led" },
+    { value: "first-plural", label: "We / Us", desc: "Team brand" },
+    { value: "second", label: "You", desc: "Customer-first" },
+    { value: "third", label: "The Brand", desc: "Institutional" },
+  ];
+  const chipBtn = (active, color) => ({
+    padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+    border: `1px solid ${active ? color : "rgba(255,255,255,0.08)"}`,
+    background: active ? `rgba(${hexToRgbStr(color)},0.1)` : "rgba(255,255,255,0.02)",
+    color: active ? color : "#777",
+  });
+  return (
+    <div>
+      <SectionHeader title="Writing System" subtitle="The precise rules governing how your brand uses language — register, rhythm, grammar, humor." phase={1} />
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Voice Register</label>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {registers.map(r => (
+            <button key={r.value} onClick={() => update("languageRegister", r.value)} style={chipBtn(brand.languageRegister === r.value, bc)}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{r.label}</div>
+              <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.55, marginTop: 2 }}>{r.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Narrative Person</label>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {persons.map(p => (
+            <button key={p.value} onClick={() => update("personPreference", p.value)} style={{ ...chipBtn(brand.personPreference === p.value, bc), flex: "1 1 120px" }}>
+              <div style={{ fontSize: 14, fontWeight: 800 }}>{p.label}</div>
+              <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.55, marginTop: 2 }}>{p.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Sentence Style</label>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[
+            { v: "punchy", l: "Punchy", d: "Short. Direct. Hit hard." },
+            { v: "elaborate", l: "Elaborate", d: "Rich, layered, nuanced" },
+            { v: "varied", l: "Varied", d: "Context-dependent mix" },
+          ].map(s => (
+            <button key={s.v} onClick={() => update("sentenceStyle", s.v)} style={{ ...chipBtn(brand.sentenceStyle === s.v, bc), flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{s.l}</div>
+              <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2 }}>{s.d}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Humor Register</label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {humors.map(h => (
+            <button key={h} onClick={() => update("humorRegister", h)}
+              style={{ padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600,
+                border: `1px solid ${brand.humorRegister === h ? ac : "rgba(255,255,255,0.08)"}`,
+                background: brand.humorRegister === h ? `rgba(${hexToRgbStr(ac)},0.1)` : "rgba(255,255,255,0.02)",
+                color: brand.humorRegister === h ? ac : "#666" }}>
+              {h}
+            </button>
+          ))}
+        </div>
+      </div>
+      <TextInput label="Reading Level Target" value={brand.readingLevel} onChange={(v) => update("readingLevel", v)} hint="e.g. 8th grade · Business-executive · Graduate · 5th grade (accessibility-first)" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
+        <TextInput label="Number Style" value={brand.numberStyle} onChange={(v) => update("numberStyle", v)} hint="e.g. Always digits · Spell out under ten" />
+        <TextInput label="Capitalization Style" value={brand.capitalizationStyle} onChange={(v) => update("capitalizationStyle", v)} hint="e.g. Sentence case headlines · Title Case CTAs" />
+      </div>
+      <ArrayInput label="Grammar & Style Rules" values={brand.grammarRules || [""]} onChange={(v) => update("grammarRules", v)} hint="e.g. Oxford comma always · Em dashes over parentheses · No exclamation points" />
+      <TextInput label="Jargon Policy" value={brand.jargonPolicy} onChange={(v) => update("jargonPolicy", v)} hint="e.g. Zero jargon — plain language always · Technical terms OK for expert audience · Define all acronyms" multiline aiField="jargonPolicy" />
+    </div>
+  );
+}
+
+// ─── BRAND MANIFESTO ─────────────────────────────────────────────────────────
+function ManifestoSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const commandmentPlaceholders = [
+    "We always put the customer transformation before our own story",
+    "We never speak down to our audience or assume ignorance",
+    "Every touchpoint must feel intentional — nothing is accidental",
+    "We say what we mean — no corporate doublespeak, no hedging",
+    "We own our mistakes faster and louder than our wins",
+  ];
+  const updateCommandment = (i, v) => {
+    const arr = [...(brand.brandCommandments || ["","","","",""])];
+    arr[i] = v;
+    update("brandCommandments", arr);
+  };
+  return (
+    <div>
+      <SectionHeader title="Brand Manifesto" subtitle="The unbreakable laws that govern every brand decision — what this brand always does, never does, and stands for." phase={1} />
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 14 }}>The 5 Brand Commandments</label>
+        {(brand.brandCommandments || ["","","","",""]).map((cmd, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+              background: `rgba(${hexToRgbStr(bc)},0.1)`, border: `1px solid rgba(${hexToRgbStr(bc)},0.25)`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 12, fontWeight: 800, color: bc, marginTop: 5,
+            }}>{i + 1}</div>
+            <input type="text" value={cmd} onChange={(e) => updateCommandment(i, e.target.value)}
+              placeholder={commandmentPlaceholders[i]}
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: `1px solid rgba(${hexToRgbStr(bc)},0.12)`, background: "rgba(255,255,255,0.025)", color: "#e0e0e0", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
+          </div>
+        ))}
+      </div>
+      <ArrayInput label="Red Lines — What This Brand Never Does" values={brand.brandNeverDoes || [""]} onChange={(v) => update("brandNeverDoes", v)} hint="e.g. Makes promises we can't keep · Punches down at any group · Copies competitor campaigns" />
+      <TextInput label="Controversy & Culture Stance" value={brand.controversyStance} onChange={(v) => update("controversyStance", v)} hint="Which cultural or political topics does the brand engage with — and which are off-limits? Why?" multiline aiField="controversyStance" />
+      <TextInput label="Crisis Response Voice" value={brand.crisisVoice} onChange={(v) => update("crisisVoice", v)} hint="How does this brand communicate during a PR crisis or public failure? Speed, tone, medium, who speaks?" multiline />
+      <TextInput label="Signature Brand Ritual / Owned Moment" value={brand.brandOwnedMoment} onChange={(v) => update("brandOwnedMoment", v)} hint="What recurring moment does this brand own? e.g. Annual summit · Limited product drops · Year-in-review data release · The unboxing experience" />
+    </div>
+  );
+}
+
+// ─── CUSTOMER JOURNEY EMOTIONAL MAP ──────────────────────────────────────────
+function JourneySection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const stages = [
+    { key: "journeyAwareness",     label: "Awareness",     icon: "◎", q: "How should they feel when they first encounter this brand?" },
+    { key: "journeyConsideration", label: "Consideration", icon: "◉", q: "What should they feel as they research and evaluate options?" },
+    { key: "journeyPurchase",      label: "Purchase",      icon: "◆", q: "What emotion should the purchase moment itself create?" },
+    { key: "journeyOnboarding",    label: "Onboarding",    icon: "◈", q: "What should their very first experience with the product feel like?" },
+    { key: "journeyRetention",     label: "Retention",     icon: "◇", q: "What keeps them coming back? What do they feel in the long-term relationship?" },
+    { key: "journeyAdvocacy",      label: "Advocacy",      icon: "◭", q: "What transformation makes them compelled to tell others?" },
+  ];
+  return (
+    <div>
+      <SectionHeader title="Customer Journey" subtitle="Map the emotional experience at every stage — from stranger to advocate." phase={1} />
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, alignItems: "center", overflowX: "auto", paddingBottom: 6 }}>
+        {stages.map((s, i) => (
+          <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <div style={{
+              padding: "8px 12px", borderRadius: 8, textAlign: "center",
+              background: brand[s.key] ? `rgba(${hexToRgbStr(bc)},0.1)` : "rgba(255,255,255,0.03)",
+              border: `1px solid ${brand[s.key] ? `rgba(${hexToRgbStr(bc)},0.3)` : "rgba(255,255,255,0.06)"}`,
+            }}>
+              <div style={{ fontSize: 15 }}>{s.icon}</div>
+              <div style={{ fontSize: 9, color: brand[s.key] ? bc : "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 3, whiteSpace: "nowrap" }}>{s.label}</div>
+              <div style={{ fontSize: 9, color: brand[s.key] ? "#2ecc71" : "#2a2a2a", marginTop: 2, fontWeight: 700 }}>{brand[s.key] ? "✓" : "·"}</div>
+            </div>
+            {i < stages.length - 1 && <div style={{ color: "#2a2a2a", fontSize: 14, flexShrink: 0 }}>→</div>}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {stages.map(s => (
+          <div key={s.key} style={{ padding: "14px 16px", borderRadius: 10, border: `1px solid rgba(${hexToRgbStr(bc)},0.1)`, background: "rgba(255,255,255,0.018)" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+              <span style={{ fontSize: 13 }}>{s.icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: bc, textTransform: "uppercase", letterSpacing: 0.5 }}>{s.label}</span>
+            </div>
+            <div style={{ fontSize: 11, color: "#444", marginBottom: 8, lineHeight: 1.5 }}>{s.q}</div>
+            <textarea value={brand[s.key] || ""} onChange={(e) => update(s.key, e.target.value)}
+              placeholder="Describe the desired emotional experience…"
+              rows={3}
+              style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", color: "#e0e0e0", fontSize: 12, fontFamily: "inherit", outline: "none", resize: "none", boxSizing: "border-box" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROOF & EVIDENCE FRAMEWORK ──────────────────────────────────────────────
+function ProofSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const PROOF_TYPES = [
+    { key: "data-research",       label: "Original Data / Research",   icon: "📊" },
+    { key: "case-study",          label: "Case Studies",               icon: "📋" },
+    { key: "testimonials",        label: "Customer Testimonials",      icon: "💬" },
+    { key: "expert-endorsement",  label: "Expert Endorsement",         icon: "🎓" },
+    { key: "press-awards",        label: "Press & Awards",             icon: "🏆" },
+    { key: "live-demo",           label: "Live Demo / Free Trial",     icon: "▶" },
+    { key: "before-after",        label: "Before / After Results",     icon: "↔" },
+    { key: "certification",       label: "Certification / Third-Party Audit", icon: "✓" },
+  ];
+  const hierarchy = brand.proofHierarchy || [];
+  const remaining = PROOF_TYPES.filter(t => !hierarchy.includes(t.key));
+  return (
+    <div>
+      <SectionHeader title="Proof Framework" subtitle="How this brand substantiates every claim — ranked by credibility, stocked with the right evidence." phase={1} />
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 }}>Proof Hierarchy (rank #1 = most credible)</label>
+        </div>
+        {hierarchy.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            {hierarchy.map((key, i) => {
+              const type = PROOF_TYPES.find(t => t.key === key);
+              if (!type) return null;
+              return (
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, border: `1px solid rgba(${hexToRgbStr(bc)},0.25)`, background: `rgba(${hexToRgbStr(bc)},0.08)`, color: bc, fontSize: 12, fontWeight: 600 }}>
+                  <span style={{ fontSize: 9, opacity: 0.5, minWidth: 14 }}>#{i + 1}</span>
+                  <span>{type.icon}</span>
+                  <span>{type.label}</span>
+                  <button onClick={() => update("proofHierarchy", hierarchy.filter(h => h !== key))} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.45, fontSize: 13, padding: 0, marginLeft: 4, lineHeight: 1 }}>×</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {remaining.length > 0 && (
+          <div>
+            <div style={{ fontSize: 10, color: "#333", marginBottom: 7 }}>Click to add to your hierarchy:</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {remaining.map(type => (
+                <button key={type.key} onClick={() => update("proofHierarchy", [...hierarchy, type.key])}
+                  style={{ padding: "5px 11px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", color: "#666", display: "flex", alignItems: "center", gap: 6 }}>
+                  {type.icon} {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <ArrayInput label="Key Proof Statistics (always have ready)" values={brand.keyProofStats || [""]} onChange={(v) => update("keyProofStats", v)} hint="e.g. 94% customer retention · $2.4M average savings per engagement · 3× faster than industry standard" />
+      <TextInput label="Social Proof Criteria" value={brand.socialProofCriteria} onChange={(v) => update("socialProofCriteria", v)} hint="What makes a testimonial credible? Who should endorse this brand? What proof doesn't count?" multiline />
+      <TextInput label="Claim Standards" value={brand.claimStandards} onChange={(v) => update("claimStandards", v)} hint="What claims require substantiation? What language is legal/brand-policy approved vs. off-limits?" multiline />
+    </div>
+  );
+}
+
+// ─── MARKET POSITIONING ───────────────────────────────────────────────────────
+function MarketSection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const TIERS = [
+    { key: "budget",       label: "Budget",       desc: "Price-first, highest volume",       color: "#888888" },
+    { key: "value",        label: "Value",        desc: "Quality at an honest price",        color: "#27ae60" },
+    { key: "mid-market",   label: "Mid-Market",   desc: "Quality + accessibility balanced",  color: "#2980b9" },
+    { key: "premium",      label: "Premium",      desc: "Above-average, aspirational",       color: "#8e44ad" },
+    { key: "luxury",       label: "Luxury",       desc: "Status, craft, exclusivity",        color: "#d4a017" },
+    { key: "ultra-luxury", label: "Ultra-Luxury", desc: "Ultra-HNW, art-level pricing",      color: "#c0392b" },
+  ];
+  const SCOPES = ["Local", "Regional", "National", "Global", "Niche-Global"];
+  const NICHES = ["Mass Market", "Niche", "Micro-Niche", "Ultra-Niche"];
+  return (
+    <div>
+      <SectionHeader title="Market Position" subtitle="Where this brand lives in the competitive landscape — price tier, market scope, and who it's NOT for." phase={1} />
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>Price Tier</label>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {TIERS.map(t => (
+            <button key={t.key} onClick={() => update("priceTier", t.key)}
+              style={{ padding: "10px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", textAlign: "left", flex: "1 1 140px",
+                border: `1px solid ${brand.priceTier === t.key ? t.color : "rgba(255,255,255,0.08)"}`,
+                background: brand.priceTier === t.key ? `rgba(${hexToRgbStr(t.color)},0.1)` : "rgba(255,255,255,0.02)" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: brand.priceTier === t.key ? t.color : "#888", marginBottom: 3 }}>{t.label}</div>
+              <div style={{ fontSize: 10, color: "#444", lineHeight: 1.4 }}>{t.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Market Scope</label>
+          {SCOPES.map(s => (
+            <button key={s} onClick={() => update("marketScope", s)}
+              style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: brand.marketScope === s ? 700 : 400, marginBottom: 6,
+                border: `1px solid ${brand.marketScope === s ? bc : "rgba(255,255,255,0.07)"}`,
+                background: brand.marketScope === s ? `rgba(${hexToRgbStr(bc)},0.08)` : "rgba(255,255,255,0.02)",
+                color: brand.marketScope === s ? bc : "#666" }}>
+              {s}
+            </button>
+          ))}
+        </div>
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>Audience Depth</label>
+          {NICHES.map(n => (
+            <button key={n} onClick={() => update("nicheDepth", n)}
+              style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: brand.nicheDepth === n ? 700 : 400, marginBottom: 6,
+                border: `1px solid ${brand.nicheDepth === n ? bc : "rgba(255,255,255,0.07)"}`,
+                background: brand.nicheDepth === n ? `rgba(${hexToRgbStr(bc)},0.08)` : "rgba(255,255,255,0.02)",
+                color: brand.nicheDepth === n ? bc : "#666" }}>
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+      <TextInput label="Anti-Positioning — Who This Brand Is NOT For" value={brand.antiPositioning} onChange={(v) => update("antiPositioning", v)} hint="e.g. Not for price shoppers · Not for enterprise orgs · Not for brands who want to play it safe · Not for people who want fast and cheap" multiline aiField="antiPositioning" />
+      <TextInput label="Category Ownership Statement" value={brand.categoryOwnership} onChange={(v) => update("categoryOwnership", v)} hint='e.g. "We own the category of performance nutrition for professional athletes" — what distinct category does this brand own or is building?' />
+    </div>
+  );
+}
+
+// ─── BRAND SENSORY PHYSICS ────────────────────────────────────────────────────
+function SensorySection({ brand, update }) {
+  const bc = brand.primaryColor || "#e94560";
+  const SLIDERS = [
+    { key: "brandSpeed",       left: "Deliberate",   right: "Reactive",    ld: "Slow, considered, timeless", rd: "Fast, urgent, real-time",     le: "Hermès, Rolex",     re: "Nike, Red Bull" },
+    { key: "brandWeight",      left: "Featherlight", right: "Heavyweight", ld: "Minimal, airy, effortless",  rd: "Dense, powerful, substantial", le: "Muji, Apple Notes", re: "Porsche, McKinsey" },
+    { key: "brandTemperature", left: "Cold",         right: "Warm",        ld: "Clinical, precise, rational",rd: "Human, intimate, emotive",     le: "Bloomberg, Palantir",re: "Airbnb, Headspace" },
+    { key: "brandTexture",     left: "Raw",          right: "Polished",    ld: "Rough, honest, unfiltered",  rd: "Refined, crafted, curated",    le: "Vice, Patagonia",   re: "LVMH, Chanel" },
+    { key: "brandDensity",     left: "Sparse",       right: "Rich",        ld: "Minimal, one idea at a time",rd: "Layered, immersive, complex",  le: "Apple, Calm",       re: "Spotify, Google Maps" },
+  ];
+  const temp = brand.brandTemperature ?? 50;
+  const density = brand.brandDensity ?? 50;
+  const weight = brand.brandWeight ?? 50;
+  const speed = brand.brandSpeed ?? 50;
+  const texture = brand.brandTexture ?? 50;
+  const previewHue = Math.round(220 - temp * 2);
+  const previewSat = Math.round(15 + density * 0.3);
+  const previewLight = Math.round(6 + weight * 0.07);
+  const previewBg = `linear-gradient(135deg, hsl(${previewHue},${previewSat}%,${previewLight}%) 0%, rgba(${hexToRgbStr(bc)},0.18) 100%)`;
+  const previewFontWeight = weight > 65 ? 900 : weight > 45 ? 600 : 300;
+  const previewTracking = density < 35 ? "0.15em" : density > 65 ? "0" : "0.04em";
+  const previewTextTransform = speed > 65 ? "uppercase" : "none";
+  const previewOpacity = texture < 40 ? 0.72 : 0.95;
+  return (
+    <div>
+      <SectionHeader title="Brand Sensory Physics" subtitle="The intangible force field that permeates every brand decision — speed, weight, temperature, texture, density." phase={2} />
+      <div style={{ borderRadius: 12, overflow: "hidden", height: 90, background: previewBg, border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, position: "relative", transition: "background 0.4s" }}>
+        <div style={{ fontSize: 22 + weight * 0.1, fontWeight: previewFontWeight, letterSpacing: previewTracking, textTransform: previewTextTransform, color: `rgba(255,255,255,${previewOpacity})`, transition: "all 0.3s", fontFamily: "'DM Sans', sans-serif" }}>
+          {brand.brandName || "Your Brand"}
+        </div>
+        <div style={{ position: "absolute", bottom: 7, right: 12, fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: 2, textTransform: "uppercase", fontWeight: 700 }}>SENSORY PREVIEW</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 22, marginBottom: 20 }}>
+        {SLIDERS.map(s => {
+          const val = brand[s.key] ?? 50;
+          return (
+            <div key={s.key}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#d0d0d0" }}>{s.left}</div>
+                  <div style={{ fontSize: 10, color: "#444", lineHeight: 1.4 }}>{s.ld}</div>
+                  <div style={{ fontSize: 9, color: "#2a2a2a", marginTop: 3, fontStyle: "italic" }}>{s.le}</div>
+                </div>
+                <div style={{ fontSize: 12, color: bc, fontWeight: 800, minWidth: 36, textAlign: "center", paddingTop: 2 }}>{val}</div>
+                <div style={{ flex: 1, textAlign: "right" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#d0d0d0" }}>{s.right}</div>
+                  <div style={{ fontSize: 10, color: "#444", lineHeight: 1.4 }}>{s.rd}</div>
+                  <div style={{ fontSize: 9, color: "#2a2a2a", marginTop: 3, fontStyle: "italic" }}>{s.re}</div>
+                </div>
+              </div>
+              <input type="range" min={0} max={100} value={val}
+                onChange={(e) => update(s.key, parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: bc, cursor: "pointer", height: 4 }} />
+            </div>
+          );
+        })}
+      </div>
+      <TextInput label="Sensory Expression Notes" value={brand.brandSensoryNotes} onChange={(v) => update("brandSensoryNotes", v)} hint="Describe the intangible feeling this brand should evoke — materials, pace, atmosphere, environment. What does it feel like to be inside this brand's world?" multiline aiField="brandSensoryNotes" />
+    </div>
+  );
+}
+
 function ScoreSection({ brand }) {
-  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps"].includes(k));
+  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps","discoveredUrls","grammarRules","brandCommandments","brandNeverDoes","keyProofStats","proofHierarchy"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
     if (typeof v === "boolean") return true;
@@ -1078,6 +1468,12 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       socialvoice: <SocialVoiceSection brand={brand} update={update} />,
       vocabulary: <VocabularySection brand={brand} update={update} />,
       competitive: <CompetitiveSection brand={brand} update={update} />,
+      language: <LanguageSection brand={brand} update={update} />,
+      manifesto: <ManifestoSection brand={brand} update={update} />,
+      journey: <JourneySection brand={brand} update={update} />,
+      proof: <ProofSection brand={brand} update={update} />,
+      market: <MarketSection brand={brand} update={update} />,
+      sensory: <SensorySection brand={brand} update={update} />,
       colors: <ColorsSection brand={brand} update={update} />,
       typography: <TypographySection brand={brand} update={update} />,
       photography: <PhotographySection brand={brand} update={update} onApplyScanned={applyScannedData} />,
