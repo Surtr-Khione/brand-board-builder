@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
+import BrandCard from "../components/BrandCard";
 
+// keep rgb for the CTA cards
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
   const r = parseInt(h.slice(0, 2), 16);
@@ -10,21 +12,7 @@ function rgb(hex = "") {
   return isNaN(r + g + b) ? "102,102,102" : `${r},${g},${b}`;
 }
 
-function luma(hex = "") {
-  const h = hex.replace("#", "").padEnd(6, "0");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
-}
-
-function getBrandLogo(website) {
-  if (!website) return null;
-  const domain = website.replace(/^https?:\/\//, "").split("/")[0];
-  return `https://logo.clearbit.com/${domain}`;
-}
-
-function BrandCard({ brand }) {
+function _OldBrandCard({ brand }) {
   const [hov, setHov] = useState(false);
   const [imgErr, setImgErr] = useState(false);
   const pc = brand.primary_color || "#333";
@@ -208,8 +196,8 @@ export default function HomePage() {
                 onMouseLeave={e => e.currentTarget.style.color = "#555"}
               >Browse all →</Link>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
-              {brands.map(b => <BrandCard key={b.slug} brand={b} />)}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
+              {brands.map(b => <BrandCard key={b.slug} brand={b} compact />)}
             </div>
           </div>
         </div>
