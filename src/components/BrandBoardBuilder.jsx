@@ -6,6 +6,7 @@ import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
+import BrandIntelligence from "./BrandIntelligence";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
@@ -18,7 +19,7 @@ const useBrand = () => useContext(BrandCtx);
 // ═══════════════════════════════════════════════
 const PHASES = [
   { name: "Discover", color: "#e94560", sections: ["overview"] },
-  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice"] },
+  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "audience", "socialvoice", "vocabulary", "competitive"] },
   { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "logo", "motion", "media"] },
   { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
   { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
@@ -31,6 +32,10 @@ const SECTIONS = [
   { id: "storybrand", label: "StoryBrand Script", icon: "📖", phase: 1 },
   { id: "pillars", label: "Content Pillars", icon: "◆", phase: 1 },
   { id: "voice", label: "Voice & Messaging", icon: "❝", phase: 1 },
+  { id: "audience", label: "Audience", icon: "👥", phase: 1 },
+  { id: "socialvoice", label: "Platform Voice", icon: "📡", phase: 1 },
+  { id: "vocabulary", label: "Brand Vocabulary", icon: "📝", phase: 1 },
+  { id: "competitive", label: "Positioning", icon: "◇", phase: 1 },
   { id: "colors", label: "Colors & Modes", icon: "◐", phase: 2 },
   { id: "typography", label: "Typography", icon: "Aa", phase: 2 },
   { id: "photography", label: "Photography", icon: "📷", phase: 2 },
@@ -82,6 +87,19 @@ const DEFAULT_BRAND = {
   customFields: [],
   socialPersonality: "", emailSignoff: "",
   integrations: [],
+  // Brand Intelligence sources
+  sources: {},
+  // Audience
+  audienceAge: "", audienceRole: "", audiencePains: "", audienceGoals: "",
+  // Platform-specific voice
+  voiceInstagram: "", voiceLinkedIn: "", voiceYouTube: "",
+  voiceTikTok: "", voiceFacebook: "", voiceTwitter: "",
+  // Brand Vocabulary
+  wordsAlways: ["", ""], wordsNever: ["", ""],
+  // Competitive Positioning
+  competitivePositioning: "", competitors: ["", ""], differentiators: ["", "", ""],
+  // Content strategy / moodboard
+  moodboardKeywords: ["", "", ""],
 };
 
 // ═══════════════════════════════════════════════
@@ -239,7 +257,9 @@ const SectionHeader = ({ title, subtitle, phase }) => {
 function OverviewSection({ brand, update, onApplyScanned }) {
   return (
     <div>
-      <SectionHeader title="Brand Overview" subtitle="The fundamentals of your brand identity." phase={0} />
+      <SectionHeader title="Brand Overview" subtitle="Connect your sources — website, socials, PDFs — and AI builds your entire brand profile." phase={0} />
+      <BrandIntelligence onApply={onApplyScanned} />
+      <div style={{ fontSize: 11, color: "#333", marginBottom: 12, textAlign: "center" }}>— or scan just your website —</div>
       <WebScanner onApply={onApplyScanned} />
       <TextInput label="Brand Name" value={brand.brandName} onChange={(v) => update("brandName", v)} hint="Your brand or company name" />
       <TextInput label="Tagline" value={brand.tagline} onChange={(v) => update("tagline", v)} hint="A memorable phrase that captures your brand" aiField="tagline" />
@@ -496,8 +516,62 @@ function CustomFieldsSection({ brand, update }) {
   );
 }
 
+function AudienceSection({ brand, update }) {
+  return (
+    <div>
+      <SectionHeader title="Audience" subtitle="Who you're speaking to — their profile, pains, and goals." phase={1} />
+      <TextInput label="Age / Demographics" value={brand.audienceAge} onChange={v => update("audienceAge", v)} hint="e.g. 25–45, urban professionals, parents of young children" aiField="audienceAge" />
+      <TextInput label="Role / Job Title" value={brand.audienceRole} onChange={v => update("audienceRole", v)} hint="e.g. Marketing directors at mid-market SaaS companies" aiField="audienceRole" />
+      <TextInput label="Pains & Frustrations" value={brand.audiencePains} onChange={v => update("audiencePains", v)} hint="What keeps them up at night? What problems are they trying to solve?" multiline aiField="audiencePains" />
+      <TextInput label="Goals & Aspirations" value={brand.audienceGoals} onChange={v => update("audienceGoals", v)} hint="What are they trying to achieve? What does success look like?" multiline aiField="audienceGoals" />
+    </div>
+  );
+}
+
+const PLATFORMS_VOICE = [
+  { key: "voiceLinkedIn",  label: "LinkedIn",  icon: "💼", hint: "Professional authority, thought-leadership, case studies" },
+  { key: "voiceInstagram", label: "Instagram", icon: "📸", hint: "Visual storytelling, behind-the-scenes, aspirational captions" },
+  { key: "voiceYouTube",   label: "YouTube",   icon: "▶",  hint: "Educational depth, channel personality, video series style" },
+  { key: "voiceTikTok",    label: "TikTok",    icon: "🎵", hint: "Trend-aware, entertaining, fast-paced hooks" },
+  { key: "voiceFacebook",  label: "Facebook",  icon: "👥", hint: "Community-focused, conversational, shareable" },
+  { key: "voiceTwitter",   label: "Twitter/X", icon: "✕",  hint: "Punchy, opinionated, real-time engagement" },
+];
+
+function SocialVoiceSection({ brand, update }) {
+  return (
+    <div>
+      <SectionHeader title="Platform Voice" subtitle="How the brand sounds on each social channel — tone shifts by context." phase={1} />
+      {PLATFORMS_VOICE.map(p => (
+        <TextInput key={p.key} label={`${p.icon} ${p.label}`} value={brand[p.key]} onChange={v => update(p.key, v)} hint={p.hint} multiline />
+      ))}
+    </div>
+  );
+}
+
+function VocabularySection({ brand, update }) {
+  return (
+    <div>
+      <SectionHeader title="Brand Vocabulary" subtitle="The specific words and phrases that define your voice — and ones you never use." phase={1} />
+      <ArrayInput label="Words We Always Use" values={brand.wordsAlways} onChange={v => update("wordsAlways", v)} hint="e.g. Transform, authentic, bold" />
+      <ArrayInput label="Words We Never Use" values={brand.wordsNever} onChange={v => update("wordsNever", v)} hint="e.g. Cheap, synergy, leverage" />
+      <ArrayInput label="Moodboard Keywords" values={brand.moodboardKeywords} onChange={v => update("moodboardKeywords", v)} hint="e.g. Cinematic, earthy, futuristic, editorial" />
+    </div>
+  );
+}
+
+function CompetitiveSection({ brand, update }) {
+  return (
+    <div>
+      <SectionHeader title="Positioning" subtitle="How you stand apart from the competition." phase={1} />
+      <TextInput label="Competitive Positioning" value={brand.competitivePositioning} onChange={v => update("competitivePositioning", v)} hint='e.g. "We are the only X for Y that does Z"' multiline aiField="competitivePositioning" />
+      <ArrayInput label="Key Competitors" values={brand.competitors} onChange={v => update("competitors", v)} hint="e.g. HubSpot, Salesforce" />
+      <ArrayInput label="Differentiators" values={brand.differentiators} onChange={v => update("differentiators", v)} hint="What makes you the only choice?" />
+    </div>
+  );
+}
+
 function ScoreSection({ brand }) {
-  const fields = Object.entries(brand).filter(([k]) => k !== "customFields" && k !== "contentPillars" && k !== "integrations");
+  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
     if (typeof v === "boolean") return true;
@@ -688,7 +762,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const fields = Object.entries(brand).filter(([k]) => !["customFields", "contentPillars", "integrations", "lightModeEnabled", "darkModeEnabled"].includes(k));
+  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled"].includes(k));
   const filled = fields.filter(([, v]) => {
     if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
     return v && String(v).trim();
@@ -713,6 +787,10 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       storybrand: <StoryBrandSection brand={brand} update={update} />,
       pillars: <PillarsSection brand={brand} update={update} />,
       voice: <VoiceSection brand={brand} update={update} />,
+      audience: <AudienceSection brand={brand} update={update} />,
+      socialvoice: <SocialVoiceSection brand={brand} update={update} />,
+      vocabulary: <VocabularySection brand={brand} update={update} />,
+      competitive: <CompetitiveSection brand={brand} update={update} />,
       colors: <ColorsSection brand={brand} update={update} />,
       typography: <TypographySection brand={brand} update={update} />,
       photography: <PhotographySection brand={brand} update={update} />,
