@@ -30,15 +30,18 @@ function BrandTile({ brand }) {
         }}
       >
         <div style={{ height: 4, background: pc }} />
-        <div style={{ padding: "14px 14px 12px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#f0ece3", marginBottom: 4 }}>{brand.brand_name}</div>
-          <div style={{ fontSize: 10, color: "#555", marginBottom: 10, lineHeight: 1.4 }}>
-            {brand.tagline?.slice(0, 50) || brand.industry}
+        <div style={{ padding: "16px 16px 14px" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#f0ece3", marginBottom: 5, letterSpacing: "-0.2px" }}>{brand.brand_name}</div>
+          <div style={{ fontSize: 11, color: "#555", marginBottom: 12, lineHeight: 1.4, minHeight: 30 }}>
+            {brand.tagline?.slice(0, 55) || brand.industry || ""}
           </div>
-          <div style={{ display: "flex", gap: 5 }}>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             {[pc, brand.secondary_color, brand.accent_color].filter(Boolean).map((c, i) => (
-              <div key={i} style={{ width: 12, height: 12, borderRadius: "50%", background: c, border: "1.5px solid rgba(255,255,255,0.07)" }} />
+              <div key={i} style={{ width: 14, height: 14, borderRadius: "50%", background: c, border: "1.5px solid rgba(255,255,255,0.08)" }} />
             ))}
+            {brand.archetype && (
+              <span style={{ fontSize: 9, color: "#444", marginLeft: 2 }}>{brand.archetype.replace("The ", "")}</span>
+            )}
           </div>
         </div>
       </div>
@@ -141,14 +144,20 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* BRAND TILES PREVIEW */}
+        {/* BRAND WALL */}
         {brands.length > 0 && (
-          <div style={{ width: "100%", maxWidth: 960 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#333", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 20 }}>
-              In the Library
+          <div style={{ width: "100%", maxWidth: 1100 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#333", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                {brands.length} Brands in the Library
+              </div>
+              <Link to="/brands" style={{ fontSize: 12, color: "#555", textDecoration: "none", fontWeight: 600, transition: "color 0.18s" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#f0ece3"}
+                onMouseLeave={e => e.currentTarget.style.color = "#555"}
+              >Browse all →</Link>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
-              {brands.slice(0, 12).map(b => <BrandTile key={b.slug} brand={b} />)}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+              {brands.map(b => <BrandTile key={b.slug} brand={b} />)}
             </div>
           </div>
         )}
