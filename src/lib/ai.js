@@ -19,6 +19,7 @@ export const scanWebsite = (url) => callFn("scan-website", { url });
 export const scanSocial = (url, type) => callFn("scan-social", { url, type });
 export const analyzePDF = (fileBase64, fileName) => callFn("analyze-pdf", { fileBase64, fileName });
 export const synthesizeBrand = (sources, existingBrand) => callFn("synthesize-brand", { sources, existingBrand });
+export const analyzeImages = (images) => callFn("analyze-image", { images });
 export const suggestField = (field, brand) =>
   callFn("ai-suggest", { field, brand }).then((d) => d.suggestion);
 export const isAIAvailable = () => !!BASE;

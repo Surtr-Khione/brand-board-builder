@@ -7,6 +7,7 @@ import { publishBrand } from "../lib/brands";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
+import ImageMoodboard from "./ImageMoodboard";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
@@ -425,10 +426,11 @@ function TypographySection({ brand, update }) {
   );
 }
 
-function PhotographySection({ brand, update }) {
+function PhotographySection({ brand, update, onApplyScanned }) {
   return (
     <div>
-      <SectionHeader title="Photography Style" subtitle="Visual direction for photos and imagery." phase={2} />
+      <SectionHeader title="Photography Style" subtitle="Drop in brand images and Claude reads your visual DNA — palette, mood, aesthetic, and composition style." phase={2} />
+      <ImageMoodboard onApply={onApplyScanned} />
       <TextInput label="Photo Style" value={brand.photoStyle} onChange={(v) => update("photoStyle", v)} hint="e.g. Candid, editorial, minimalist, vibrant" multiline aiField="photoStyle" />
       <TextInput label="Mood / Feeling" value={brand.photoMood} onChange={(v) => update("photoMood", v)} hint="e.g. Warm, aspirational, gritty, clean" aiField="photoMood" />
       <TextInput label="Preferred Subjects" value={brand.photoSubjects} onChange={(v) => update("photoSubjects", v)} hint="e.g. People, workspaces, nature, products" aiField="photoSubjects" />
@@ -793,7 +795,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       competitive: <CompetitiveSection brand={brand} update={update} />,
       colors: <ColorsSection brand={brand} update={update} />,
       typography: <TypographySection brand={brand} update={update} />,
-      photography: <PhotographySection brand={brand} update={update} />,
+      photography: <PhotographySection brand={brand} update={update} onApplyScanned={applyScannedData} />,
       logo: <LogoSection brand={brand} update={update} />,
       motion: <MotionSection brand={brand} update={update} />,
       media: <MediaSection brand={brand} update={update} />,
