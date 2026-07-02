@@ -205,10 +205,22 @@ export default function WebScanner({ onApply, initialUrl = "" }) {
             </div>
           )}
 
+          {/* Platform warning */}
+          {result.platformWarning && (
+            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 8, background: "rgba(255,170,0,0.07)", border: "1px solid rgba(255,170,0,0.2)", display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>⚠</span>
+              <div style={{ fontSize: 11, color: "#aa8800", lineHeight: 1.5 }}>{result.platformWarning}</div>
+            </div>
+          )}
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
             {/* Color roles */}
             <div>
-              <div style={{ fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Colors by Role</div>
+              <div style={{ fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+                Colors by Role
+                {result.colorSource === "vision" && <span style={{ marginLeft: 6, color: "#555", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· from og:image</span>}
+                {result.colorSource === "unknown" && <span style={{ marginLeft: 6, color: "#444", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· limited</span>}
+              </div>
               {result.colorMap?.length > 0 ? (
                 result.colorMap.map((c, i) => <ColorRow key={i} role={c.role} color={c.color} />)
               ) : (
