@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import BrandCard from "../components/BrandCard";
+import SiteNav from "../components/SiteNav";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -66,34 +66,14 @@ export default function BrandLibrary() {
   const isFiltered = !!debounced || !!archetype;
 
   return (
-    <div style={{ background: "#080808", color: "#f0ece3", fontFamily: "'DM Sans', -apple-system, sans-serif", minHeight: "100vh" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-
-      {/* NAV */}
-      <nav style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "16px 40px", borderBottom: "1px solid #111",
-        background: "rgba(8,8,8,0.97)", backdropFilter: "blur(12px)",
-        position: "sticky", top: 0, zIndex: 100,
-      }}>
-        <Link to="/" style={{ fontSize: 12, color: "#555", textDecoration: "none" }}
-          onMouseEnter={e => e.currentTarget.style.color = "#f0ece3"}
-          onMouseLeave={e => e.currentTarget.style.color = "#555"}
-        >← Home</Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, background: "linear-gradient(135deg,#e94560,#c62a42)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "#fff" }}>B</div>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>Brand Library</span>
-        </div>
-        <Link to="/builder" style={{ padding: "7px 16px", borderRadius: 8, background: "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 700 }}>
-          Build Yours →
-        </Link>
-      </nav>
+    <div style={{ background: "#06060C", color: "#F5F3EE", fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", minHeight: "100vh" }}>
+      <SiteNav />
 
       {/* HERO */}
-      <div style={{ padding: "60px 40px 48px", textAlign: "center", borderBottom: "1px solid #111", background: "linear-gradient(180deg, rgba(30,20,50,0.4) 0%, transparent 100%)" }}>
-        <h1 style={{ fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 300, letterSpacing: "-2px", lineHeight: 1.0, color: "#f0ece3", margin: "0 0 10px" }}>
-          The World's{" "}
-          <span style={{ color: "transparent", backgroundImage: "linear-gradient(135deg, #e94560, #f39c12, #9b59b6)", backgroundClip: "text", WebkitBackgroundClip: "text" }}>Brand Library</span>
+      <div style={{ padding: "60px 40px 48px", textAlign: "center", borderBottom: "1px solid rgba(245,243,238,0.07)", background: "linear-gradient(180deg, rgba(255,46,136,0.08) 0%, transparent 100%)" }}>
+        <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, letterSpacing: "-2px", lineHeight: 1.0, color: "#F5F3EE", margin: "0 0 10px" }}>
+          Star Charts{" "}
+          <span style={{ color: "transparent", backgroundImage: "linear-gradient(135deg, #FF2E88, #FF6A00)", backgroundClip: "text", WebkitBackgroundClip: "text" }}>of the Greats</span>
         </h1>
         <p style={{ fontSize: 15, color: "#555", maxWidth: 460, margin: "0 auto 28px", lineHeight: 1.65 }}>
           {brands.length || 15} iconic brands decoded — colors, fonts, archetype, mission, and year-by-year evolution.
