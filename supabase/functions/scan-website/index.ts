@@ -331,6 +331,76 @@ function pickColors(roles: ColorRoles, counts: Map<string, number>): {
   };
 }
 
+// ── platform detection ────────────────────────────────────────────────────────
+
+const FRAMEWORK_SIGNALS: Record<string, string> = {
+  "leadconnectorhq.com": "GoHighLevel",
+  "highlevel.com": "GoHighLevel",
+  "cdn.shopify.com": "Shopify",
+  "assets.squarespace.com": "Squarespace",
+  "static.wixstatic.com": "Wix",
+};
+
+function detectPlatform(html: string): { platform: string | null; isPageBuilder: boolean } {
+  for (const [signal, platform] of Object.entries(FRAMEWORK_SIGNALS)) {
+    if (html.includes(signal)) return { platform, isPageBuilder: true };
+  }
+  return { platform: null, isPageBuilder: false };
+}
+
+// ── vision color extraction ───────────────────────────────────────────────────
+
+async function analyzeImageColors(
+  imageUrl: string,
+  apiKey: string,
+): Promise<{ primary: string; secondary: string; accent: string } | null> {
+  try {
+    const imgResp = await fetch(imageUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!imgResp.ok) return null;
+    const buf = await imgResp.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    const b64 = btoa(bin);
+    const ct = imgResp.headers.get("content-type") || "image/jpeg";
+
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 150,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: ct, data: b64 } },
+            {
+              type: "text",
+              text: "Extract 3 brand colors from this image. Include intentional neutrals (blacks, silvers, whites, grays) if they dominate — those ARE the brand. Respond ONLY with: {\"primary\":\"#RRGGBB\",\"secondary\":\"#RRGGBB\",\"accent\":\"#RRGGBB\"}",
+            },
+          ],
+        }],
+      }),
+    });
+    const d = await r.json();
+    const raw = d.content?.[0]?.text || "";
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const parsed = JSON.parse(m[0]);
+    if (parsed.primary && parsed.secondary && parsed.accent) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ── main handler ──────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -348,8 +418,21 @@ Deno.serve(async (req) => {
     });
     const html = await pageResp.text();
 
+    // Detect page builder platforms that inject their own CSS vars (not brand colors)
+    const { platform, isPageBuilder } = detectPlatform(html);
+
     // Build CSS corpus: inline + up to 3 linked sheets
     let css = extractInlineCSS(html);
+
+    // For page builders: strip :root blocks containing framework color vars
+    // (GHL injects --primary, --secondary etc. that are theme defaults, not brand colors)
+    if (isPageBuilder) {
+      css = css.replace(
+        /:root\s*\{[^}]*(--primary|--secondary|--white|--black|--gray|--red|--orange|--yellow|--green|--teal|--indigo|--purple|--pink)[^}]*\}/gi,
+        "",
+      );
+    }
+
     const cssLinks = [...html.matchAll(/href="([^"]+\.css(?:[^"?#]*))/g)]
       .map(m => {
         try { return m[1].startsWith("http") ? m[1] : new URL(m[1], target).href; }
@@ -358,6 +441,8 @@ Deno.serve(async (req) => {
       .filter(Boolean) as string[];
 
     for (const link of cssLinks.slice(0, 3)) {
+      // Skip known framework CDN sheets — they contain framework colors, not brand colors
+      if (link.includes("leadconnectorhq.com") || link.includes("cdn.shopify.com")) continue;
       try {
         const r = await fetch(link, { signal: AbortSignal.timeout(6_000) });
         css += "\n" + await r.text();
@@ -369,26 +454,54 @@ Deno.serve(async (req) => {
     const fonts = extractFonts(css);
     const roles = extractSemanticColors(css, html);
     const counts = countAllColors(css);
-    const { primary, secondary, accent, colorMap } = pickColors(roles, counts);
+    let { primary, secondary, accent, colorMap } = pickColors(roles, counts);
     const icons = extractIcons(html, target);
     const discoveredUrls = detectSocialUrls(html);
 
     // Derive domain for Clearbit + Google Favicon fallbacks
     let domain = "";
     try { domain = new URL(target).hostname; } catch {}
-    const clearbitUrl = domain ? `https://logo.clearbit.com/${domain}` : null;
+    const clearbitUrl = domain ? `https://logo.clearbit.com/${domain}?size=600` : null;
     const googleFaviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=256` : null;
 
-    // ── AI: one Haiku call with enriched color context ────────────────────────
     const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+
+    // ── Vision fallback: analyze og:image when CSS gives unreliable colors ────
+    // Page builders have framework CSS vars; CSS extraction is unreliable for them.
+    // Also use vision when we got very few non-neutral colors (possible neutral brand like luxury/minimal).
+    const cssUnreliable = isPageBuilder || colorMap.filter(c => !isNeutral(c.color)).length < 2;
+    let visionColors: { primary: string; secondary: string; accent: string } | null = null;
+    let colorSource = "css";
+
+    if (cssUnreliable && ANTHROPIC_KEY && icons.ogImage) {
+      visionColors = await analyzeImageColors(icons.ogImage, ANTHROPIC_KEY);
+      if (visionColors) {
+        primary = visionColors.primary;
+        secondary = visionColors.secondary;
+        accent = visionColors.accent;
+        colorMap = [
+          { role: "Primary (visual)", color: visionColors.primary },
+          { role: "Secondary (visual)", color: visionColors.secondary },
+          { role: "Accent (visual)", color: visionColors.accent },
+        ];
+        colorSource = "vision";
+      }
+    }
+
+    if (cssUnreliable && !visionColors) colorSource = "unknown";
+
+    // ── AI: one Haiku call with enriched color context ────────────────────────
     let analysis: Record<string, unknown> = {};
 
     if (ANTHROPIC_KEY) {
       const displayName = meta.ogTitle || meta.title.split(/[|\-–]/)[0].trim();
 
-      // Build a human-readable color summary for Claude
       const colorSummary = colorMap.map(x => `  ${x.role}: ${x.color}`).join("\n") ||
         `  Primary pick: ${primary}`;
+
+      const platformNote = platform
+        ? `\nNOTE: Built on ${platform} — CSS variables above are framework defaults, not brand colors. Infer brand identity from page content and description only.`
+        : "";
 
       const prompt = `Analyze this website and extract brand identity data. Return ONLY valid JSON.
 
@@ -399,9 +512,9 @@ H1: ${meta.h1 || "(none)"}
 H2: ${meta.h2 || "(none)"}
 Page text: ${pageText.slice(0, 2000)}
 
-Colors identified by role:
+Colors (source: ${colorSource}):
 ${colorSummary}
-Fonts: ${fonts.slice(0,4).join(", ") || "none detected"}
+Fonts: ${fonts.slice(0,4).join(", ") || "none detected"}${platformNote}
 
 Respond with exactly this JSON (1–2 sentences max per field):
 {
@@ -447,12 +560,19 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
       };
     }
 
+    const platformWarning = platform
+      ? `${platform} site detected — website CSS is framework-generated, not brand-specific. Colors shown are from ${colorSource === "vision" ? "visual analysis of the og:image" : "limited page content"}. For best results, enter your brand colors manually.`
+      : null;
+
     return json({
       success: true,
       primaryColor: primary,
       secondaryColor: secondary,
       accentColor: accent,
       colorMap,
+      colorSource,
+      platformDetected: platform,
+      platformWarning,
       roles,
       fonts,
       meta,
@@ -463,7 +583,7 @@ archetype must be ONE of: The Hero, The Sage, The Explorer, The Creator, The Rul
       logoUrl: clearbitUrl,
       googleFaviconUrl,
       ogImage: icons.ogImage,
-      discoveredUrls,     // auto-detected social + podcast URLs from page links
+      discoveredUrls,
       iconSources: {
         appleIcon: icons.appleIconUrl,
         favicon: icons.faviconUrl,
