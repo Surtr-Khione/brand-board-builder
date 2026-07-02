@@ -1658,8 +1658,10 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [shareUrl, setShareUrl] = useState(null);
   const [loading, setLoading] = useState(!!initialBoardId);
   const [gateTarget, setGateTarget] = useState(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState(null); // null | 'saving' | 'saved'
   const scrollRef = useRef(null);
   const sectionRefs = useRef({});
+  const DRAFT_KEY = "brand_board_autosave";
   const aiEnabled = isAIAvailable();
 
   useEffect(() => {
@@ -1702,6 +1704,46 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       }));
     } catch {}
   }, []);
+
+  // Restore localStorage draft on fresh load (no URL boardId, no clone)
+  useEffect(() => {
+    if (initialBoardId) return;
+    if (sessionStorage.getItem("brand-clone")) return; // clone handler will apply
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      if (draft?.brand && draft.savedAt > Date.now() - oneWeek) {
+        setBrand({ ...DEFAULT_BRAND, ...draft.brand });
+        if (draft.email) setEmail(draft.email);
+        if (draft.boardId) setBoardId(draft.boardId);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save draft to localStorage on every brand change (debounced 1.5s)
+  useEffect(() => {
+    if (loading) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ brand, email, boardId, savedAt: Date.now() }));
+        setAutoSaveStatus("saved");
+        setTimeout(() => setAutoSaveStatus(null), 2200);
+      } catch {}
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [brand, loading]);
+
+  // Silent Supabase auto-save when a boardId + email already exist (debounced 4s)
+  useEffect(() => {
+    if (loading || !boardId || !email) return;
+    const t = setTimeout(async () => {
+      try { await saveBoard(boardId, brand, email); } catch {}
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [brand, loading, boardId, email]);
 
   const update = useCallback((key, value) => {
     setBrand((prev) => ({ ...prev, [key]: value }));
@@ -1888,8 +1930,11 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
               </div>
               <span style={{ fontSize: "11px", color: "#666" }}>{progress}%</span>
             </div>
+            {autoSaveStatus === "saved" && (
+              <span style={{ fontSize: 10, color: "#2ecc71", letterSpacing: 0.5, opacity: 0.8, transition: "opacity 0.5s" }}>✓ Draft saved</span>
+            )}
             <button onClick={handleSave} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: saved ? "rgba(46,204,113,0.15)" : "rgba(255,255,255,0.06)", border: saved ? "1px solid rgba(46,204,113,0.3)" : "1px solid rgba(255,255,255,0.08)", color: saved ? "#2ecc71" : "#aaa", fontSize: "12px", fontWeight: 500, transition: "all 0.3s" }}>
-              {saved ? "✓ Saved" : "Save"}
+              {saved ? "✓ Saved" : "Save & Share"}
             </button>
             <button
               onClick={() => { sessionStorage.setItem("studio_brand", JSON.stringify(brand)); }}

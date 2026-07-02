@@ -21,8 +21,9 @@ function logoSources(website) {
   if (!website) return [];
   const domain = website.replace(/^https?:\/\//, "").split("/")[0];
   return [
+    `https://logo.clearbit.com/${domain}?size=600`,
+    `https://logo.clearbit.com/${domain}?size=200`,
     `https://logo.clearbit.com/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
   ];
 }
 
@@ -104,7 +105,7 @@ export default function BrandCard({ brand, compact = false }) {
                 src={url}
                 onError={() => setSrcIdx(i => i + 1)}
                 alt={brand.brand_name}
-                style={{ width: logoSize, height: logoSize, objectFit: "contain" }}
+                style={{ width: logoSize, height: logoSize, objectFit: "contain", imageRendering: "auto" }}
                 loading="lazy"
               />
             ) : (
@@ -172,9 +173,9 @@ export default function BrandCard({ brand, compact = false }) {
           <div style={{ flex: 1, background: ac }} />
         </div>
         <div style={{ display: "flex", padding: `3px ${compact ? 16 : 20}px ${compact ? 12 : 14}px` }}>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace" }}>{pc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#555", fontFamily: "monospace" }}>{pc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#555", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#555", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
         </div>
       </div>
     </Link>

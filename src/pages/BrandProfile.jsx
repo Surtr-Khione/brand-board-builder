@@ -22,9 +22,9 @@ function logoSources(website) {
   if (!website) return [];
   const d = website.replace(/^https?:\/\//, "").split("/")[0];
   return [
+    `https://logo.clearbit.com/${d}?size=600`,
     `https://logo.clearbit.com/${d}?size=200`,
     `https://logo.clearbit.com/${d}`,
-    `https://www.google.com/s2/favicons?domain=${d}&sz=256`,
   ];
 }
 
