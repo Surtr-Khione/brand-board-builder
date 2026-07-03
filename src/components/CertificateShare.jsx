@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { downloadMarkdown } from "../lib/brandMarkdown";
 
 const CHARCOAL = "#1D1D1F";
 const TITANIUM = "#8E8E93";
@@ -54,11 +55,14 @@ export default function CertificateShare({ brand, url }) {
       background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
       padding: "24px 26px", fontFamily: SANS,
     }}>
-      <div style={{ fontSize: 11.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
-        Your Brand Certificate
+      <div style={{ fontSize: 11.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+        Permanent reference URL
+      </div>
+      <div style={{ fontSize: 12.5, color: TITANIUM, marginBottom: 12, lineHeight: 1.5 }}>
+        This link always points to {name}'s certificate — safe to cite, bookmark, or link to.
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, flexWrap: "wrap" }}>
         <div style={{
           flex: "1 1 240px", minWidth: 0, padding: "10px 14px", borderRadius: 8,
           border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.3)",
@@ -67,6 +71,17 @@ export default function CertificateShare({ brand, url }) {
           {fullUrl.replace(/^https?:\/\//, "")}
         </div>
         <CopyButton text={fullUrl} label="Copy link" />
+        <button
+          onClick={() => downloadMarkdown(brand, fullUrl)}
+          className="bmd-cta"
+          style={{
+            padding: "8px 16px", borderRadius: 100, border: "1px solid rgba(255,255,255,0.16)",
+            background: "transparent", color: STARLIGHT,
+            fontSize: 12.5, fontWeight: 600, fontFamily: SANS, cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          Download as Markdown
+        </button>
       </div>
 
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
