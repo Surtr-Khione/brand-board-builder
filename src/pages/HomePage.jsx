@@ -31,6 +31,26 @@ const STARS = Array.from({ length: 90 }).map((_, i) => ({
   delay: -Math.random() * 6,
 }));
 
+// The hero signature: scattered, undocumented brand fragments (a messy
+// mix of colors, shapes, mismatched decisions) resolving into a clean,
+// aligned system as a scan line passes through. A 4x3 grid is the
+// "resolved" state; each fragment starts scattered around it.
+const GRID_COLS = [14, 38, 62, 86];
+const GRID_ROWS = [22, 50, 78];
+const GRID_CELLS = GRID_ROWS.flatMap((y) => GRID_COLS.map((x) => ({ x, y })));
+const DOT_INDICES = new Set([2, 5, 6, 9]);
+
+const FRAGMENTS = GRID_CELLS.map((cell, i) => ({
+  id: i,
+  type: DOT_INDICES.has(i) ? "dot" : "chip",
+  xf: cell.x,
+  yf: cell.y,
+  x0: 8 + Math.random() * 84,
+  y0: 8 + Math.random() * 84,
+  r0: -32 + Math.random() * 64,
+  delay: -Math.random() * 8,
+}));
+
 function Reveal({ children, style }) {
   const [ref, visible] = useReveal();
   return (
@@ -140,7 +160,7 @@ export default function HomePage() {
     <div style={{ background: VOID, color: STARLIGHT, fontFamily: SANS, minHeight: "100vh" }}>
       <SiteNav transparent />
 
-      {/* ══ HERO — a single precision object, at rest in the dark ══ */}
+      {/* ══ HERO — scattered fragments resolving into order as a scan passes through ══ */}
       <div
         style={{
           position: "relative", overflow: "hidden", display: "flex", flexDirection: "column",
@@ -170,24 +190,40 @@ export default function HomePage() {
           }}
         />
 
-        <div style={{ position: "relative", zIndex: 1, marginBottom: 44 }}>
-          <div
-            className="bmd-orb"
-            style={{
-              width: "clamp(180px, 22vw, 280px)", height: "clamp(180px, 22vw, 280px)", borderRadius: "50%",
-              background: "radial-gradient(circle at 34% 28%, #FFFFFF 0%, #F5F5F7 8%, #C9BDAF 22%, #8E8E93 46%, #3A3A3C 72%, #0A0A0C 100%)",
-              boxShadow: `inset -18px -22px 50px rgba(0,0,0,0.55), inset 10px 8px 30px rgba(255,255,255,0.22), 0 0 90px rgba(100,210,255,0.16)`,
-              animation: "bmd-levitate 6s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="bmd-orb-shadow"
-            style={{
-              width: "60%", height: 20, margin: "18px auto 0", borderRadius: "50%",
-              background: "radial-gradient(ellipse, rgba(0,0,0,0.55), transparent 72%)",
-              animation: "bmd-levitate-shadow 6s ease-in-out infinite",
-            }}
-          />
+        <div style={{ position: "relative", zIndex: 1, marginBottom: 40 }}>
+          <div style={{ position: "relative", width: "clamp(260px, 60vw, 340px)", height: 210, margin: "0 auto" }}>
+            <div
+              className="bmd-scanline"
+              style={{
+                position: "absolute", left: 0, right: 0, height: 2,
+                background: `linear-gradient(90deg, transparent, ${ACCENT_BLUE}, transparent)`,
+                boxShadow: "0 0 14px rgba(0,113,227,0.65)",
+                animation: "bmd-scan 8s ease-in-out infinite",
+              }}
+            />
+            {FRAGMENTS.map((f) => (
+              <div
+                key={f.id}
+                className="bmd-fragment"
+                style={{
+                  position: "absolute",
+                  left: `${f.xf}%`, top: `${f.yf}%`,
+                  width: f.type === "dot" ? 10 : 30,
+                  height: f.type === "dot" ? 10 : 18,
+                  marginLeft: f.type === "dot" ? -5 : -15,
+                  marginTop: f.type === "dot" ? -5 : -9,
+                  borderRadius: f.type === "dot" ? "50%" : 4,
+                  background: f.type === "dot" ? ACCENT_BLUE : "rgba(255,255,255,0.04)",
+                  border: f.type === "dot" ? "none" : "1px solid rgba(245,245,247,0.4)",
+                  "--bmd-x0": `${f.x0}%`, "--bmd-y0": `${f.y0}%`,
+                  "--bmd-xf": `${f.xf}%`, "--bmd-yf": `${f.yf}%`,
+                  "--bmd-r0": `${f.r0}deg`,
+                  animation: `bmd-settle 8s ease-in-out infinite`,
+                  animationDelay: `${f.delay}s`,
+                }}
+              />
+            ))}
+          </div>
         </div>
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: 760 }}>
@@ -200,11 +236,12 @@ export default function HomePage() {
               lineHeight: 1.04, letterSpacing: "-2.5px", margin: "0 0 22px",
             }}
           >
-            Gravity, <span style={{ color: ACCENT_BLUE }}>engineered.</span>
+            Gravity, <span style={{ color: ACCENT_BLUE }}>diagnosed.</span>
           </h1>
           <p style={{ fontSize: 18, color: TITANIUM, maxWidth: 540, margin: "0 auto 38px", lineHeight: 1.6, fontWeight: 400 }}>
-            Scan any site, study the brands that already have it, and chart an
-            identity precise enough to hold its shape.
+            Scan any site to see what's actually there, study the brands that
+            already got it right, then chart an identity that says one thing
+            everywhere.
           </p>
 
           <div style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", alignItems: "center", marginBottom: 30 }}>

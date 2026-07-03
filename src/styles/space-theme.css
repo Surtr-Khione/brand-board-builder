@@ -1,21 +1,26 @@
-/* BrandMD — titanium/cinematic theme: one deliberate motion (levitation),
-   quiet realistic starlight, and scroll reveals. No ambient looping decor. */
+/* BrandMD — the diagnostic reveal: scattered, undocumented fragments
+   resolve into a clean, aligned system as a scan line passes through.
+   Quiet realistic starfield as ambient texture, scroll reveals elsewhere.
+   No borrowed "product shot" motion. */
 
-@keyframes bmd-levitate {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-16px); }
+@keyframes bmd-settle {
+  0%, 100% { left: var(--bmd-x0); top: var(--bmd-y0); transform: rotate(var(--bmd-r0)); opacity: 0.4; filter: blur(1.5px); }
+  45%, 55% { left: var(--bmd-xf); top: var(--bmd-yf); transform: rotate(0deg); opacity: 1; filter: blur(0px); }
 }
-@keyframes bmd-levitate-shadow {
-  0%, 100% { transform: scaleX(1); opacity: 0.55; }
-  50%      { transform: scaleX(0.82); opacity: 0.32; }
+@keyframes bmd-scan {
+  0%   { top: -6%; opacity: 0; }
+  12%  { opacity: 1; }
+  50%  { top: 50%; opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: 106%; opacity: 0; }
 }
 @keyframes bmd-twinkle {
   0%, 100% { opacity: var(--bmd-tw-min, 0.2); }
   50%      { opacity: var(--bmd-tw-max, 0.6); }
 }
 
-.bmd-orb, .bmd-orb-shadow, .bmd-star {
-  will-change: transform, opacity;
+.bmd-fragment, .bmd-scanline, .bmd-star {
+  will-change: transform, opacity, top, left;
 }
 
 .bmd-reveal {
@@ -38,7 +43,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bmd-orb, .bmd-orb-shadow, .bmd-star {
+  .bmd-fragment, .bmd-scanline, .bmd-star {
     animation: none !important;
   }
   .bmd-reveal {
