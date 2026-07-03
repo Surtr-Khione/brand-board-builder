@@ -126,7 +126,11 @@ export default function HomePage() {
   const [brands, setBrands] = useState([]);
 
   useEffect(() => {
-    document.title = "BrandMD — Gravity, by design.";
+    document.title = "BrandMD — Give your brand gravity.";
+    document.querySelector('meta[name="description"]')?.setAttribute(
+      "content",
+      "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute — free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
+    );
     searchBrands({ limit: 15, featured: true }).then((d) => setBrands(d.brands || []));
   }, []);
 
@@ -267,6 +271,40 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ══ WHAT WE BELIEVE — the manifesto, stated plainly ══ */}
+      <div style={{ padding: "0 40px 120px" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+          <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
+              What we believe
+            </div>
+            <h2 style={{ fontWeight: 700, fontSize: "clamp(24px, 3.5vw, 36px)", letterSpacing: "-0.9px" }}>
+              A brand board isn't a style guide with a logo and two colors.
+            </h2>
+          </Reveal>
+          <Reveal>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {[
+                "Diagnose before you decorate — colors and fonts are the last decision, not the first.",
+                "A brand that agrees with itself beats one that impresses for a moment.",
+                "Free means the real thing — the diagnosis is never a teaser withheld to force an upgrade.",
+                "If you can't say it back in your own words, it isn't a brand yet — it's a mood board.",
+              ].map((line, i) => (
+                <div key={i} style={{
+                  display: "flex", gap: 18, alignItems: "flex-start", padding: "18px 0",
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT_BLUE, marginTop: 8, flexShrink: 0 }} />
+                  <p style={{ fontSize: 16, color: "rgba(245,245,247,0.88)", lineHeight: 1.55, margin: 0, fontWeight: 400 }}>
+                    {line}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </div>
+
       {/* ══ STAR CHARTS — the brand library ══ */}
       {brands.length > 0 && (
         <div style={{ padding: "0 40px 110px" }}>
@@ -339,7 +377,7 @@ export default function HomePage() {
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "26px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <OrbitMark size={18} />
-          <span style={{ fontSize: 12, color: "#6E6E73" }}>brandmd.space</span>
+          <span style={{ fontSize: 12, color: "#6E6E73" }}>Give your brand gravity. — brandmd.space</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
           <Link to="/analyzer" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Analyzer</Link>

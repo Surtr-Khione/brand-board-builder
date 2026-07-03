@@ -30,7 +30,13 @@ export default function Analyzer() {
   const [pubErr, setPubErr] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => { document.title = "Brand Analyzer — Free Instant Brand Scan | BrandMD"; }, []);
+  useEffect(() => {
+    document.title = "Brand Analyzer — Free Instant Brand Scan | BrandMD";
+    document.querySelector('meta[name="description"]')?.setAttribute(
+      "content",
+      "Paste a live website and see its colors, fonts, tone, and brand archetype in under a minute — the same first read a brand diagnostician would give it. Free, instant, no signup."
+    );
+  }, []);
 
   const applyScan = (updates) => setScanned((prev) => ({ ...prev, ...updates }));
 
