@@ -47,7 +47,11 @@ export default function BrandLibrary() {
   const [loading, setLoading] = useState(true);
   const [debounced, setDebounced] = useState("");
 
-  useEffect(() => { document.title = "Brand Library — 15 Iconic Brands Decoded"; }, []);
+  useEffect(() => {
+    document.title = brands.length
+      ? `Brand Library — ${brands.length} Iconic Brands Decoded`
+      : "Brand Library — Iconic Brands Decoded";
+  }, [brands.length]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(q), 300);
