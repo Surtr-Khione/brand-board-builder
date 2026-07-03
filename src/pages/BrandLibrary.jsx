@@ -43,6 +43,7 @@ export default function BrandLibrary() {
   const [facets, setFacets] = useState({ archetypes: [], industries: [] });
   const [q, setQ] = useState("");
   const [archetype, setArchetype] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [debounced, setDebounced] = useState("");
 
@@ -55,15 +56,15 @@ export default function BrandLibrary() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await searchBrands({ q: debounced, archetype, limit: 48 });
+    const data = await searchBrands({ q: debounced, archetype, featured: verifiedOnly || undefined, limit: 48 });
     setBrands(data.brands || []);
     if (data.facets) setFacets(data.facets);
     setLoading(false);
-  }, [debounced, archetype]);
+  }, [debounced, archetype, verifiedOnly]);
 
   useEffect(() => { load(); }, [load]);
 
-  const isFiltered = !!debounced || !!archetype;
+  const isFiltered = !!debounced || !!archetype || verifiedOnly;
 
   return (
     <div style={{ background: "#000000", color: "#F5F5F7", fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh" }}>
@@ -107,8 +108,14 @@ export default function BrandLibrary() {
               color: archetype === a ? (ARCHETYPE_COLORS[a] || "#f0ece3") : "#555", transition: "all 0.18s",
             }}>{a}</button>
           ))}
+          <button onClick={() => setVerifiedOnly(v => !v)} style={{
+            padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
+            border: verifiedOnly ? "1px solid #2ecc71" : "1px solid #222",
+            background: verifiedOnly ? "rgba(46,204,113,0.12)" : "#0c0c0c",
+            color: verifiedOnly ? "#2ecc71" : "#555", transition: "all 0.18s",
+          }}>✓ Verified only</button>
           {isFiltered && (
-            <button onClick={() => { setQ(""); setArchetype(""); }} style={{ padding: "6px 12px", borderRadius: 20, fontSize: 11, color: "#555", background: "none", border: "1px solid #222", cursor: "pointer" }}>
+            <button onClick={() => { setQ(""); setArchetype(""); setVerifiedOnly(false); }} style={{ padding: "6px 12px", borderRadius: 20, fontSize: 11, color: "#555", background: "none", border: "1px solid #222", cursor: "pointer" }}>
               Clear ×
             </button>
           )}

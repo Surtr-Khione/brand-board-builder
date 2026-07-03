@@ -127,7 +127,7 @@ export default function HomePage() {
 
   useEffect(() => {
     document.title = "BrandMD — Gravity, by design.";
-    searchBrands({ limit: 15 }).then((d) => setBrands(d.brands || []));
+    searchBrands({ limit: 15, featured: true }).then((d) => setBrands(d.brands || []));
   }, []);
 
   const latestPosts = BLOG_POSTS.slice(0, 3);

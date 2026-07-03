@@ -125,7 +125,7 @@ export default function BrandCard({ brand, compact = false }) {
         {/* ── BRAND INFO ───────────────────────────────────────── */}
         <div style={{ padding: compact ? "14px 16px 0" : "18px 20px 0" }}>
           {/* Name row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 2 }}>
             <div style={{ fontSize: nameSize, fontWeight: 800, color: "#f0ece3", letterSpacing: "-0.4px", lineHeight: 1.15 }}>
               {brand.brand_name}
             </div>
@@ -140,6 +140,10 @@ export default function BrandCard({ brand, compact = false }) {
                 {brand.archetype.replace("The ", "")}
               </span>
             )}
+          </div>
+
+          <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, color: brand.is_verified ? "#2ecc71" : "#3a3a3a" }}>
+            {brand.is_verified ? "✓ Verified" : "Community"}
           </div>
 
           {/* Tagline */}

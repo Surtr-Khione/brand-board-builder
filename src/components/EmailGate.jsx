@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-export default function EmailGate({ onSubmit, onClose, isOpen }) {
+export default function EmailGate({
+  onSubmit, onClose, isOpen,
+  title = "Save Your Brand Board",
+  subtitle = "Enter your email to save your brand board and get a unique URL you can come back to anytime. We'll also send you branding tips and resources.",
+  submitLabel = "Save & Get My Link",
+}) {
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +23,7 @@ export default function EmailGate({ onSubmit, onClose, isOpen }) {
     setError('');
     try {
       await onSubmit({ email, firstName });
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     }
     setLoading(false);
@@ -45,14 +50,13 @@ export default function EmailGate({ onSubmit, onClose, isOpen }) {
         <h2 style={{
           fontSize: '22px', fontWeight: 700, color: '#fff', margin: '0 0 8px',
           fontFamily: "'DM Sans', sans-serif",
-        }}>Save Your Brand Board</h2>
+        }}>{title}</h2>
 
         <p style={{
           fontSize: '14px', color: '#999', margin: '0 0 24px', lineHeight: 1.6,
           fontFamily: "'DM Sans', sans-serif",
         }}>
-          Enter your email to save your brand board and get a unique URL you can
-          come back to anytime. We'll also send you branding tips and resources.
+          {subtitle}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -99,7 +103,7 @@ export default function EmailGate({ onSubmit, onClose, isOpen }) {
               transition: 'all 0.2s',
             }}
           >
-            {loading ? 'Saving...' : 'Save & Get My Link'}
+            {loading ? 'Saving...' : submitLabel}
           </button>
         </form>
 

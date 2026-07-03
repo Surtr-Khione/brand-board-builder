@@ -10,6 +10,7 @@ import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
 import ImageMoodboard from "./ImageMoodboard";
 import { ARCHETYPES } from "../lib/archetypes";
+import CertificateShare from "./CertificateShare";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
@@ -1478,15 +1479,13 @@ function ExportSection({ brand, onSave, email }) {
           📄 Export as JSON (for LLMs)
         </button>
         {!published ? (
-          <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(155,89,182,0.3)", background: "rgba(155,89,182,0.06)", color: publishing ? "#666" : "#9b59b6", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }}>
-            {publishing ? "Publishing..." : "◆ Publish to Brand Library"}
+          <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(0,113,227,0.35)", background: "rgba(0,113,227,0.08)", color: publishing ? "#666" : "#0071E3", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }}>
+            {publishing ? "Publishing..." : "◆ Get Your Brand Certificate"}
           </button>
         ) : (
-          <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(46,204,113,0.25)", background: "rgba(46,204,113,0.05)" }}>
-            <div style={{ fontSize: "13px", color: "#2ecc71", fontWeight: 600, marginBottom: 6 }}>✓ Published to Brand Library</div>
-            <Link to={published.url} style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>
-              View at brandmd.space{published.url} →
-            </Link>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ fontSize: "13px", color: "#2ecc71", fontWeight: 600 }}>✓ Your Brand Certificate is live</div>
+            <CertificateShare brand={brand} url={published.url} />
           </div>
         )}
         {pubErr && <div style={{ fontSize: "12px", color: "#e94560", padding: "8px 0" }}>{pubErr}</div>}

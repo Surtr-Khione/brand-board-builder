@@ -3,7 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import SiteNav from "../components/SiteNav";
 import WebScanner from "../components/WebScanner";
 import BrandIntelligence from "../components/BrandIntelligence";
+import EmailGate from "../components/EmailGate";
+import CertificateShare from "../components/CertificateShare";
 import { ARCHETYPES } from "../lib/archetypes";
+import { publishBrand } from "../lib/brands";
 
 const VOID = "#000000";
 const CHARCOAL = "#1D1D1F";
@@ -21,6 +24,10 @@ const PANEL_BORDER = "1px solid rgba(255,255,255,0.08)";
 export default function Analyzer() {
   const [scanned, setScanned] = useState({});
   const [copied, setCopied] = useState(false);
+  const [showEmailGate, setShowEmailGate] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(null);
+  const [pubErr, setPubErr] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => { document.title = "Brand Analyzer — Free Instant Brand Scan | BrandMD"; }, []);
@@ -58,6 +65,19 @@ export default function Analyzer() {
       socialPersonality: scanned.socialPersonality,
     }));
     navigate("/builder");
+  };
+
+  const handlePublish = async ({ email }) => {
+    setPublishing(true);
+    setPubErr(null);
+    try {
+      const res = await publishBrand(scanned, email);
+      setPublished(res);
+      setShowEmailGate(false);
+    } catch (e) {
+      setPubErr(e.message || "Publish failed");
+    }
+    setPublishing(false);
   };
 
   const pc = scanned.primaryColor || TITANIUM;
@@ -189,6 +209,19 @@ export default function Analyzer() {
               >
                 Continue to Builder
               </button>
+              {scanned.brandName && !published && (
+                <button
+                  onClick={() => setShowEmailGate(true)}
+                  className="bmd-cta"
+                  style={{
+                    padding: "12px 26px", borderRadius: 100, cursor: "pointer",
+                    border: "1px solid rgba(255,255,255,0.18)", background: "transparent",
+                    color: STARLIGHT, fontSize: 14, fontWeight: 600, fontFamily: SANS,
+                  }}
+                >
+                  Get your Brand Certificate
+                </button>
+              )}
               <Link
                 to="/brands"
                 className="bmd-link"
@@ -197,9 +230,27 @@ export default function Analyzer() {
                 Explore the Library instead &nbsp;›
               </Link>
             </div>
+
+            {pubErr && <div style={{ fontSize: 13, color: "#FF453A", marginTop: 16 }}>{pubErr}</div>}
+
+            {published && (
+              <div style={{ marginTop: 28 }}>
+                <div style={{ fontSize: 13, color: "#32D74B", fontWeight: 600, marginBottom: 14 }}>✓ Your Brand Certificate is live</div>
+                <CertificateShare brand={scanned} url={published.url} />
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      <EmailGate
+        isOpen={showEmailGate}
+        onClose={() => setShowEmailGate(false)}
+        onSubmit={handlePublish}
+        title="Get Your Brand Certificate"
+        subtitle="Enter your email and we'll publish a permanent, shareable Brand Certificate page — colors, archetype, and voice, ready to link or embed anywhere."
+        submitLabel={publishing ? "Publishing..." : "Publish My Certificate"}
+      />
 
       {/* WHY START HERE — the ladder, stated plainly */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "48px 40px 60px" }}>
