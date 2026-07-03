@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import BrandCard from "../components/BrandCard";
 import SiteNav from "../components/SiteNav";
@@ -39,13 +40,14 @@ const ARCHETYPE_COLORS = {
 };
 
 export default function BrandLibrary() {
+  const [searchParams] = useSearchParams();
   const [brands, setBrands] = useState([]);
   const [facets, setFacets] = useState({ archetypes: [], industries: [] });
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [archetype, setArchetype] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [debounced, setDebounced] = useState("");
+  const [debounced, setDebounced] = useState(() => searchParams.get("q") || "");
 
   useEffect(() => {
     document.title = brands.length

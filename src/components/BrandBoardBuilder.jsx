@@ -11,6 +11,7 @@ import BrandIntelligence from "./BrandIntelligence";
 import ImageMoodboard from "./ImageMoodboard";
 import { ARCHETYPES } from "../lib/archetypes";
 import CertificateShare from "./CertificateShare";
+import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
@@ -1413,26 +1414,24 @@ function CalendarSection({ brand, update }) {
 }
 
 function ScoreSection({ brand }) {
-  const fields = Object.entries(brand).filter(([k]) => !["customFields","contentPillars","integrations","sources","lightModeEnabled","darkModeEnabled","icps","discoveredUrls","grammarRules","brandCommandments","brandNeverDoes","keyProofStats","proofHierarchy","brandStories","offerUpsells","seasonalMoments"].includes(k));
-  const filled = fields.filter(([, v]) => {
-    if (Array.isArray(v)) return v.some((x) => typeof x === "string" ? x.trim() : x);
-    if (typeof v === "boolean") return true;
-    return v && String(v).trim();
-  }).length;
-  const score = Math.round((filled / fields.length) * 100);
-  const color = score > 75 ? "#2ecc71" : score > 40 ? "#f39c12" : "#e94560";
+  const { score, missing } = computeGravityScore(brand);
+  const color = gravityScoreColor(score);
   return (
     <div>
-      <SectionHeader title="Brand Score" subtitle="How complete is your brand identity?" phase={4} />
+      <SectionHeader title="Brand Gravity Score" subtitle="How coherent is your brand identity — not just how full is the form." phase={4} />
       <div style={{ textAlign: "center", padding: "30px" }}>
-        <div style={{ fontSize: "64px", fontWeight: 700, color, fontFamily: "'DM Sans', sans-serif" }}>{score}%</div>
-        <div style={{ fontSize: "14px", color: "#999", marginTop: "8px" }}>{filled} of {fields.length} fields completed</div>
+        <div style={{ fontSize: "64px", fontWeight: 700, color, fontFamily: "'DM Sans', sans-serif" }}>{score}</div>
         <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", marginTop: "16px", overflow: "hidden" }}>
           <div style={{ width: `${score}%`, height: "100%", background: color, borderRadius: "4px", transition: "width 0.5s" }} />
         </div>
-        {score < 50 && (
-          <div style={{ marginTop: "16px", fontSize: "13px", color: "#555" }}>
-            Scan your website in Overview or click <span style={{ color: "#9b59b6" }}>✦ AI</span> buttons to fill fields faster.
+        {missing.length > 0 && (
+          <div style={{ marginTop: "20px", textAlign: "left", maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+              Still missing
+            </div>
+            {missing.map((m) => (
+              <div key={m} style={{ fontSize: "13px", color: "#777", padding: "5px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>{m}</div>
+            ))}
           </div>
         )}
       </div>

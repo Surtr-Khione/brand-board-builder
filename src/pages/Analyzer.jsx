@@ -7,6 +7,7 @@ import EmailGate from "../components/EmailGate";
 import CertificateShare from "../components/CertificateShare";
 import { ARCHETYPES } from "../lib/archetypes";
 import { publishBrand } from "../lib/brands";
+import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 
 const VOID = "#000000";
 const CHARCOAL = "#1D1D1F";
@@ -89,6 +90,8 @@ export default function Analyzer() {
   const pc = scanned.primaryColor || TITANIUM;
   const sc = scanned.secondaryColor || "#5A5A5E";
   const ac = scanned.accentColor || ACCENT_ICE;
+  const { score: gravityScore, missing } = computeGravityScore(scanned);
+  const scoreColor = gravityScoreColor(gravityScore);
 
   return (
     <div style={{ background: VOID, color: STARLIGHT, minHeight: "100vh", fontFamily: SANS }}>
@@ -104,7 +107,8 @@ export default function Analyzer() {
         </h1>
         <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 540, margin: "0 auto", lineHeight: 1.65 }}>
           Paste a live website below. In under a minute you'll have its colors, fonts, tone,
-          and brand archetype — the same first read a brand diagnostician would give it.
+          brand archetype, and a real Gravity Score — the same first read a brand
+          diagnostician would give it.
         </p>
       </div>
 
@@ -126,6 +130,32 @@ export default function Analyzer() {
           <BrandIntelligence onApply={applyScan} discoveredUrls={scanned.discoveredUrls || {}} />
         </div>
       </div>
+
+      {/* GRAVITY SCORE — the promise made on the homepage, kept here */}
+      {hasSignal(scanned) && (
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 40px 28px" }}>
+          <div style={{
+            borderRadius: 20, textAlign: "center", padding: "40px 32px 32px",
+            background: PANEL_BG, border: PANEL_BORDER,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>
+              Your Brand Gravity Score
+            </div>
+            <div style={{ fontSize: "clamp(56px, 10vw, 84px)", fontWeight: 800, color: scoreColor, lineHeight: 1 }}>
+              {gravityScore}
+            </div>
+            <div style={{ width: "100%", maxWidth: 320, height: 8, margin: "18px auto 0", borderRadius: 4, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <div style={{ width: `${gravityScore}%`, height: "100%", background: scoreColor, borderRadius: 4, transition: "width 0.6s ease" }} />
+            </div>
+            {missing.length > 0 && (
+              <div style={{ fontSize: 13, color: TITANIUM, marginTop: 18, lineHeight: 1.6 }}>
+                Biggest gap: <span style={{ color: STARLIGHT, fontWeight: 600 }}>{missing[0]}</span>
+                {missing.length > 1 && <> — chart it in the Builder to close the rest.</>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ARCHETYPE REVEAL — the shareable hook */}
       {scanned.archetype && (

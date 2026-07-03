@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { BLOG_POSTS } from "../lib/blogPosts";
 import { useReveal } from "../lib/useReveal";
+import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 import "../styles/space-theme.css";
 
 const VOID = "#000000";
@@ -33,12 +34,12 @@ const STARS = Array.from({ length: 90 }).map((_, i) => ({
 
 // The hero signature: scattered, undocumented brand fragments (a messy
 // mix of colors, shapes, mismatched decisions) resolving into a clean,
-// aligned system as a scan line passes through. A 4x3 grid is the
-// "resolved" state; each fragment starts scattered around it.
-const GRID_COLS = [14, 38, 62, 86];
-const GRID_ROWS = [22, 50, 78];
+// aligned system as a scan line passes through — a quiet background
+// layer sitting behind the hero text, not a standalone graphic.
+const GRID_COLS = [8, 27, 46, 65, 84];
+const GRID_ROWS = [14, 38, 62, 86];
 const GRID_CELLS = GRID_ROWS.flatMap((y) => GRID_COLS.map((x) => ({ x, y })));
-const DOT_INDICES = new Set([2, 5, 6, 9]);
+const DOT_INDICES = new Set([2, 5, 9, 12, 16]);
 
 const FRAGMENTS = GRID_CELLS.map((cell, i) => ({
   id: i,
@@ -50,6 +51,20 @@ const FRAGMENTS = GRID_CELLS.map((cell, i) => ({
   r0: -32 + Math.random() * 64,
   delay: -Math.random() * 8,
 }));
+
+// A representative slice of the Fortune 500 — plain text, no external
+// logo assets — for the search section's ambient scroll. Duplicated
+// once at render time for a seamless marquee loop.
+const FORTUNE_500 = [
+  "Walmart", "Amazon", "Apple", "UnitedHealth Group", "Berkshire Hathaway",
+  "CVS Health", "ExxonMobil", "Alphabet", "McKesson", "Chevron",
+  "Costco", "Microsoft", "Cardinal Health", "JPMorgan Chase", "Ford Motor",
+  "Bank of America", "General Motors", "Citigroup", "Home Depot", "Kroger",
+  "Walgreens Boots Alliance", "Meta", "Verizon", "AT&T", "Comcast",
+  "Wells Fargo", "Goldman Sachs", "Target", "Humana", "Tesla",
+  "Johnson & Johnson", "PepsiCo", "UPS", "FedEx", "Disney",
+  "Procter & Gamble", "Boeing", "IBM", "Pfizer", "Nike", "Coca-Cola",
+];
 
 function Reveal({ children, style }) {
   const [ref, visible] = useReveal();
@@ -114,28 +129,43 @@ const MISSIONS = [
   },
 ];
 
-function StarBrandCard({ brand }) {
-  const pc = brand.primary_color || TITANIUM;
+function ScoreCard({ brand }) {
+  const [logoIdx, setLogoIdx] = useState(0);
+  const { score } = computeGravityScore(brand);
+  const color = gravityScoreColor(score);
+  const domain = brand.website?.replace(/^https?:\/\//, "").split("/")[0];
+  const logoSources = domain
+    ? [`https://logo.clearbit.com/${domain}`, `https://www.google.com/s2/favicons?domain=${domain}&sz=128`]
+    : [];
+  const logoUrl = logoSources[logoIdx] || null;
+
   return (
     <Link to={`/brands/${brand.slug}`} className="bmd-card-link" style={{ textDecoration: "none", color: "inherit" }}>
       <div
         style={{
-          display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-          borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 18, border: "1px solid rgba(255,255,255,0.09)", height: "100%",
           background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
+          padding: "28px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
         }}
       >
         <div style={{
-          width: 14, height: 14, borderRadius: "50%", flexShrink: 0, background: pc,
-          border: "1px solid rgba(255,255,255,0.25)",
-        }} />
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: STARLIGHT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {brand.brand_name}
-          </div>
-          {brand.archetype && (
-            <div style={{ fontFamily: SANS, fontSize: 11, color: TITANIUM }}>{brand.archetype.replace("The ", "")}</div>
+          width: 68, height: 68, borderRadius: 16, background: "#FFFFFF", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: 18,
+        }}>
+          {logoUrl ? (
+            <img
+              src={logoUrl} alt={brand.brand_name} loading="lazy"
+              onError={() => setLogoIdx((i) => i + 1)}
+              style={{ width: 44, height: 44, objectFit: "contain" }}
+            />
+          ) : (
+            <span style={{ fontSize: 26, fontWeight: 800, color: "#111", fontFamily: SANS }}>{brand.brand_name.charAt(0)}</span>
           )}
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, letterSpacing: "-0.2px" }}>{brand.brand_name}</div>
+        <div style={{ fontSize: 40, fontWeight: 800, color, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontSize: 10.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.2, textTransform: "uppercase", marginTop: 6 }}>
+          Gravity Score
         </div>
       </div>
     </Link>
@@ -144,6 +174,13 @@ function StarBrandCard({ brand }) {
 
 export default function HomePage() {
   const [brands, setBrands] = useState([]);
+  const [findQuery, setFindQuery] = useState("");
+  const navigate = useNavigate();
+
+  const submitFind = (e) => {
+    e.preventDefault();
+    navigate(`/brands${findQuery.trim() ? `?q=${encodeURIComponent(findQuery.trim())}` : ""}`);
+  };
 
   useEffect(() => {
     document.title = "BrandMD — Give your brand gravity.";
@@ -190,55 +227,62 @@ export default function HomePage() {
           }}
         />
 
-        <div style={{ position: "relative", zIndex: 1, marginBottom: 40 }}>
-          <div style={{ position: "relative", width: "clamp(260px, 60vw, 340px)", height: 210, margin: "0 auto" }}>
+        {/* Background layer: the diagnostic reveal, sitting behind the text */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
+          <div
+            className="bmd-scanline"
+            style={{
+              position: "absolute", left: 0, right: 0, height: 2,
+              background: `linear-gradient(90deg, transparent, ${ACCENT_BLUE}, transparent)`,
+              boxShadow: "0 0 14px rgba(0,113,227,0.65)",
+              animation: "bmd-scan 8s ease-in-out infinite",
+            }}
+          />
+          {FRAGMENTS.map((f) => (
             <div
-              className="bmd-scanline"
+              key={f.id}
+              className="bmd-fragment"
               style={{
-                position: "absolute", left: 0, right: 0, height: 2,
-                background: `linear-gradient(90deg, transparent, ${ACCENT_BLUE}, transparent)`,
-                boxShadow: "0 0 14px rgba(0,113,227,0.65)",
-                animation: "bmd-scan 8s ease-in-out infinite",
+                position: "absolute",
+                left: `${f.xf}%`, top: `${f.yf}%`,
+                width: f.type === "dot" ? 10 : 30,
+                height: f.type === "dot" ? 10 : 18,
+                marginLeft: f.type === "dot" ? -5 : -15,
+                marginTop: f.type === "dot" ? -5 : -9,
+                borderRadius: f.type === "dot" ? "50%" : 4,
+                background: f.type === "dot" ? ACCENT_BLUE : "rgba(255,255,255,0.05)",
+                border: f.type === "dot" ? "none" : "1px solid rgba(245,245,247,0.4)",
+                "--bmd-x0": `${f.x0}%`, "--bmd-y0": `${f.y0}%`,
+                "--bmd-xf": `${f.xf}%`, "--bmd-yf": `${f.yf}%`,
+                "--bmd-r0": `${f.r0}deg`,
+                animation: `bmd-settle 8s ease-in-out infinite`,
+                animationDelay: `${f.delay}s`,
               }}
             />
-            {FRAGMENTS.map((f) => (
-              <div
-                key={f.id}
-                className="bmd-fragment"
-                style={{
-                  position: "absolute",
-                  left: `${f.xf}%`, top: `${f.yf}%`,
-                  width: f.type === "dot" ? 10 : 30,
-                  height: f.type === "dot" ? 10 : 18,
-                  marginLeft: f.type === "dot" ? -5 : -15,
-                  marginTop: f.type === "dot" ? -5 : -9,
-                  borderRadius: f.type === "dot" ? "50%" : 4,
-                  background: f.type === "dot" ? ACCENT_BLUE : "rgba(255,255,255,0.04)",
-                  border: f.type === "dot" ? "none" : "1px solid rgba(245,245,247,0.4)",
-                  "--bmd-x0": `${f.x0}%`, "--bmd-y0": `${f.y0}%`,
-                  "--bmd-xf": `${f.xf}%`, "--bmd-yf": `${f.yf}%`,
-                  "--bmd-r0": `${f.r0}deg`,
-                  animation: `bmd-settle 8s ease-in-out infinite`,
-                  animationDelay: `${f.delay}s`,
-                }}
-              />
-            ))}
-          </div>
+          ))}
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 760 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>
+        {/* Foreground layer: the text, always legible over the motion below it */}
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 760 }}>
+          <div style={{
+            fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22,
+            textShadow: "0 2px 16px rgba(0,0,0,0.9)",
+          }}>
             Brand intelligence
           </div>
           <h1
             style={{
               fontWeight: 700, fontSize: "clamp(40px, 6.5vw, 80px)",
               lineHeight: 1.04, letterSpacing: "-2.5px", margin: "0 0 22px",
+              textShadow: "0 4px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.95)",
             }}
           >
             Gravity, <span style={{ color: ACCENT_BLUE }}>diagnosed.</span>
           </h1>
-          <p style={{ fontSize: 18, color: TITANIUM, maxWidth: 540, margin: "0 auto 38px", lineHeight: 1.6, fontWeight: 400 }}>
+          <p style={{
+            fontSize: 18, color: TITANIUM, maxWidth: 540, margin: "0 auto 38px", lineHeight: 1.6, fontWeight: 400,
+            textShadow: "0 2px 18px rgba(0,0,0,0.9)",
+          }}>
             Scan any site to see what's actually there, study the brands that
             already got it right, then chart an identity that says one thing
             everywhere.
@@ -266,6 +310,61 @@ export default function HomePage() {
 
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
             {brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 19 brand dimensions &nbsp;&middot;&nbsp; one board
+          </div>
+        </div>
+      </div>
+
+      {/* ══ FIND — search the index; Fortune 500 scrolls quietly behind it ══ */}
+      <div style={{ padding: "80px 40px 100px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+        <Reveal style={{ maxWidth: 640, margin: "0 auto 56px", textAlign: "center" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>
+            Search the index
+          </div>
+          <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 26 }}>
+            Find Your: <span style={{ color: ACCENT_BLUE }}>Brand Gravity Score</span>
+          </h2>
+          <form onSubmit={submitFind} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <input
+              value={findQuery}
+              onChange={(e) => setFindQuery(e.target.value)}
+              placeholder="Search Apple, Nike, Walmart…"
+              style={{
+                flex: "1 1 280px", maxWidth: 380, padding: "13px 20px", borderRadius: 100,
+                border: "1px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.04)",
+                color: STARLIGHT, fontSize: 15, fontFamily: SANS, outline: "none",
+              }}
+            />
+            <button
+              type="submit"
+              className="bmd-cta"
+              style={{
+                padding: "13px 26px", borderRadius: 100, border: "none", cursor: "pointer",
+                background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 14, fontWeight: 600, fontFamily: SANS,
+              }}
+            >
+              Find
+            </button>
+          </form>
+        </Reveal>
+
+        <div
+          style={{
+            maxWidth: 1180, margin: "0 auto", overflow: "hidden",
+            maskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+            WebkitMaskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+          }}
+        >
+          <div className="bmd-marquee-track" style={{ display: "flex", width: "max-content", gap: 30 }}>
+            {[...FORTUNE_500, ...FORTUNE_500].map((name, i) => (
+              <Link
+                key={i}
+                to={`/brands?q=${encodeURIComponent(name)}`}
+                className="bmd-link"
+                style={{ fontSize: 14, color: "#6E6E73", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500, flexShrink: 0 }}
+              >
+                {name}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
@@ -342,30 +441,47 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ══ STAR CHARTS — the brand library ══ */}
+      {/* ══ SCORE CARDS — big logos, real scores, the conversion moment ══ */}
       {brands.length > 0 && (
         <div style={{ padding: "0 40px 110px" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                    Star charts &middot; {brands.length} brands decoded
-                  </div>
-                  <h2 style={{ fontWeight: 700, fontSize: "clamp(24px, 3vw, 34px)", letterSpacing: "-0.8px" }}>
-                    Study brands with real gravity
-                  </h2>
-                </div>
+            <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
+                Star charts &middot; {brands.length} brands decoded
+              </div>
+              <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 14 }}>
+                See how the greats score.
+              </h2>
+              <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 480, margin: "0 auto" }}>
+                Every brand here has a real Gravity Score — not a vanity metric, a coherence read across archetype, voice, and system.
+              </p>
+            </Reveal>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 40 }}>
+              {brands.map((b, i) => (
+                <Reveal key={b.slug} style={{ transitionDelay: `${(i % 6) * 60}ms` }}>
+                  <ScoreCard brand={b} />
+                </Reveal>
+              ))}
+            </div>
+
+            <Reveal style={{ textAlign: "center" }}>
+              <Link
+                to="/analyzer"
+                className="bmd-cta"
+                style={{
+                  display: "inline-block", padding: "14px 30px", borderRadius: 100, textDecoration: "none",
+                  background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, marginBottom: 16,
+                }}
+              >
+                Get Your Score — Free
+              </Link>
+              <div>
                 <Link to="/brands" className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
                   Browse all charts &nbsp;›
                 </Link>
               </div>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-              {brands.map((b) => (
-                <StarBrandCard key={b.slug} brand={b} />
-              ))}
-            </div>
           </div>
         </div>
       )}

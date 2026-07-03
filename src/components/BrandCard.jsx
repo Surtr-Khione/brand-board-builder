@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { computeGravityScore } from "../lib/gravityScore";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -41,6 +42,7 @@ export default function BrandCard({ brand, compact = false }) {
   const iconWrap = compact ? 76 : 96;
   const headerH = compact ? 130 : 160;
   const nameSize = compact ? 18 : 21;
+  const { score: gravityScore } = computeGravityScore(brand);
 
   return (
     <Link to={`/brands/${brand.slug}`} style={{ textDecoration: "none", display: "block" }}>
@@ -87,6 +89,15 @@ export default function BrandCard({ brand, compact = false }) {
               letterSpacing: 1,
             }}>★</div>
           )}
+
+          {/* Gravity Score badge */}
+          <div style={{
+            position: "absolute", top: 10, left: 12,
+            padding: "3px 9px", borderRadius: 6, background: "rgba(0,0,0,0.35)",
+            fontSize: 10, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.3,
+          }}>
+            {gravityScore}
+          </div>
 
           {/* Logo container — app-icon style */}
           <div style={{

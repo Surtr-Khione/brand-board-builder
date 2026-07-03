@@ -18,9 +18,19 @@
   0%, 100% { opacity: var(--bmd-tw-min, 0.2); }
   50%      { opacity: var(--bmd-tw-max, 0.6); }
 }
+@keyframes bmd-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 
 .bmd-fragment, .bmd-scanline, .bmd-star {
   will-change: transform, opacity, top, left;
+}
+.bmd-marquee-track {
+  animation: bmd-marquee 46s linear infinite;
+}
+.bmd-marquee-track:hover {
+  animation-play-state: paused;
 }
 
 .bmd-reveal {
@@ -43,7 +53,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bmd-fragment, .bmd-scanline, .bmd-star {
+  .bmd-fragment, .bmd-scanline, .bmd-star, .bmd-marquee-track {
     animation: none !important;
   }
   .bmd-reveal {
