@@ -66,16 +66,15 @@ export default function BrandLibrary() {
   const isFiltered = !!debounced || !!archetype;
 
   return (
-    <div style={{ background: "#06060C", color: "#F5F3EE", fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", minHeight: "100vh" }}>
+    <div style={{ background: "#000000", color: "#F5F5F7", fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh" }}>
       <SiteNav />
 
       {/* HERO */}
-      <div style={{ padding: "60px 40px 48px", textAlign: "center", borderBottom: "1px solid rgba(245,243,238,0.07)", background: "linear-gradient(180deg, rgba(255,46,136,0.08) 0%, transparent 100%)" }}>
-        <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, letterSpacing: "-2px", lineHeight: 1.0, color: "#F5F3EE", margin: "0 0 10px" }}>
-          Star Charts{" "}
-          <span style={{ color: "transparent", backgroundImage: "linear-gradient(135deg, #FF2E88, #FF6A00)", backgroundClip: "text", WebkitBackgroundClip: "text" }}>of the Greats</span>
+      <div style={{ padding: "60px 40px 48px", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <h1 style={{ fontSize: "clamp(34px, 5vw, 58px)", fontWeight: 700, letterSpacing: "-1.8px", lineHeight: 1.05, color: "#F5F5F7", margin: "0 0 10px" }}>
+          Star Charts <span style={{ color: "#0071E3" }}>of the Greats</span>
         </h1>
-        <p style={{ fontSize: 15, color: "#555", maxWidth: 460, margin: "0 auto 28px", lineHeight: 1.65 }}>
+        <p style={{ fontSize: 15, color: "#8E8E93", maxWidth: 460, margin: "0 auto 28px", lineHeight: 1.65 }}>
           {brands.length || 15} iconic brands decoded — colors, fonts, archetype, mission, and year-by-year evolution.
         </p>
         <div style={{ position: "relative", maxWidth: 520, margin: "0 auto" }}>
