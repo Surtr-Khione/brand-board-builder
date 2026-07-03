@@ -70,9 +70,15 @@ export default function WebScanner({ onApply }) {
     const updates = {};
     const a = result.analysis || {};
     updates.website = url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`;
-    if (result.primaryColor)   updates.primaryColor   = result.primaryColor;
-    if (result.secondaryColor) updates.secondaryColor = result.secondaryColor;
-    if (result.accentColor)    updates.accentColor    = result.accentColor;
+    // Map palette: index 0→primary, 1→secondary, 2→accent
+    // Vision returns semantic palette; CSS returns pickColors result — both use colorMap
+    const palette = result.colorMap || [];
+    if (palette[0]?.color) updates.primaryColor   = palette[0].color;
+    else if (result.primaryColor) updates.primaryColor = result.primaryColor;
+    if (palette[1]?.color) updates.secondaryColor = palette[1].color;
+    else if (result.secondaryColor) updates.secondaryColor = result.secondaryColor;
+    if (palette[2]?.color) updates.accentColor    = palette[2].color;
+    else if (result.accentColor) updates.accentColor = result.accentColor;
     if (result.fonts?.[0]) updates.primaryFont = result.fonts[0];
     if (result.fonts?.[1]) updates.bodyFont    = result.fonts[1];
     // Brand icons
@@ -208,18 +214,44 @@ export default function WebScanner({ onApply }) {
             </div>
           )}
 
+          {/* Full palette strip */}
+          {result.colorMap?.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                Brand Palette
+                {result.colorSource === "vision" && <span style={{ marginLeft: 6, color: "#666", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· visual analysis</span>}
+                {result.colorSource === "unknown" && <span style={{ marginLeft: 6, color: "#444", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· limited</span>}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                {result.colorMap.map((c, i) => (
+                  <div key={i} title={`${c.role}: ${c.color}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 8,
+                      background: c.color,
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      boxShadow: i < 3 ? "0 0 0 2px rgba(233,69,96,0.4)" : "none",
+                    }} />
+                    <div style={{ fontSize: 8, color: "#444", fontFamily: "monospace", letterSpacing: 0 }}>{c.color}</div>
+                  </div>
+                ))}
+              </div>
+              {result.colorMap.length > 3 && (
+                <div style={{ fontSize: 10, color: "#444", marginTop: 6 }}>
+                  Outlined = applied to board (primary, secondary, accent)
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
             {/* Color roles */}
             <div>
               <div style={{ fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
                 Colors by Role
-                {result.colorSource === "vision" && <span style={{ marginLeft: 6, color: "#555", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· from og:image</span>}
-                {result.colorSource === "unknown" && <span style={{ marginLeft: 6, color: "#444", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>· limited</span>}
               </div>
               {result.colorMap?.length > 0 ? (
                 result.colorMap.map((c, i) => <ColorRow key={i} role={c.role} color={c.color} />)
               ) : (
-                // Fallback: show the 3 picks without roles
                 [
                   { role: "Primary", color: result.primaryColor },
                   { role: "Secondary", color: result.secondaryColor },
