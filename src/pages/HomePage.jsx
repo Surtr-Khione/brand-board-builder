@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import BrandCard from "../components/BrandCard";
+import AccountMenu from "../components/AccountMenu";
 
 // keep rgb for the CTA cards
 function rgb(hex = "") {
@@ -136,6 +137,7 @@ export default function HomePage() {
           <Link to="/builder" style={{ padding: "8px 20px", borderRadius: 8, background: "linear-gradient(135deg, #e94560, #c62a42)", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>
             Start Building
           </Link>
+          <AccountMenu />
         </div>
       </nav>
 

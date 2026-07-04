@@ -6,8 +6,10 @@ import {
   buildUserPrompt, buildBrandCtx, buildIcpCtx, DEFAULT_SYSTEM_PROMPT, FORMATS, suggestTopics, FIELD_HINTS,
 } from "../lib/promptBuilder";
 import {
-  getTier, getCredits, getEmail, register, upgradePro, spendCredit, CREDIT_PACKS, TIERS, isUnlocked,
+  getTier, getCredits, spendCredit, CREDIT_PACKS, subscribeAuth,
 } from "../lib/auth";
+import { startCheckout, handleCheckoutReturn } from "../lib/checkout";
+import { AuthForm } from "../components/AuthModal";
 
 // ─── Content types ────────────────────────────────────────────────────────────
 const CONTENT_TYPES = [
@@ -56,14 +58,7 @@ function hexRgb(hex = "") {
 
 // ─── Register Gate Modal ───────────────────────────────────────────────────────
 function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
-  const [email, setEmail] = useState(getEmail());
   const [done, setDone] = useState(false);
-  const submit = () => {
-    if (!email.includes("@")) return;
-    register(email);
-    setDone(true);
-    setTimeout(onClose, 1200);
-  };
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
       <div style={{ maxWidth:400,width:"100%",background:"#0e0e14",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",padding:"32px 32px 28px" }}>
@@ -77,22 +72,12 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
             <div style={{ fontSize:24,marginBottom:8 }}>◈</div>
             <div style={{ fontSize:18,fontWeight:800,color:"#fff",marginBottom:6 }}>{reason}</div>
             <div style={{ fontSize:13,color:"#555",lineHeight:1.6,marginBottom:20 }}>
-              Register free to unlock Content Studio and get <strong style={{color:"#2ecc71"}}>3 free credits</strong> to generate content.
+              Create a free account to unlock Content Studio and get <strong style={{color:"#2ecc71"}}>3 free credits</strong> to generate content.
             </div>
-            <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && submit()}
-              placeholder="your@email.com"
-              style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
-            />
-            <div style={{ display:"flex",gap:10 }}>
-              <button onClick={submit} style={{ flex:1,padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-                Get 3 Free Credits →
-              </button>
-              <button onClick={onClose} style={{ padding:"12px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-                Later
-              </button>
-            </div>
+            <AuthForm accent="#2ecc71" onSuccess={() => { setDone(true); setTimeout(onClose, 1200); }} />
+            <button onClick={onClose} style={{ width:"100%",marginTop:10,padding:"10px 0",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
+              Later
+            </button>
           </>
         )}
       </div>
@@ -103,7 +88,19 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
 // ─── Credits / Upgrade Modal ───────────────────────────────────────────────────
 function CreditsModal({ onClose }) {
   const [selected, setSelected] = useState("creator");
+  const [busy, setBusy] = useState(false);
+  const [payErr, setPayErr] = useState("");
   const pack = CREDIT_PACKS.find(p => p.id === selected);
+
+  const doBuy = async () => {
+    setBusy(true); setPayErr("");
+    try {
+      await startCheckout(pack.id); // redirects to Stripe
+    } catch (e) {
+      setPayErr(e.message);
+      setBusy(false);
+    }
+  };
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
       <div style={{ maxWidth:460,width:"100%",background:"#0e0e14",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",padding:"32px 32px 28px" }}>
@@ -121,14 +118,18 @@ function CreditsModal({ onClose }) {
           ))}
         </div>
         {pack && (
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={() => { upgradePro(pack.credits); onClose(); }} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#e94560,#c62a42)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-              Buy {pack.credits} Credits for {pack.price}
-            </button>
-            <button onClick={onClose} style={{ padding:"13px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-              Cancel
-            </button>
-          </div>
+          <>
+            <div style={{ display:"flex",gap:10 }}>
+              <button onClick={doBuy} disabled={busy} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#e94560,#c62a42)",color:"#fff",fontSize:14,fontWeight:700,cursor:busy?"wait":"pointer",fontFamily:"inherit" }}>
+                {busy ? "Redirecting to Stripe…" : `Buy ${pack.credits} Credits for ${pack.price}`}
+              </button>
+              <button onClick={onClose} style={{ padding:"13px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
+                Cancel
+              </button>
+            </div>
+            {payErr && <div style={{ fontSize:12,color:"#e94560",marginTop:10 }}>{payErr}</div>}
+            <div style={{ fontSize:10,color:"#333",marginTop:10 }}>Secure checkout via Stripe. Credits are added to your account instantly after payment.</div>
+          </>
         )}
       </div>
     </div>
@@ -283,6 +284,10 @@ export default function ContentStudio() {
   const [credits, setCreditsState]   = useState(getCredits);
 
   const refreshAuth = () => { setTierState(getTier()); setCreditsState(getCredits()); };
+
+  // Stay in sync with sign-in/out and server-side credit changes
+  useEffect(() => subscribeAuth(refreshAuth), []);
+  useEffect(() => { handleCheckoutReturn().then((s) => { if (s) refreshAuth(); }); }, []);
 
   const [showRegister, setShowRegister]       = useState(false);
   const [showCredits, setShowCredits]         = useState(false);

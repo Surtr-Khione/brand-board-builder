@@ -5,8 +5,9 @@ import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
 import ContentStudio from './pages/ContentStudio';
+import MyBoards from './pages/MyBoards';
 import { FloatingFeedback } from './components/FeedbackButton';
-import { captureReferral } from './lib/auth';
+import { captureReferral, initAuth } from './lib/auth';
 
 function BoardPage() {
   const { boardId } = useParams();
@@ -19,13 +20,14 @@ function BrandProfilePage() {
 }
 
 export default function App() {
-  useEffect(() => { captureReferral(); }, []);
+  useEffect(() => { initAuth(); captureReferral(); }, []);
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/builder" element={<BrandBoardBuilder />} />
         <Route path="/board/:boardId" element={<BoardPage />} />
+        <Route path="/boards" element={<MyBoards />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
         <Route path="/studio" element={<ContentStudio />} />

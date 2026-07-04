@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { analyzeImages } from "../lib/ai";
+import { uploadAsset } from "../lib/assets";
+import { isSignedIn } from "../lib/auth";
 
 function hexToRgb(hex) {
   const h = (hex || "").replace("#", "").padEnd(6, "0");
@@ -51,7 +53,16 @@ export default function ImageMoodboard({ onApply }) {
       const { base64, mediaType } = await fileToBase64(file);
       const id = ++idRef.current;
       const src = URL.createObjectURL(file);
-      newImgs.push({ id, src, label: file.name, base64, mediaType });
+      const img = { id, src, label: file.name, base64, mediaType };
+      // Signed-in users get durable hosted assets instead of ephemeral blobs
+      if (isSignedIn()) {
+        try {
+          const { url, path } = await uploadAsset(file);
+          img.url = url;
+          img.assetPath = path;
+        } catch { /* keep local preview; analysis still works via base64 */ }
+      }
+      newImgs.push(img);
     }
     setImages(prev => [...prev, ...newImgs].slice(0, 8));
     setResult(null);

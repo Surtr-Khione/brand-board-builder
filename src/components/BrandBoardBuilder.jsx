@@ -4,8 +4,12 @@ import { saveBoard, loadBoard, generateBoardId } from "../lib/storage";
 import { sendLeadToGHL } from "../lib/ghl";
 import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
-import { getTier, isUnlocked, register as _register, upgradePro as _upgradePro, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
-import EmailGate from "./EmailGate";
+import { isUnlocked, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, CREDIT_PACKS, getEmail as getAccountEmail } from "../lib/auth";
+import { startCheckout, handleCheckoutReturn } from "../lib/checkout";
+import AuthModal, { AuthForm } from "./AuthModal";
+import { useAuth } from "../hooks/useAuth";
+import AccountMenu from "./AccountMenu";
+import ShareModal from "./ShareModal";
 import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
 import ImageMoodboard from "./ImageMoodboard";
@@ -1453,7 +1457,7 @@ function ScoreSection({ brand }) {
   );
 }
 
-function ExportSection({ brand, onSave, email }) {
+function ExportSection({ brand, onSave, email, onNeedAuth }) {
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(null);
   const [pubErr, setPubErr] = useState(null);
@@ -1476,6 +1480,7 @@ function ExportSection({ brand, onSave, email }) {
       const res = await publishBrand(brand, email);
       setPublished(res);
     } catch (e) {
+      if (e.code === "AUTH_REQUIRED") onNeedAuth?.();
       setPubErr(e.message || "Publish failed");
     }
     setPublishing(false);
@@ -1514,29 +1519,34 @@ function ExportSection({ brand, onSave, email }) {
 // ═══════════════════════════════════════════════
 function SectionGateModal({ section, onClose, onUnlocked }) {
   const isRegGate  = section.tier === "registered";
-  const [email, setEmail]   = useState("");
-  const [phase, setPhase]   = useState("main"); // main | email | credits | earn
+  const [phase, setPhase]   = useState("main"); // main | earn | done
   const [contactText, setContactText] = useState("");
   const [earnMsg, setEarnMsg] = useState("");
+  const [payErr, setPayErr] = useState("");
+  const [buying, setBuying] = useState(null);
 
   const refUrl = getReferralUrl();
 
-  const doRegister = () => {
-    if (!email.includes("@")) return;
-    _register(email);
-    setPhase("done");
-  };
-
-  const doShare = (action, url) => {
+  const doShare = async (action, url) => {
     if (url) window.open(url, "_blank", "width=600,height=500");
-    const gained = claimEarnAction(action);
+    const gained = await claimEarnAction(action);
     setEarnMsg(gained ? "+1 credit earned!" : "Already claimed.");
   };
 
-  const doImport = () => {
+  const doImport = async () => {
     const emails = contactText.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
-    const { added } = importContacts(emails);
+    const { added } = await importContacts(emails);
     setEarnMsg(added > 0 ? `+${added} credit${added !== 1 ? "s" : ""} earned!` : "All contacts already imported.");
+  };
+
+  const doBuy = async (packId) => {
+    setBuying(packId); setPayErr("");
+    try {
+      await startCheckout(packId); // redirects to Stripe on success
+    } catch (e) {
+      setPayErr(e.message);
+      setBuying(null);
+    }
   };
 
   const copyRef = () => { navigator.clipboard.writeText(refUrl); setEarnMsg("Referral link copied! You earn 1 credit for each friend who registers."); };
@@ -1576,14 +1586,8 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
 
               {phase === "main" && isRegGate && (
                 <div>
-                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Register free and get <strong style={{color:"#2ecc71"}}>3 content credits</strong> — no credit card required.</div>
-                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()}
-                    placeholder="your@email.com"
-                    style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
-                  />
-                  <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-                    Register Free — Get 3 Credits →
-                  </button>
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Create a free account and get <strong style={{color:"#2ecc71"}}>3 content credits</strong> — no credit card required.</div>
+                  <AuthForm accent="#2ecc71" onSuccess={() => setPhase("done")} />
                 </div>
               )}
 
@@ -1592,14 +1596,16 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
                   <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Pro sections include advanced intelligence: ICPs, offer architecture, brand stories, content calendar, sensory physics, and more.</div>
                   <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14 }}>
                     {CREDIT_PACKS.map(p => (
-                      <button key={p.id} onClick={() => { _upgradePro(p.credits); onUnlocked(); }}
-                        style={{ padding:"12px 10px",borderRadius:9,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",textAlign:"left" }}>
+                      <button key={p.id} onClick={() => doBuy(p.id)} disabled={!!buying}
+                        style={{ padding:"12px 10px",borderRadius:9,cursor:buying?"wait":"pointer",fontFamily:"inherit",border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",textAlign:"left",opacity:buying&&buying!==p.id?0.4:1 }}>
                         <div style={{ fontSize:12,fontWeight:700,color:"#ccc" }}>{p.label}</div>
                         <div style={{ fontSize:18,fontWeight:800,color:"#fff" }}>{p.credits} <span style={{ fontSize:10,color:"#444" }}>credits</span></div>
-                        <div style={{ fontSize:14,fontWeight:700,color:"#e94560" }}>{p.price}</div>
+                        <div style={{ fontSize:14,fontWeight:700,color:"#e94560" }}>{buying===p.id?"Redirecting…":p.price}</div>
                       </button>
                     ))}
                   </div>
+                  {payErr && <div style={{ fontSize:12,color:"#e94560",marginBottom:10 }}>{payErr}</div>}
+                  <div style={{ fontSize:10,color:"#333" }}>Secure checkout via Stripe. Credits and Pro access are added to your account instantly after payment.</div>
                 </div>
               )}
 
@@ -1651,16 +1657,27 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
 export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [brand, setBrand] = useState({ ...DEFAULT_BRAND });
   const [activeSection, setActiveSection] = useState("overview");
-  const [showEmailGate, setShowEmailGate] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [boardId, setBoardId] = useState(initialBoardId || null);
   const [email, setEmail] = useState(null);
   const [saved, setSaved] = useState(false);
   const [shareUrl, setShareUrl] = useState(null);
   const [loading, setLoading] = useState(!!initialBoardId);
   const [gateTarget, setGateTarget] = useState(null);
+  const [checkoutMsg, setCheckoutMsg] = useState(null);
+  const { user } = useAuth();
   const scrollRef = useRef(null);
   const sectionRefs = useRef({});
   const aiEnabled = isAIAvailable();
+
+  // Returning from Stripe checkout
+  useEffect(() => {
+    handleCheckoutReturn().then((status) => {
+      if (status === "success") setCheckoutMsg("Payment received — credits added to your account. You're Pro now!");
+      if (status === "cancelled") setCheckoutMsg("Checkout cancelled — no charge was made.");
+    });
+  }, []);
 
   useEffect(() => {
     if (initialBoardId) {
@@ -1715,22 +1732,30 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   }, []);
 
   const handleSave = () => {
-    if (email) {
-      doSave(email, null);
+    const accountEmail = getAccountEmail();
+    if (user || email || accountEmail) {
+      doSave(email || accountEmail || null, null);
     } else {
-      setShowEmailGate(true);
+      setShowAuthGate(true);
     }
   };
 
   const doSave = async (userEmail, firstName) => {
-    const newBoardId = await saveBoard(boardId, brand, userEmail);
-    setBoardId(newBoardId);
-    setEmail(userEmail);
-    setSaved(true);
-    setShowEmailGate(false);
-    const url = `${window.location.origin}/board/${newBoardId}`;
-    setShareUrl(url);
-    await sendLeadToGHL({ email: userEmail, firstName: firstName || "", boardId: newBoardId, boardUrl: url });
+    try {
+      const newBoardId = await saveBoard(boardId, brand, userEmail);
+      setBoardId(newBoardId);
+      if (userEmail) setEmail(userEmail);
+      setSaved(true);
+      setShowAuthGate(false);
+      const url = `${window.location.origin}/board/${newBoardId}`;
+      setShareUrl(url);
+      if (userEmail) {
+        sendLeadToGHL({ email: userEmail, firstName: firstName || "", boardId: newBoardId, boardUrl: url });
+      }
+    } catch (err) {
+      console.error("save failed:", err);
+      setCheckoutMsg(`Save failed: ${err.message || "please try again"}`);
+    }
   };
 
   const scrollToSection = (id) => {
@@ -1851,7 +1876,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       accessibility: <AccessibilitySection brand={brand} update={update} />,
       guidelines: <CustomFieldsSection brand={brand} update={update} />,
       score: <ScoreSection brand={brand} />,
-      export: <ExportSection brand={brand} onSave={handleSave} email={email} />,
+      export: <ExportSection brand={brand} onSave={handleSave} email={email} onNeedAuth={() => setShowAuthGate(true)} />,
     };
     return map[id] || null;
   };
@@ -1891,6 +1916,12 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             <button onClick={handleSave} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: saved ? "rgba(46,204,113,0.15)" : "rgba(255,255,255,0.06)", border: saved ? "1px solid rgba(46,204,113,0.3)" : "1px solid rgba(255,255,255,0.08)", color: saved ? "#2ecc71" : "#aaa", fontSize: "12px", fontWeight: 500, transition: "all 0.3s" }}>
               {saved ? "✓ Saved" : "Save"}
             </button>
+            {boardId && (
+              <button onClick={() => setShowShare(true)} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#aaa", fontSize: "12px", fontWeight: 500 }}>
+                Share
+              </button>
+            )}
+            <AccountMenu />
             <button
               onClick={() => { sessionStorage.setItem("studio_brand", JSON.stringify(brand)); }}
               style={{ padding: "0", border: "none", background: "transparent", cursor: "pointer" }}
@@ -1905,6 +1936,14 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             </button>
           </div>
         </header>
+
+        {/* CHECKOUT / STATUS BANNER */}
+        {checkoutMsg && (
+          <div style={{ padding: "10px 24px", background: checkoutMsg.startsWith("Save failed") ? "rgba(233,69,96,0.08)" : "rgba(46,204,113,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+            <span style={{ fontSize: "13px", color: checkoutMsg.startsWith("Save failed") ? "#e94560" : "#2ecc71" }}>{checkoutMsg}</span>
+            <button onClick={() => setCheckoutMsg(null)} style={{ padding: "4px 10px", borderRadius: 6, border: "none", background: "transparent", color: "#666", fontSize: 12, cursor: "pointer" }}>✕</button>
+          </div>
+        )}
 
         {/* SHARE URL BANNER */}
         {shareUrl && (
@@ -1964,11 +2003,22 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
           />
         )}
 
-        {/* EMAIL GATE */}
-        <EmailGate
-          isOpen={showEmailGate}
-          onClose={() => setShowEmailGate(false)}
-          onSubmit={({ email, firstName }) => doSave(email, firstName)}
+        {/* AUTH GATE — create an account to save, or save anonymously */}
+        <AuthModal
+          isOpen={showAuthGate}
+          onClose={() => setShowAuthGate(false)}
+          onSuccess={() => { setShowAuthGate(false); doSave(getAccountEmail() || null, null); }}
+          title="Save Your Brand Board"
+          subtitle="Create a free account to save this board, access it from anywhere, share it with your team, and publish to the Brand Library."
+          secondaryAction={{ label: "Just save with a link (no account)", onClick: () => doSave(null, null) }}
+        />
+
+        {/* SHARE / PERMISSIONS */}
+        <ShareModal
+          isOpen={showShare}
+          onClose={() => setShowShare(false)}
+          boardId={boardId}
+          shareUrl={shareUrl || (boardId ? `${window.location.origin}/board/${boardId}` : null)}
         />
       </div>
     </BrandCtx.Provider>
