@@ -18,21 +18,25 @@ function luma(hex = "") {
   return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
 }
 
-function logoSources(website) {
-  if (!website) return [];
-  const d = website.replace(/^https?:\/\//, "").split("/")[0];
-  return [
-    `https://logo.clearbit.com/${d}?size=600`,
-    `https://logo.clearbit.com/${d}`,
-    `https://icon.horse/icon/${d}`,
-    `https://www.google.com/s2/favicons?domain=${d}&sz=256`,
-    `https://icons.duckduckgo.com/ip3/${d}.ico`,
-  ];
+function logoSources(website, logoUrl) {
+  const d = website ? website.replace(/^https?:\/\//, "").split("/")[0] : null;
+  const sources = [];
+  if (logoUrl) sources.push(logoUrl);
+  if (d) {
+    sources.push(
+      `https://logo.clearbit.com/${d}?size=600`,
+      `https://logo.clearbit.com/${d}`,
+      `https://icon.horse/icon/${d}`,
+      `https://www.google.com/s2/favicons?domain=${d}&sz=256`,
+      `https://icons.duckduckgo.com/ip3/${d}.ico`,
+    );
+  }
+  return sources;
 }
 
-function BrandLogo({ website, name, size = 100, radius = 20, pc }) {
+function BrandLogo({ website, logoUrl, name, size = 100, radius = 20, pc }) {
   const [idx, setIdx] = useState(0);
-  const sources = logoSources(website);
+  const sources = logoSources(website, logoUrl);
   const url = sources[idx] || null;
   const imgSize = Math.round(size * 0.65);
   return (
@@ -342,7 +346,7 @@ export default function BrandProfile({ slug }) {
 
           {/* Logo + Name */}
           <div className="fi" style={{ display: "flex", alignItems: "flex-end", gap: 40, marginBottom: 28 }}>
-            <BrandLogo website={brand.website} name={brand.brand_name} size={130} radius={24} pc={pc} />
+            <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={130} radius={24} pc={pc} />
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: "clamp(68px, 11vw, 156px)",
@@ -411,7 +415,7 @@ export default function BrandProfile({ slug }) {
                   <div style={{ fontSize: 10, letterSpacing: 4, fontWeight: 700, textTransform: "uppercase", color: swatchText }}>{label}</div>
                   {i === 0 && (
                     <div style={{ position: "absolute", right: 24, bottom: 24, opacity: 0.18 }}>
-                      <BrandLogo website={brand.website} name={brand.brand_name} size={60} radius={12} pc={swatchLuma > 155 ? "#000" : "#fff"} />
+                      <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={60} radius={12} pc={swatchLuma > 155 ? "#000" : "#fff"} />
                     </div>
                   )}
                 </div>
@@ -467,7 +471,7 @@ export default function BrandProfile({ slug }) {
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
               <div style={{ width: 44, height: 1, background: `rgba(${rgb(pc)},0.4)` }} />
-              <BrandLogo website={brand.website} name={brand.brand_name} size={30} radius={7} pc={pc} />
+              <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={30} radius={7} pc={pc} />
               <div style={{ fontSize: 11, fontWeight: 700, color: "#777", letterSpacing: 2, textTransform: "uppercase" }}>
                 {brand.brand_name}
                 {brand.archetype && <span style={{ color: `rgba(${rgb(pc)},0.75)` }}>&nbsp;·&nbsp;{brand.archetype}</span>}
@@ -707,7 +711,7 @@ export default function BrandProfile({ slug }) {
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: 44 }}>
-            <BrandLogo website={brand.website} name={brand.brand_name} size={110} radius={22} pc={pc} />
+            <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={110} radius={22} pc={pc} />
           </div>
           <div style={{ fontSize: 10, letterSpacing: 5, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginBottom: 22 }}>Build Like</div>
           <div style={{

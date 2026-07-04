@@ -17,16 +17,20 @@ function luma(hex = "") {
   return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
 }
 
-function logoSources(website) {
-  if (!website) return [];
-  const domain = website.replace(/^https?:\/\//, "").split("/")[0];
-  return [
-    `https://logo.clearbit.com/${domain}?size=600`,
-    `https://logo.clearbit.com/${domain}`,
-    `https://icon.horse/icon/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=256`,
-    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  ];
+function logoSources(website, logoUrl) {
+  const domain = website ? website.replace(/^https?:\/\//, "").split("/")[0] : null;
+  const sources = [];
+  if (logoUrl) sources.push(logoUrl);
+  if (domain) {
+    sources.push(
+      `https://logo.clearbit.com/${domain}?size=600`,
+      `https://logo.clearbit.com/${domain}`,
+      `https://icon.horse/icon/${domain}`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=256`,
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+    );
+  }
+  return sources;
 }
 
 export default function BrandCard({ brand, compact = false }) {
@@ -36,7 +40,7 @@ export default function BrandCard({ brand, compact = false }) {
   const pc = brand.primary_color || "#333";
   const sc = brand.secondary_color || "#1a1a1a";
   const ac = brand.accent_color || "#555";
-  const sources = logoSources(brand.website);
+  const sources = logoSources(brand.website, brand.logo_url);
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
 
