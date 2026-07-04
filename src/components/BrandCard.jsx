@@ -22,8 +22,10 @@ function logoSources(website) {
   const domain = website.replace(/^https?:\/\//, "").split("/")[0];
   return [
     `https://logo.clearbit.com/${domain}?size=600`,
-    `https://logo.clearbit.com/${domain}?size=200`,
     `https://logo.clearbit.com/${domain}`,
+    `https://icon.horse/icon/${domain}`,
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=256`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
   ];
 }
 
@@ -104,6 +106,10 @@ export default function BrandCard({ brand, compact = false }) {
               <img
                 src={url}
                 onError={() => setSrcIdx(i => i + 1)}
+                onLoad={e => {
+                  const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+                  if (w < 48 && h < 48 && srcIdx < sources.length - 1) setSrcIdx(i => i + 1);
+                }}
                 alt={brand.brand_name}
                 style={{ width: logoSize, height: logoSize, objectFit: "contain", imageRendering: "auto" }}
                 loading="lazy"

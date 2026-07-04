@@ -23,8 +23,10 @@ function logoSources(website) {
   const d = website.replace(/^https?:\/\//, "").split("/")[0];
   return [
     `https://logo.clearbit.com/${d}?size=600`,
-    `https://logo.clearbit.com/${d}?size=200`,
     `https://logo.clearbit.com/${d}`,
+    `https://icon.horse/icon/${d}`,
+    `https://www.google.com/s2/favicons?domain=${d}&sz=256`,
+    `https://icons.duckduckgo.com/ip3/${d}.ico`,
   ];
 }
 
@@ -42,8 +44,16 @@ function BrandLogo({ website, name, size = 100, radius = 20, pc }) {
       flexShrink: 0, overflow: "hidden",
     }}>
       {url ? (
-        <img src={url} onError={() => setIdx(i => i + 1)} alt={name}
-          style={{ width: imgSize, height: imgSize, objectFit: "contain" }} />
+        <img
+          src={url}
+          onError={() => setIdx(i => i + 1)}
+          onLoad={e => {
+            const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+            if (w < 48 && h < 48 && idx < sources.length - 1) setIdx(i => i + 1);
+          }}
+          alt={name}
+          style={{ width: imgSize, height: imgSize, objectFit: "contain" }}
+        />
       ) : (
         <span style={{ fontSize: size * 0.45, fontWeight: 900, color: pc, fontFamily: "'Playfair Display', serif", lineHeight: 1 }}>
           {name?.charAt(0) || "?"}
