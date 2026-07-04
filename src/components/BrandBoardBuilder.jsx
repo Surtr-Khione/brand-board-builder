@@ -12,6 +12,7 @@ import ImageMoodboard from "./ImageMoodboard";
 import { ARCHETYPES } from "../lib/archetypes";
 import CertificateShare from "./CertificateShare";
 import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
+import { computeImpactScore, impactScoreColor, GEO_LEVELS } from "../lib/impactScore";
 
 // ═══════════════════════════════════════════════
 // BRAND CONTEXT
@@ -61,7 +62,7 @@ const SECTIONS = [
   { id: "accessibility",label: "Accessibility",      icon: "♿", phase: 3, tier: "registered", gateHint: "Color contrast, font accessibility, and inclusive design standards." },
   { id: "guidelines",   label: "Custom Fields",      icon: "☰",  phase: 3, tier: "registered", gateHint: "Add custom brand guideline fields specific to your brand." },
   { id: "score",        label: "Brand Score",        icon: "★",  phase: 4, tier: "free" },
-  { id: "integrations", label: "Integrations",       icon: "🔗", phase: 4, tier: "registered", gateHint: "Connect your brand data to your CRM, website, and content tools." },
+  { id: "integrations", label: "Integrations",       icon: "🔗", phase: 4, tier: "registered", gateHint: "Plug in your own social, traffic, ad, and AI-visibility numbers to get an Impact Score." },
   { id: "export",       label: "Export",             icon: "↗",  phase: 4, tier: "free" },
 ];
 
@@ -88,7 +89,7 @@ const DEFAULT_BRAND = {
   accessNotes: "", wcagLevel: "AA",
   customFields: [],
   socialPersonality: "", emailSignoff: "",
-  integrations: [],
+  integrations: {},
   // Brand Intelligence sources
   sources: {},
   // Auto-detected URLs from website scan (social + podcast)
@@ -1439,6 +1440,108 @@ function ScoreSection({ brand }) {
   );
 }
 
+function NumberField({ label, value, onChange, hint, placeholder }) {
+  return (
+    <div style={{ marginBottom: "14px" }}>
+      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#aaa", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+        {label}
+      </label>
+      <input
+        type="number" min="0" inputMode="numeric"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
+        placeholder={placeholder}
+        style={inputBase}
+      />
+      {hint && <div style={{ fontSize: "11px", color: "#555", marginTop: "5px" }}>{hint}</div>}
+    </div>
+  );
+}
+
+function IntegrationsSection({ brand, update }) {
+  const integrations = brand.integrations || {};
+  const setField = (key, value) => update("integrations", { ...integrations, [key]: value });
+  const { score, hasData, breakdown } = computeImpactScore(integrations);
+  const color = impactScoreColor(score);
+
+  return (
+    <div>
+      <SectionHeader
+        title="Integrations — Impact Score"
+        subtitle="Plug in your own analytics — social following, traffic, ads, AI visibility — to measure real-world reach, not just strategy."
+        phase={4}
+      />
+
+      <div style={{ padding: "12px 16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.015)", marginBottom: "24px", fontSize: "12px", color: "#777", lineHeight: 1.6 }}>
+        BrandMD doesn't connect to social platforms, ad networks, or traffic tools automatically — these are your own numbers,
+        pulled from Similarweb, SEMrush, Ahrefs, Meta/TikTok/LinkedIn analytics, or wherever you already track them.
+      </div>
+
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: "12px" }}>Social Reach</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+        <NumberField label="Instagram followers" value={integrations.instagramFollowers} onChange={(v) => setField("instagramFollowers", v)} placeholder="0" />
+        <NumberField label="TikTok followers" value={integrations.tiktokFollowers} onChange={(v) => setField("tiktokFollowers", v)} placeholder="0" />
+        <NumberField label="LinkedIn followers" value={integrations.linkedinFollowers} onChange={(v) => setField("linkedinFollowers", v)} placeholder="0" />
+        <NumberField label="X / Twitter followers" value={integrations.xFollowers} onChange={(v) => setField("xFollowers", v)} placeholder="0" />
+      </div>
+
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", margin: "8px 0 12px" }}>Traffic &amp; Ads</div>
+      <NumberField
+        label="Monthly organic traffic"
+        value={integrations.monthlyOrganicTraffic}
+        onChange={(v) => setField("monthlyOrganicTraffic", v)}
+        placeholder="0"
+        hint="From Similarweb, SEMrush, Ahrefs, or Google Analytics"
+      />
+      <NumberField
+        label="Estimated monthly ad spend ($)"
+        value={integrations.adSpendEstimate}
+        onChange={(v) => setField("adSpendEstimate", v)}
+        placeholder="0"
+        hint="Rough estimate is fine — this measures paid presence, not precision"
+      />
+
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", margin: "8px 0 12px" }}>GEO — AI Visibility</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "24px" }}>
+        {GEO_LEVELS.map((lvl) => (
+          <button
+            key={lvl.value}
+            onClick={() => setField("geoVisibilityRating", lvl.value)}
+            style={{
+              textAlign: "left", padding: "10px 14px", borderRadius: "8px", cursor: "pointer",
+              border: integrations.geoVisibilityRating === lvl.value ? "2px solid #0071E3" : "1px solid rgba(255,255,255,0.06)",
+              background: integrations.geoVisibilityRating === lvl.value ? "rgba(0,113,227,0.08)" : "rgba(255,255,255,0.02)",
+            }}
+          >
+            <div style={{ fontSize: "13px", fontWeight: 600, color: integrations.geoVisibilityRating === lvl.value ? "#0071E3" : "#ccc" }}>{lvl.label}</div>
+            <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>{lvl.hint}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ textAlign: "center", padding: "24px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.015)" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: "10px" }}>Impact Score</div>
+        <div style={{ fontSize: "56px", fontWeight: 700, color, fontFamily: "'DM Sans', sans-serif" }}>{score}</div>
+        {!hasData && <div style={{ fontSize: "12px", color: "#555", marginTop: "8px" }}>Add any metric above to see your score.</div>}
+        {hasData && (
+          <div style={{ marginTop: "18px", display: "flex", flexDirection: "column", gap: "10px", maxWidth: 340, marginLeft: "auto", marginRight: "auto" }}>
+            {breakdown.map((b) => (
+              <div key={b.label}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888", marginBottom: "4px" }}>
+                  <span>{b.label}</span><span>{b.points}/{b.max}</span>
+                </div>
+                <div style={{ width: "100%", height: "5px", background: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ width: `${(b.points / b.max) * 100}%`, height: "100%", background: color, borderRadius: "3px" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ExportSection({ brand, onSave, email }) {
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(null);
@@ -1835,6 +1938,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       accessibility: <AccessibilitySection brand={brand} update={update} />,
       guidelines: <CustomFieldsSection brand={brand} update={update} />,
       score: <ScoreSection brand={brand} />,
+      integrations: <IntegrationsSection brand={brand} update={update} />,
       export: <ExportSection brand={brand} onSave={handleSave} email={email} />,
     };
     return map[id] || null;
