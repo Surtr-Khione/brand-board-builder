@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import SiteNav from "../components/SiteNav";
 import WebScanner from "../components/WebScanner";
 import BrandIntelligence from "../components/BrandIntelligence";
@@ -30,6 +30,8 @@ export default function Analyzer() {
   const [published, setPublished] = useState(null);
   const [pubErr, setPubErr] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialUrl = searchParams.get("url") || "";
 
   useEffect(() => {
     document.title = "Brand Analyzer — Free Instant Brand Scan | BrandMD";
@@ -118,7 +120,7 @@ export default function Analyzer() {
           <div style={{ fontSize: 12, fontWeight: 600, color: TITANIUM, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
             Source: website
           </div>
-          <WebScanner onApply={applyScan} />
+          <WebScanner onApply={applyScan} initialUrl={initialUrl} />
         </div>
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, color: TITANIUM, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>

@@ -175,11 +175,17 @@ function ScoreCard({ brand }) {
 export default function HomePage() {
   const [brands, setBrands] = useState([]);
   const [findQuery, setFindQuery] = useState("");
+  const [heroUrl, setHeroUrl] = useState("");
   const navigate = useNavigate();
 
   const submitFind = (e) => {
     e.preventDefault();
     navigate(`/brands${findQuery.trim() ? `?q=${encodeURIComponent(findQuery.trim())}` : ""}`);
+  };
+
+  const submitHeroScan = (e) => {
+    e.preventDefault();
+    navigate(`/analyzer${heroUrl.trim() ? `?url=${encodeURIComponent(heroUrl.trim())}` : ""}`);
   };
 
   useEffect(() => {
@@ -272,44 +278,46 @@ export default function HomePage() {
           </div>
           <h1
             style={{
-              fontWeight: 700, fontSize: "clamp(40px, 6.5vw, 80px)",
-              lineHeight: 1.04, letterSpacing: "-2.5px", margin: "0 0 22px",
+              fontWeight: 700, fontSize: "clamp(38px, 6vw, 72px)",
+              lineHeight: 1.06, letterSpacing: "-2px", margin: "0 0 18px",
               textShadow: "0 4px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.95)",
             }}
           >
-            Gravity, <span style={{ color: ACCENT_BLUE }}>diagnosed.</span>
+            What's the <span style={{ color: ACCENT_BLUE }}>Gravity</span> of your brand?
           </h1>
           <p style={{
-            fontSize: 18, color: TITANIUM, maxWidth: 540, margin: "0 auto 38px", lineHeight: 1.6, fontWeight: 400,
+            fontSize: 17, color: TITANIUM, maxWidth: 480, margin: "0 auto 34px", lineHeight: 1.6, fontWeight: 400,
             textShadow: "0 2px 18px rgba(0,0,0,0.9)",
           }}>
-            Scan any site to see what's actually there, study the brands that
-            already got it right, then chart an identity that says one thing
-            everywhere.
+            Enter your URL below — free, instant, no signup.
           </p>
 
-          <div style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", alignItems: "center", marginBottom: 30 }}>
-            <Link
-              to="/analyzer"
+          <form onSubmit={submitHeroScan} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 26 }}>
+            <input
+              value={heroUrl}
+              onChange={(e) => setHeroUrl(e.target.value)}
+              placeholder="yourbrand.com"
+              style={{
+                flex: "1 1 300px", maxWidth: 400, padding: "14px 22px", borderRadius: 100,
+                border: "1px solid rgba(255,255,255,0.18)", background: "rgba(0,0,0,0.4)",
+                backdropFilter: "blur(8px)", color: STARLIGHT, fontSize: 16, fontFamily: SANS, outline: "none",
+              }}
+            />
+            <button
+              type="submit"
               className="bmd-cta"
               style={{
-                padding: "13px 28px", borderRadius: 100, textDecoration: "none",
-                background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600,
+                padding: "14px 30px", borderRadius: 100, border: "none", cursor: "pointer",
+                background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, fontFamily: SANS,
               }}
             >
-              Analyze your brand — free
-            </Link>
-            <Link
-              to="/brands"
-              className="bmd-link"
-              style={{ textDecoration: "none", color: ACCENT_BLUE, fontSize: 15, fontWeight: 500 }}
-            >
-              Explore the Library &nbsp;›
-            </Link>
-          </div>
+              Get My Score
+            </button>
+          </form>
 
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
             {brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 19 brand dimensions &nbsp;&middot;&nbsp; one board
+            &nbsp;&middot;&nbsp; <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the Library</Link>
           </div>
         </div>
       </div>
@@ -321,7 +329,7 @@ export default function HomePage() {
             Search the index
           </div>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 26 }}>
-            Find Your: <span style={{ color: ACCENT_BLUE }}>Brand Gravity Score</span>
+            See how <span style={{ color: ACCENT_BLUE }}>anyone else</span> scores.
           </h2>
           <form onSubmit={submitFind} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <input

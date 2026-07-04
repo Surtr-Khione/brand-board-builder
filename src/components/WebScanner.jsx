@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { scanWebsite, isAIAvailable } from "../lib/ai";
 
 const STEPS = [
@@ -33,8 +33,8 @@ function ColorRow({ role, color }) {
   );
 }
 
-export default function WebScanner({ onApply }) {
-  const [url, setUrl] = useState("");
+export default function WebScanner({ onApply, initialUrl = "" }) {
+  const [url, setUrl] = useState(initialUrl);
   const [scanning, setScanning] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
   const [result, setResult] = useState(null);
@@ -43,8 +43,13 @@ export default function WebScanner({ onApply }) {
 
   const canUseAI = isAIAvailable();
 
-  const handleScan = async () => {
-    const trimmed = url.trim();
+  useEffect(() => {
+    if (initialUrl.trim()) handleScan(initialUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleScan = async (urlOverride) => {
+    const trimmed = (urlOverride ?? url).trim();
     if (!trimmed) return;
     setScanning(true);
     setError(null);
