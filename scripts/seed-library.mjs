@@ -79,7 +79,7 @@ async function seedOne(domain, existing) {
     },
   };
 
-  const { synthesis } = await call("synthesize-brand", { sources: [source], existingBrand: { brandName: name, website: domain } });
+  const { synthesis } = await call("synthesize-brand", { sources: [source], existingBrand: { brandName: name, website: domain }, mode: "profile" });
   const brand = { ...synthesis, brandName: synthesis.brandName || name, website: domain };
   const pub = await call("publish-brand", { brand, email: null });
   existing.add(pub.slug);

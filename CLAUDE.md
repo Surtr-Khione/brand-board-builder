@@ -34,6 +34,15 @@ The board is now something content is *checked against*, not just built from:
 - **brand.md** (`brand-md` fn): permanent AI-context file per board — `/board/:id/brand.md` and `/brands/:slug/brand.md` 302 via `public/_redirects` to the fn. Surfaced in Export with copy button.
 - **Compare** (`/compare`): scan 2-3 sites side-by-side, Gravity each, winner callout → Builder CTA. Free/viral. Linked from nav ("Check" added too), Analyzer, homepage.
 
+## Protection + growth layer (built 2026-07-11, later same day)
+- **Credits are server-side now**: `bmd_anon_credits` + `credits` fn; registration mints a token (localStorage `brandmd_credit_token`); `brand-check`/`generate-content` spend server-side and return `creditsRemaining`. Client localStorage is cache only. Known gap: re-registering an email returns its token (fix = accounts merge).
+- **Rate limiting**: `bmd_rate_limits` + `supabase/functions/_shared/gate.ts` on all Sonnet fns (founder-brief 3/hr/IP, synthesize 5, drift 6, check/generate 12, register 5). Trusted callers bypass via `x-bmd-internal` header = `bmd_config.internal_key` (service-only table). Deploy fns via CLI: `npx supabase functions deploy <fn> --project-ref bukgitgwwmzdjibekmzb --no-verify-jwt --use-api` (CLI is authenticated; --use-api avoids the slow Docker bundler).
+- **Analytics**: `bmd_events` (insert-only) + `src/lib/track.js`; page_view on every route + board_saved / founder_generated / check_run / drift_run / compare_run / studio_generated. Query with service role.
+- **analyze-pdf rebuilt + deployed** (Claude document block) — PDF import works again in BrandIntelligence; `scan-social`/`analyze-image` still missing.
+- **Core 7 mode** in Builder (default ON, persisted `bmd_core_mode`): shows only the Gravity-signal sections; Full 31 toggle in sidebar/mobile chips.
+- **Library seeder**: `scripts/seed-library.mjs` + `seed-domains.txt` (needs `SUPABASE_SERVICE_KEY` + `BMD_INTERNAL_KEY` from bmd_config). NOTE: edge `synthesize-brand` hits worker limits (546/504) under concurrency and on huge sites — run concurrency 1; local meta fetch already replaces the edge scan.
+- **Nurture sequence**: `marketing/nurture/` — 5 GHL-ready emails + wiring README. ⚠️ `VITE_GHL_WEBHOOK_URL` is UNSET in prod → lead capture currently dead; Ryan must pick a GHL location and set it.
+
 ## Next actions
 1. Ryan: review + merge the two stacked PRs (redesign → main, then founder-release), apply the edit-token migration, then `npm run build && npx wrangler pages deploy --branch=main`.
 2. Get Stripe keys from Ryan → set secrets → test checkout end-to-end.
