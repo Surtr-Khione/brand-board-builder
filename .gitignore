@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Never commit the real env (only *.local was ignored before)
+.env
+.env.*
+!.env.example
