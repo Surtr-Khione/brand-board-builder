@@ -10,6 +10,7 @@ import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
 import ImageMoodboard from "./ImageMoodboard";
 import { ARCHETYPES } from "../lib/archetypes";
+import { OrbitMark } from "./SiteNav";
 import CertificateShare from "./CertificateShare";
 import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 import { computeImpactScore, impactScoreColor, GEO_LEVELS } from "../lib/impactScore";
@@ -23,12 +24,15 @@ const useBrand = () => useContext(BrandCtx);
 // ═══════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════
+// One accent across all phases — the Builder speaks the same mono+blue
+// titanium language as the rest of the site; phase identity comes from the
+// group labels, not a rainbow.
 const PHASES = [
-  { name: "Discover", color: "#e94560", sections: ["overview"] },
-  { name: "Strategy", color: "#f39c12", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "language", "manifesto", "audience", "icps", "journey", "proof", "market", "offer", "stories", "calendar", "socialvoice", "vocabulary", "competitive"] },
-  { name: "Expression", color: "#9b59b6", sections: ["colors", "typography", "photography", "sensory", "logo", "motion", "media"] },
-  { name: "Govern", color: "#2e86de", sections: ["accessibility", "guidelines"] },
-  { name: "Deploy", color: "#2ecc71", sections: ["score", "integrations", "export"] },
+  { name: "Discover", color: "#0071E3", sections: ["overview"] },
+  { name: "Strategy", color: "#0071E3", sections: ["identity", "archetype", "storybrand", "pillars", "voice", "language", "manifesto", "audience", "icps", "journey", "proof", "market", "offer", "stories", "calendar", "socialvoice", "vocabulary", "competitive"] },
+  { name: "Expression", color: "#0071E3", sections: ["colors", "typography", "photography", "sensory", "logo", "motion", "media"] },
+  { name: "Govern", color: "#0071E3", sections: ["accessibility", "guidelines"] },
+  { name: "Deploy", color: "#0071E3", sections: ["score", "integrations", "export"] },
 ];
 
 // tier: free | registered | pro
@@ -77,9 +81,12 @@ const DEFAULT_BRAND = {
   toneAttributes: ["", "", ""], messagingDos: ["", ""], messagingDonts: ["", ""],
   primaryFont: "", secondaryFont: "", bodyFont: "",
   h1Size: "48px", h2Size: "36px", h3Size: "24px", bodySize: "16px",
-  primaryColor: "#e94560", secondaryColor: "#1a1a2e", accentColor: "#f39c12",
+  // Neutral placeholder palette — deliberately reads as "not chosen yet";
+  // gravityScore ignores this exact triplet so an untouched color system
+  // doesn't score as a decision.
+  primaryColor: "#1D1D1F", secondaryColor: "#F5F5F7", accentColor: "#0071E3",
   lightBg: "#ffffff", lightSurface: "#f5f5f5", lightText: "#111111", lightSecText: "#666666", lightBorder: "#e0e0e0",
-  darkBg: "#0a0a0f", darkSurface: "#13131a", darkText: "#e0e0e0", darkSecText: "#999999", darkBorder: "#2a2a35",
+  darkBg: "#000000", darkSurface: "#13131a", darkText: "#e0e0e0", darkSecText: "#999999", darkBorder: "#2a2a35",
   lightModeEnabled: true, darkModeEnabled: true,
   photoStyle: "", photoMood: "", photoSubjects: "",
   faviconUrl: "", logoUrl: "", ogImage: "", iconSources: null,
@@ -185,11 +192,11 @@ function AISuggestButton({ fieldKey, onChange }) {
         disabled={suggesting}
         style={{
           padding: "2px 7px", borderRadius: "4px",
-          border: "1px solid rgba(155,89,182,0.35)",
-          background: "rgba(155,89,182,0.07)", color: "#9b59b6",
+          border: "1px solid rgba(0,113,227,0.35)",
+          background: "rgba(0,113,227,0.07)", color: "#0071E3",
           cursor: suggesting ? "wait" : "pointer",
           fontSize: "10px", fontWeight: 700,
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', -apple-system, sans-serif",
           opacity: suggesting ? 0.5 : 1,
         }}
       >
@@ -198,27 +205,27 @@ function AISuggestButton({ fieldKey, onChange }) {
       {(suggestion || err) && (
         <div style={{
           position: "relative", marginTop: "6px", padding: "10px 12px",
-          borderRadius: "8px", border: "1px solid rgba(155,89,182,0.2)",
-          background: "rgba(155,89,182,0.04)",
+          borderRadius: "8px", border: "1px solid rgba(0,113,227,0.2)",
+          background: "rgba(0,113,227,0.04)",
         }}>
           {suggestion && (
             <div style={{ fontSize: "13px", color: "#ccc", lineHeight: 1.55, marginBottom: "8px" }}>
               {suggestion}
             </div>
           )}
-          {err && <div style={{ fontSize: "12px", color: "#e94560", marginBottom: "8px" }}>{err}</div>}
+          {err && <div style={{ fontSize: "12px", color: "#FF453A", marginBottom: "8px" }}>{err}</div>}
           <div style={{ display: "flex", gap: "6px" }}>
             {suggestion && (
               <button
                 onClick={() => { onChange(suggestion); setSuggestion(null); }}
-                style={{ padding: "4px 12px", borderRadius: "6px", border: "none", background: "#9b59b6", color: "#fff", fontSize: "11px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+                style={{ padding: "4px 12px", borderRadius: "6px", border: "none", background: "#0071E3", color: "#fff", fontSize: "11px", cursor: "pointer", fontFamily: "'Inter', -apple-system, sans-serif" }}
               >
                 Use this
               </button>
             )}
             <button
               onClick={() => { setSuggestion(null); setErr(null); }}
-              style={{ padding: "4px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#666", fontSize: "11px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+              style={{ padding: "4px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#666", fontSize: "11px", cursor: "pointer", fontFamily: "'Inter', -apple-system, sans-serif" }}
             >
               Dismiss
             </button>
@@ -236,7 +243,7 @@ const inputBase = {
   width: "100%", padding: "10px 14px", borderRadius: "8px",
   border: "1px solid rgba(255,255,255,0.08)",
   background: "rgba(255,255,255,0.03)", color: "#e0e0e0",
-  fontSize: "14px", fontFamily: "'DM Sans', sans-serif",
+  fontSize: "14px", fontFamily: "'Inter', -apple-system, sans-serif",
   outline: "none", boxSizing: "border-box",
 };
 
@@ -268,13 +275,13 @@ const ArrayInput = ({ label, values, onChange, hint }) => {
       {values.map((v, i) => (
         <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
           <input type="text" value={v} onChange={(e) => update(i, e.target.value)} placeholder={hint}
-            style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'Inter', -apple-system, sans-serif", outline: "none" }} />
           {values.length > 1 && (
             <button onClick={() => remove(i)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)", background: "transparent", color: "#666", cursor: "pointer", fontSize: "12px" }}>✕</button>
           )}
         </div>
       ))}
-      <button onClick={add} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(233,69,96,0.2)", background: "rgba(233,69,96,0.06)", color: "#e94560", cursor: "pointer", fontSize: "12px", fontWeight: 500 }}>+ Add</button>
+      <button onClick={add} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(0,113,227,0.2)", background: "rgba(0,113,227,0.06)", color: "#0071E3", cursor: "pointer", fontSize: "12px", fontWeight: 500 }}>+ Add</button>
     </div>
   );
 };
@@ -296,7 +303,7 @@ function SectionFeedback({ section, title }) {
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
   const ctx = useBrand();
-  const bc = ctx?.brand?.primaryColor || "#e94560";
+  const bc = ctx?.brand?.primaryColor || "#0071E3";
 
   const submit = async () => {
     if (!text.trim()) return;
@@ -336,7 +343,7 @@ function SectionFeedback({ section, title }) {
           borderRadius: 10, padding: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
         }}>
           {sent ? (
-            <div style={{ fontSize: 12, color: "#2ecc71", textAlign: "center", padding: "8px 0" }}>✓ Thanks for the feedback</div>
+            <div style={{ fontSize: 12, color: "#32D74B", textAlign: "center", padding: "8px 0" }}>✓ Thanks for the feedback</div>
           ) : (
             <>
               <div style={{ fontSize: 10, color: "#444", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
@@ -350,7 +357,7 @@ function SectionFeedback({ section, title }) {
                 style={{
                   width: "100%", minHeight: 72, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 7, color: "#e0e0e0", fontSize: 12, padding: "8px 10px", resize: "vertical",
-                  fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box",
+                  fontFamily: "'Inter', -apple-system, sans-serif", outline: "none", boxSizing: "border-box",
                 }}
               />
               <button
@@ -361,7 +368,7 @@ function SectionFeedback({ section, title }) {
                   border: "none", cursor: text.trim() ? "pointer" : "default",
                   background: text.trim() ? `rgba(${hexToRgbStr(bc)},0.2)` : "rgba(255,255,255,0.04)",
                   color: text.trim() ? bc : "#444",
-                  fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11, fontWeight: 700, fontFamily: "'Inter', -apple-system, sans-serif",
                 }}
               >Send Feedback</button>
             </>
@@ -380,7 +387,7 @@ function hexToRgbStr(hex) {
 const SectionHeader = ({ title, subtitle, phase }) => {
   const p = PHASES[phase];
   const ctx = useBrand();
-  const bc = ctx?.brand?.primaryColor || "#e94560";
+  const bc = ctx?.brand?.primaryColor || "#0071E3";
   const sectionId = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   return (
     <div style={{ marginBottom: "24px", borderLeft: `2px solid rgba(${hexToRgbStr(bc)},0.12)`, paddingLeft: 14 }}>
@@ -390,7 +397,7 @@ const SectionHeader = ({ title, subtitle, phase }) => {
         </div>
         <SectionFeedback section={sectionId} title={title} />
       </div>
-      <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#fff", margin: "0 0 6px", fontFamily: "'DM Sans', sans-serif" }}>{title}</h2>
+      <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#fff", margin: "0 0 6px", fontFamily: "'Inter', -apple-system, sans-serif" }}>{title}</h2>
       {subtitle && <p style={{ fontSize: "13px", color: "#666", margin: 0 }}>{subtitle}</p>}
     </div>
   );
@@ -477,7 +484,7 @@ function PillarsSection({ brand, update }) {
       {brand.contentPillars.map((p, i) => (
         <div key={i} style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", marginBottom: "12px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "#f39c12" }}>Pillar {i + 1}</span>
+            <span style={{ fontSize: "13px", fontWeight: 600, color: "#FF9F0A" }}>Pillar {i + 1}</span>
             {brand.contentPillars.length > 1 && (
               <button onClick={() => update("contentPillars", brand.contentPillars.filter((_, x) => x !== i))}
                 style={{ background: "transparent", border: "none", color: "#666", cursor: "pointer", fontSize: "14px" }}>✕</button>
@@ -487,7 +494,7 @@ function PillarsSection({ brand, update }) {
           <TextInput label="Description" value={p.description} onChange={(v) => updatePillar(i, "description", v)} hint="What this pillar covers" multiline />
         </div>
       ))}
-      <button onClick={addPillar} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid rgba(233,69,96,0.2)", background: "rgba(233,69,96,0.06)", color: "#e94560", cursor: "pointer", fontSize: "13px", fontWeight: 500 }}>+ Add Pillar</button>
+      <button onClick={addPillar} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid rgba(0,113,227,0.2)", background: "rgba(0,113,227,0.06)", color: "#0071E3", cursor: "pointer", fontSize: "13px", fontWeight: 500 }}>+ Add Pillar</button>
     </div>
   );
 }
@@ -521,7 +528,7 @@ function ColorsSection({ brand, update }) {
         <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>☀ Light Mode</span>
-            <button onClick={() => update("lightModeEnabled", !brand.lightModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.lightModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
+            <button onClick={() => update("lightModeEnabled", !brand.lightModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.lightModeEnabled ? "#32D74B" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
               {brand.lightModeEnabled ? "ON" : "OFF"}
             </button>
           </div>
@@ -536,7 +543,7 @@ function ColorsSection({ brand, update }) {
         <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>🌙 Dark Mode</span>
-            <button onClick={() => update("darkModeEnabled", !brand.darkModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.darkModeEnabled ? "#2ecc71" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
+            <button onClick={() => update("darkModeEnabled", !brand.darkModeEnabled)} style={{ padding: "4px 12px", borderRadius: "20px", border: "none", background: brand.darkModeEnabled ? "#32D74B" : "#555", color: "#fff", fontSize: "11px", cursor: "pointer", fontWeight: 600 }}>
               {brand.darkModeEnabled ? "ON" : "OFF"}
             </button>
           </div>
@@ -649,9 +656,9 @@ function MotionSection({ brand, update }) {
         {["subtle", "moderate", "energetic"].map((s) => (
           <button key={s} onClick={() => update("animationSpeed", s)} style={{
             padding: "8px 18px", borderRadius: "8px", cursor: "pointer", textTransform: "capitalize",
-            border: brand.animationSpeed === s ? "1px solid #e94560" : "1px solid rgba(255,255,255,0.06)",
-            background: brand.animationSpeed === s ? "rgba(233,69,96,0.1)" : "transparent",
-            color: brand.animationSpeed === s ? "#e94560" : "#999", fontSize: "13px",
+            border: brand.animationSpeed === s ? "1px solid #0071E3" : "1px solid rgba(255,255,255,0.06)",
+            background: brand.animationSpeed === s ? "rgba(0,113,227,0.1)" : "transparent",
+            color: brand.animationSpeed === s ? "#0071E3" : "#999", fontSize: "13px",
           }}>{s}</button>
         ))}
       </div>
@@ -679,9 +686,9 @@ function AccessibilitySection({ brand, update }) {
         {["A", "AA", "AAA"].map((l) => (
           <button key={l} onClick={() => update("wcagLevel", l)} style={{
             padding: "8px 18px", borderRadius: "8px", cursor: "pointer",
-            border: brand.wcagLevel === l ? "1px solid #2e86de" : "1px solid rgba(255,255,255,0.06)",
+            border: brand.wcagLevel === l ? "1px solid #0071E3" : "1px solid rgba(255,255,255,0.06)",
             background: brand.wcagLevel === l ? "rgba(46,134,222,0.1)" : "transparent",
-            color: brand.wcagLevel === l ? "#2e86de" : "#999", fontSize: "13px", fontWeight: 600,
+            color: brand.wcagLevel === l ? "#0071E3" : "#999", fontSize: "13px", fontWeight: 600,
           }}>{l}</button>
         ))}
       </div>
@@ -698,12 +705,12 @@ function CustomFieldsSection({ brand, update }) {
       <SectionHeader title="Custom Fields" subtitle="Add any additional brand attributes." phase={3} />
       {brand.customFields.map((f, i) => (
         <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-          <input type="text" value={f.label} onChange={(e) => updateField(i, "label", e.target.value)} placeholder="Field name" style={{ width: "35%", padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
-          <input type="text" value={f.value} onChange={(e) => updateField(i, "value", e.target.value)} placeholder="Value" style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+          <input type="text" value={f.label} onChange={(e) => updateField(i, "label", e.target.value)} placeholder="Field name" style={{ width: "35%", padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'Inter', -apple-system, sans-serif", outline: "none" }} />
+          <input type="text" value={f.value} onChange={(e) => updateField(i, "value", e.target.value)} placeholder="Value" style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#e0e0e0", fontSize: "13px", fontFamily: "'Inter', -apple-system, sans-serif", outline: "none" }} />
           <button onClick={() => update("customFields", brand.customFields.filter((_, x) => x !== i))} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)", background: "transparent", color: "#666", cursor: "pointer" }}>✕</button>
         </div>
       ))}
-      <button onClick={addField} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid rgba(233,69,96,0.2)", background: "rgba(233,69,96,0.06)", color: "#e94560", cursor: "pointer", fontSize: "13px", fontWeight: 500 }}>+ Add Field</button>
+      <button onClick={addField} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid rgba(0,113,227,0.2)", background: "rgba(0,113,227,0.06)", color: "#0071E3", cursor: "pointer", fontSize: "13px", fontWeight: 500 }}>+ Add Field</button>
     </div>
   );
 }
@@ -769,7 +776,7 @@ const ICP_LABELS = [
 ];
 
 function ICPCard({ icp, index, brand, onChange }) {
-  const bc = brand?.primaryColor || "#e94560";
+  const bc = brand?.primaryColor || "#0071E3";
   const cardColor = [brand.primaryColor, brand.accentColor, brand.secondaryColor][index] || bc;
   const num = ICP_LABELS[index].num;
 
@@ -785,7 +792,7 @@ function ICPCard({ icp, index, brand, onChange }) {
     width: "100%", padding: "9px 12px", borderRadius: 7,
     border: "1px solid rgba(255,255,255,0.07)",
     background: "rgba(255,255,255,0.03)", color: "#e0e0e0",
-    fontSize: 12, fontFamily: "'DM Sans', sans-serif", outline: "none",
+    fontSize: 12, fontFamily: "'Inter', -apple-system, sans-serif", outline: "none",
     boxSizing: "border-box",
   };
   const labelStyle = { fontSize: 9, fontWeight: 800, color: "#2a2a2a", letterSpacing: 2, textTransform: "uppercase", marginBottom: 5, display: "block" };
@@ -799,7 +806,7 @@ function ICPCard({ icp, index, brand, onChange }) {
     }}>
       {/* ICP number header */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 800, color: cardColor, letterSpacing: 3, textTransform: "uppercase" }}>ICP {num}</div>
+        <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", fontSize: 11, fontWeight: 800, color: cardColor, letterSpacing: 3, textTransform: "uppercase" }}>ICP {num}</div>
         <input
           value={icp.title || ""}
           onChange={e => update("title", e.target.value)}
@@ -899,8 +906,8 @@ function ICPSection({ brand, update }) {
 
 // ─── LANGUAGE & WRITING SYSTEM ──────────────────────────────────────────────
 function LanguageSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
-  const ac = brand.accentColor || "#f39c12";
+  const bc = brand.primaryColor || "#0071E3";
+  const ac = brand.accentColor || "#FF9F0A";
   const registers = [
     { value: "formal", label: "Formal", desc: "Legal, government, financial" },
     { value: "professional", label: "Professional", desc: "Corporate, B2B, expert-tier" },
@@ -988,7 +995,7 @@ function LanguageSection({ brand, update }) {
 
 // ─── BRAND MANIFESTO ─────────────────────────────────────────────────────────
 function ManifestoSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const commandmentPlaceholders = [
     "We always put the customer transformation before our own story",
     "We never speak down to our audience or assume ignorance",
@@ -1030,7 +1037,7 @@ function ManifestoSection({ brand, update }) {
 
 // ─── CUSTOMER JOURNEY EMOTIONAL MAP ──────────────────────────────────────────
 function JourneySection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const stages = [
     { key: "journeyAwareness",     label: "Awareness",     icon: "◎", q: "How should they feel when they first encounter this brand?" },
     { key: "journeyConsideration", label: "Consideration", icon: "◉", q: "What should they feel as they research and evaluate options?" },
@@ -1052,7 +1059,7 @@ function JourneySection({ brand, update }) {
             }}>
               <div style={{ fontSize: 15 }}>{s.icon}</div>
               <div style={{ fontSize: 9, color: brand[s.key] ? bc : "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 3, whiteSpace: "nowrap" }}>{s.label}</div>
-              <div style={{ fontSize: 9, color: brand[s.key] ? "#2ecc71" : "#2a2a2a", marginTop: 2, fontWeight: 700 }}>{brand[s.key] ? "✓" : "·"}</div>
+              <div style={{ fontSize: 9, color: brand[s.key] ? "#32D74B" : "#2a2a2a", marginTop: 2, fontWeight: 700 }}>{brand[s.key] ? "✓" : "·"}</div>
             </div>
             {i < stages.length - 1 && <div style={{ color: "#2a2a2a", fontSize: 14, flexShrink: 0 }}>→</div>}
           </div>
@@ -1079,7 +1086,7 @@ function JourneySection({ brand, update }) {
 
 // ─── PROOF & EVIDENCE FRAMEWORK ──────────────────────────────────────────────
 function ProofSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const PROOF_TYPES = [
     { key: "data-research",       label: "Original Data / Research",   icon: "📊" },
     { key: "case-study",          label: "Case Studies",               icon: "📋" },
@@ -1138,10 +1145,10 @@ function ProofSection({ brand, update }) {
 
 // ─── MARKET POSITIONING ───────────────────────────────────────────────────────
 function MarketSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const TIERS = [
     { key: "budget",       label: "Budget",       desc: "Price-first, highest volume",       color: "#888888" },
-    { key: "value",        label: "Value",        desc: "Quality at an honest price",        color: "#27ae60" },
+    { key: "value",        label: "Value",        desc: "Quality at an honest price",        color: "#28B446" },
     { key: "mid-market",   label: "Mid-Market",   desc: "Quality + accessibility balanced",  color: "#2980b9" },
     { key: "premium",      label: "Premium",      desc: "Above-average, aspirational",       color: "#8e44ad" },
     { key: "luxury",       label: "Luxury",       desc: "Status, craft, exclusivity",        color: "#d4a017" },
@@ -1200,7 +1207,7 @@ function MarketSection({ brand, update }) {
 
 // ─── BRAND SENSORY PHYSICS ────────────────────────────────────────────────────
 function SensorySection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const SLIDERS = [
     { key: "brandSpeed",       left: "Deliberate",   right: "Reactive",    ld: "Slow, considered, timeless", rd: "Fast, urgent, real-time",     le: "Hermès, Rolex",     re: "Nike, Red Bull" },
     { key: "brandWeight",      left: "Featherlight", right: "Heavyweight", ld: "Minimal, airy, effortless",  rd: "Dense, powerful, substantial", le: "Muji, Apple Notes", re: "Porsche, McKinsey" },
@@ -1225,7 +1232,7 @@ function SensorySection({ brand, update }) {
     <div>
       <SectionHeader title="Brand Sensory Physics" subtitle="The intangible force field that permeates every brand decision — speed, weight, temperature, texture, density." phase={2} />
       <div style={{ borderRadius: 12, overflow: "hidden", height: 90, background: previewBg, border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, position: "relative", transition: "background 0.4s" }}>
-        <div style={{ fontSize: 22 + weight * 0.1, fontWeight: previewFontWeight, letterSpacing: previewTracking, textTransform: previewTextTransform, color: `rgba(255,255,255,${previewOpacity})`, transition: "all 0.3s", fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ fontSize: 22 + weight * 0.1, fontWeight: previewFontWeight, letterSpacing: previewTracking, textTransform: previewTextTransform, color: `rgba(255,255,255,${previewOpacity})`, transition: "all 0.3s", fontFamily: "'Inter', -apple-system, sans-serif" }}>
           {brand.brandName || "Your Brand"}
         </div>
         <div style={{ position: "absolute", bottom: 7, right: 12, fontSize: 8, color: "rgba(255,255,255,0.15)", letterSpacing: 2, textTransform: "uppercase", fontWeight: 700 }}>SENSORY PREVIEW</div>
@@ -1262,10 +1269,10 @@ function SensorySection({ brand, update }) {
 
 // ─── OFFER ARCHITECTURE ──────────────────────────────────────────────────────
 function OfferSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
-  const ac = brand.accentColor || "#f39c12";
+  const bc = brand.primaryColor || "#0071E3";
+  const ac = brand.accentColor || "#FF9F0A";
   const tiers = [
-    { key: "LeadMagnet", label: "Lead Magnet", desc: "Free — exchange for attention/email", color: "#2ecc71", priceKey: "LeadMagnetFormat", priceLabel: "Format", pricePlaceholder: "PDF guide · Quiz · Free training · Template" },
+    { key: "LeadMagnet", label: "Lead Magnet", desc: "Free — exchange for attention/email", color: "#32D74B", priceKey: "LeadMagnetFormat", priceLabel: "Format", pricePlaceholder: "PDF guide · Quiz · Free training · Template" },
     { key: "IntroOffer",  label: "Intro Offer",  desc: "Low-cost entry point",              color: "#3498db", priceKey: "IntroPrice",       priceLabel: "Price",  pricePlaceholder: "$47 – $197" },
     { key: "CoreOffer",   label: "Core Offer",   desc: "Primary revenue product",           color: bc,        priceKey: "CorePrice",        priceLabel: "Price",  pricePlaceholder: "$497 – $2,997" },
     { key: "PremiumOffer",label: "Premium",      desc: "High-touch, highest LTV",           color: ac,        priceKey: "PremiumPrice",     priceLabel: "Price",  pricePlaceholder: "$5,000+" },
@@ -1312,8 +1319,8 @@ function OfferSection({ brand, update }) {
 
 // ─── BRAND STORY LIBRARY ──────────────────────────────────────────────────────
 function StoriesSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
-  const STORY_COLORS = [bc, brand.accentColor || "#f39c12", brand.secondaryColor || "#3498db", "#9b59b6", "#2ecc71"];
+  const bc = brand.primaryColor || "#0071E3";
+  const STORY_COLORS = [bc, brand.accentColor || "#FF9F0A", brand.secondaryColor || "#3498db", "#0071E3", "#32D74B"];
   const updateStory = (i, field, v) => {
     const arr = [...(brand.brandStories || [])];
     arr[i] = { ...arr[i], [field]: v };
@@ -1358,7 +1365,7 @@ function StoriesSection({ brand, update }) {
 
 // ─── CONTENT CALENDAR BLUEPRINT ───────────────────────────────────────────────
 function CalendarSection({ brand, update }) {
-  const bc = brand.primaryColor || "#e94560";
+  const bc = brand.primaryColor || "#0071E3";
   const edu = brand.contentMixEducational ?? 40;
   const promo = brand.contentMixPromotional ?? 20;
   const ent = brand.contentMixEntertainment ?? 40;
@@ -1375,18 +1382,18 @@ function CalendarSection({ brand, update }) {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 }}>Content Mix</label>
-          <span style={{ fontSize: 10, color: total === 100 ? "#2ecc71" : "#e94560", fontWeight: 700 }}>{total}% total {total !== 100 ? "— adjust to reach 100%" : "✓"}</span>
+          <span style={{ fontSize: 10, color: total === 100 ? "#32D74B" : "#0071E3", fontWeight: 700 }}>{total}% total {total !== 100 ? "— adjust to reach 100%" : "✓"}</span>
         </div>
         <div style={{ height: 8, borderRadius: 4, overflow: "hidden", display: "flex", marginBottom: 14 }}>
           <div style={{ flex: edu, background: "#3498db", transition: "flex 0.3s" }} />
           <div style={{ flex: promo, background: bc, transition: "flex 0.3s" }} />
-          <div style={{ flex: ent, background: "#9b59b6", transition: "flex 0.3s" }} />
+          <div style={{ flex: ent, background: "#0071E3", transition: "flex 0.3s" }} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
             { key: "contentMixEducational",    label: "Educational", color: "#3498db", val: edu,   desc: "Teach, inform, how-to" },
             { key: "contentMixPromotional",    label: "Promotional", color: bc,        val: promo, desc: "Offers, products, CTA" },
-            { key: "contentMixEntertainment",  label: "Entertainment",color: "#9b59b6", val: ent,   desc: "Stories, culture, fun" },
+            { key: "contentMixEntertainment",  label: "Entertainment",color: "#0071E3", val: ent,   desc: "Stories, culture, fun" },
           ].map(m => (
             <div key={m.key} style={{ padding: "12px", borderRadius: 8, border: `1px solid rgba(${hexToRgbStr(m.color)},0.2)`, background: `rgba(${hexToRgbStr(m.color)},0.05)`, textAlign: "center" }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: m.color, marginBottom: 4 }}>{m.val}%</div>
@@ -1421,7 +1428,7 @@ function ScoreSection({ brand, onNavigate }) {
     <div>
       <SectionHeader title="Brand Gravity Score" subtitle="How coherent is your brand identity — not just how full is the form." phase={4} />
       <div style={{ textAlign: "center", padding: "30px" }}>
-        <div style={{ fontSize: "64px", fontWeight: 700, color, fontFamily: "'DM Sans', sans-serif" }}>{score}</div>
+        <div style={{ fontSize: "64px", fontWeight: 700, color, fontFamily: "'Inter', -apple-system, sans-serif" }}>{score}</div>
         <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", marginTop: "16px", overflow: "hidden" }}>
           <div style={{ width: `${score}%`, height: "100%", background: color, borderRadius: "4px", transition: "width 0.5s" }} />
         </div>
@@ -1459,7 +1466,7 @@ function ScoreSection({ brand, onNavigate }) {
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: "20px", fontSize: "13px", color: "#2ecc71", fontWeight: 600 }}>
+          <div style={{ marginTop: "20px", fontSize: "13px", color: "#32D74B", fontWeight: 600 }}>
             Every gravity signal is defined. This brand holds together.
           </div>
         )}
@@ -1549,7 +1556,7 @@ function IntegrationsSection({ brand, update }) {
 
       <div style={{ textAlign: "center", padding: "24px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.015)" }}>
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: "10px" }}>Impact Score</div>
-        <div style={{ fontSize: "56px", fontWeight: 700, color, fontFamily: "'DM Sans', sans-serif" }}>{score}</div>
+        <div style={{ fontSize: "56px", fontWeight: 700, color, fontFamily: "'Inter', -apple-system, sans-serif" }}>{score}</div>
         {!hasData && <div style={{ fontSize: "12px", color: "#555", marginTop: "8px" }}>Add any metric above to see your score.</div>}
         {hasData && (
           <div style={{ marginTop: "18px", display: "flex", flexDirection: "column", gap: "10px", maxWidth: 340, marginLeft: "auto", marginRight: "auto" }}>
@@ -1602,36 +1609,36 @@ function ExportSection({ brand, onSave, email, boardId }) {
     <div>
       <SectionHeader title="Export & Save" subtitle="Download your brand board or save it online." phase={4} />
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        <button onClick={onSave} style={{ padding: "14px 24px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #e94560, #c62a42)", color: "#fff", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+        <button onClick={onSave} style={{ padding: "14px 24px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0071E3, #005BB8)", color: "#fff", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', -apple-system, sans-serif" }}>
           💾 Save & Get Shareable Link
         </button>
-        <button onClick={exportJSON} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+        <button onClick={exportJSON} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', -apple-system, sans-serif" }}>
           📄 Export as JSON (for LLMs)
         </button>
         {boardId ? (
           <Link
             to={`/board/${boardId}/guidelines`}
-            style={{ display: "block", textAlign: "center", textDecoration: "none", padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}
+            style={{ display: "block", textAlign: "center", textDecoration: "none", padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif" }}
           >
             📖 Open Brand Guidelines (share & print)
           </Link>
         ) : (
-          <div style={{ textAlign: "center", padding: "14px 24px", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.1)", color: "#555", fontSize: "13px", fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ textAlign: "center", padding: "14px 24px", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.1)", color: "#555", fontSize: "13px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
             📖 Brand Guidelines unlock once the board is saved — a shareable, print-ready
             document your whole team can work from.
           </div>
         )}
         {!published ? (
-          <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(0,113,227,0.35)", background: "rgba(0,113,227,0.08)", color: publishing ? "#666" : "#0071E3", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }}>
+          <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(0,113,227,0.35)", background: "rgba(0,113,227,0.08)", color: publishing ? "#666" : "#0071E3", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'Inter', -apple-system, sans-serif", transition: "all 0.2s" }}>
             {publishing ? "Publishing..." : "◆ Get Your Brand Certificate"}
           </button>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ fontSize: "13px", color: "#2ecc71", fontWeight: 600 }}>✓ Your Brand Certificate is live</div>
+            <div style={{ fontSize: "13px", color: "#32D74B", fontWeight: 600 }}>✓ Your Brand Certificate is live</div>
             <CertificateShare brand={brand} url={published.url} />
           </div>
         )}
-        {pubErr && <div style={{ fontSize: "12px", color: "#e94560", padding: "8px 0" }}>{pubErr}</div>}
+        {pubErr && <div style={{ fontSize: "12px", color: "#FF453A", padding: "8px 0" }}>{pubErr}</div>}
       </div>
     </div>
   );
@@ -1676,9 +1683,9 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
         {phase === "done" ? (
           <div style={{ padding:"48px 32px",textAlign:"center" }}>
             <div style={{ fontSize:40,marginBottom:16 }}>✓</div>
-            <div style={{ fontSize:22,fontWeight:800,color:"#2ecc71",marginBottom:8 }}>You're in!</div>
+            <div style={{ fontSize:22,fontWeight:800,color:"#32D74B",marginBottom:8 }}>You're in!</div>
             <div style={{ fontSize:14,color:"#555",marginBottom:24 }}>3 free credits added to your account. Sections unlocked.</div>
-            <button onClick={onUnlocked} style={{ padding:"12px 32px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Continue Building →</button>
+            <button onClick={onUnlocked} style={{ padding:"12px 32px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Continue Building →</button>
           </div>
         ) : (
           <>
@@ -1686,7 +1693,7 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
               <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:6 }}>
                 <span style={{ fontSize:20 }}>{section.icon}</span>
                 <span style={{ fontSize:16,fontWeight:800,color:"#fff" }}>{section.label}</span>
-                <span style={{ fontSize:10,padding:"2px 8px",borderRadius:10,background:isRegGate?"rgba(46,204,113,0.1)":"rgba(243,156,18,0.1)",color:isRegGate?"#2ecc71":"#f39c12",fontWeight:700 }}>{isRegGate?"FREE":"PRO"}</span>
+                <span style={{ fontSize:10,padding:"2px 8px",borderRadius:10,background:isRegGate?"rgba(50,215,75,0.1)":"rgba(255,159,10,0.1)",color:isRegGate?"#32D74B":"#FF9F0A",fontWeight:700 }}>{isRegGate?"FREE":"PRO"}</span>
               </div>
               <div style={{ fontSize:13,color:"#444" }}>{section.gateHint}</div>
             </div>
@@ -1704,12 +1711,12 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
 
               {phase === "main" && isRegGate && (
                 <div>
-                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Register free and get <strong style={{color:"#2ecc71"}}>3 content credits</strong> — no credit card required.</div>
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Register free and get <strong style={{color:"#32D74B"}}>3 content credits</strong> — no credit card required.</div>
                   <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()}
                     placeholder="your@email.com"
                     style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
                   />
-                  <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                  <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
                     Register Free — Get 3 Credits →
                   </button>
                 </div>
@@ -1724,7 +1731,7 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
                         style={{ padding:"12px 10px",borderRadius:9,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",textAlign:"left" }}>
                         <div style={{ fontSize:12,fontWeight:700,color:"#ccc" }}>{p.label}</div>
                         <div style={{ fontSize:18,fontWeight:800,color:"#fff" }}>{p.credits} <span style={{ fontSize:10,color:"#444" }}>credits</span></div>
-                        <div style={{ fontSize:14,fontWeight:700,color:"#e94560" }}>{p.price}</div>
+                        <div style={{ fontSize:14,fontWeight:700,color:"#0071E3" }}>{p.price}</div>
                       </button>
                     ))}
                   </div>
@@ -1742,9 +1749,9 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
                       { action:"share_link",label:"Copy referral link",  icon:"◈",  url: null },
                     ].map(item => (
                       <button key={item.action} onClick={() => item.action==="share_link" ? copyRef() : doShare(item.action, item.url)}
-                        style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${hasEarnedAction(item.action)?"rgba(46,204,113,0.2)":"rgba(255,255,255,0.07)"}`,background:hasEarnedAction(item.action)?"rgba(46,204,113,0.04)":"rgba(255,255,255,0.02)" }}>
-                        <span style={{ fontSize:13,color:hasEarnedAction(item.action)?"#2ecc71":"#aaa" }}>{item.icon} {item.label}</span>
-                        <span style={{ fontSize:11,color:hasEarnedAction(item.action)?"#2ecc71":"#555",fontWeight:700 }}>{hasEarnedAction(item.action)?"✓ Claimed":"+1 credit"}</span>
+                        style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",border:`1px solid ${hasEarnedAction(item.action)?"rgba(50,215,75,0.2)":"rgba(255,255,255,0.07)"}`,background:hasEarnedAction(item.action)?"rgba(50,215,75,0.04)":"rgba(255,255,255,0.02)" }}>
+                        <span style={{ fontSize:13,color:hasEarnedAction(item.action)?"#32D74B":"#aaa" }}>{item.icon} {item.label}</span>
+                        <span style={{ fontSize:11,color:hasEarnedAction(item.action)?"#32D74B":"#555",fontWeight:700 }}>{hasEarnedAction(item.action)?"✓ Claimed":"+1 credit"}</span>
                       </button>
                     ))}
                   </div>
@@ -1754,11 +1761,11 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
                       placeholder="Paste email addresses separated by commas, semicolons, or line breaks…"
                       style={{ width:"100%",padding:"9px 11px",borderRadius:7,border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",color:"#ccc",fontSize:12,fontFamily:"inherit",outline:"none",resize:"none",boxSizing:"border-box" }}
                     />
-                    <button onClick={doImport} style={{ marginTop:7,width:"100%",padding:"9px 0",borderRadius:7,border:"none",background:"rgba(46,204,113,0.1)",color:"#2ecc71",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                    <button onClick={doImport} style={{ marginTop:7,width:"100%",padding:"9px 0",borderRadius:7,border:"none",background:"rgba(50,215,75,0.1)",color:"#32D74B",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
                       Import & Earn Credits
                     </button>
                   </div>
-                  {earnMsg && <div style={{ fontSize:12,color:"#2ecc71",fontWeight:600,marginTop:6 }}>{earnMsg}</div>}
+                  {earnMsg && <div style={{ fontSize:12,color:"#32D74B",fontWeight:600,marginTop:6 }}>{earnMsg}</div>}
                 </div>
               )}
             </div>
@@ -1779,6 +1786,7 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
 export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [brand, setBrand] = useState({ ...DEFAULT_BRAND });
   const [activeSection, setActiveSection] = useState("overview");
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches);
   const [showEmailGate, setShowEmailGate] = useState(false);
   const [boardId, setBoardId] = useState(initialBoardId || null);
   const [email, setEmail] = useState(null);
@@ -1787,6 +1795,13 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [loading, setLoading] = useState(!!initialBoardId);
   const [gateTarget, setGateTarget] = useState(null);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const onChange = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   const sectionRefs = useRef({});
   const aiEnabled = isAIAvailable();
 
@@ -1904,7 +1919,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
 
   if (loading) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0f", color: "#e0e0e0", fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#000000", color: "#e0e0e0", fontFamily: "'Inter', -apple-system, sans-serif" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "24px", marginBottom: "12px" }}>Loading brand board...</div>
         </div>
@@ -1916,10 +1931,10 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     const sectionDef = SECTIONS.find(s => s.id === id);
     if (sectionDef && !isUnlocked(sectionDef.tier || "free")) {
       const isRegistered = sectionDef.tier === "registered";
-      const bc = brand.primaryColor || "#e94560";
+      const bc = "#0071E3";
       return (
         <div style={{ padding: "60px 40px", textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: isRegistered ? "rgba(46,204,113,0.08)" : `rgba(${hexToRgbStr(bc)},0.08)`, border: `1px solid ${isRegistered ? "rgba(46,204,113,0.2)" : `rgba(${hexToRgbStr(bc)},0.2)`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 20px" }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: isRegistered ? "rgba(50,215,75,0.08)" : `rgba(${hexToRgbStr(bc)},0.08)`, border: `1px solid ${isRegistered ? "rgba(50,215,75,0.2)" : `rgba(${hexToRgbStr(bc)},0.2)`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 20px" }}>
             {isRegistered ? "◈" : "◆"}
           </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 8 }}>
@@ -1934,7 +1949,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
           <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
             <button
               onClick={() => setGateTarget(sectionDef)}
-              style={{ padding: "11px 24px", borderRadius: 9, border: "none", background: isRegistered ? "linear-gradient(135deg,#2ecc71,#27ae60)" : `linear-gradient(135deg,${bc},${bc}cc)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+              style={{ padding: "11px 24px", borderRadius: 9, border: "none", background: isRegistered ? "linear-gradient(135deg,#32D74B,#28B446)" : `linear-gradient(135deg,${bc},${bc}cc)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
             >
               {isRegistered ? "Register Free →" : "Upgrade to Pro →"}
             </button>
@@ -2000,37 +2015,40 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
 
   return (
     <BrandCtx.Provider value={{ brand, aiEnabled }}>
-      <div style={{ height: "100vh", background: "#0a0a0f", color: "#e0e0e0", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <div style={{ height: "100vh", background: "#000000", color: "#e0e0e0", fontFamily: "'Inter', -apple-system, sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
         {/* HEADER */}
         <header style={{ padding: "12px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(10,10,15,0.97)", backdropFilter: "blur(12px)", flexShrink: 0, zIndex: 100 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "30px", height: "30px", borderRadius: "7px", background: "linear-gradient(135deg, #e94560, #c62a42)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#fff" }}>B</div>
-            <div>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>Brand Board Builder</div>
-              <div style={{ fontSize: "9px", color: "#555", letterSpacing: "1.5px", textTransform: "uppercase" }}>AI-Powered Enterprise</div>
-            </div>
-            <Link to="/brands" style={{ marginLeft: 8, padding: "3px 10px", borderRadius: 5, border: "1px solid rgba(155,89,182,0.2)", background: "rgba(155,89,182,0.05)", color: "#9b59b6", fontSize: "11px", fontWeight: 600, textDecoration: "none", letterSpacing: 0.3, transition: "all 0.18s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(155,89,182,0.1)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(155,89,182,0.05)"; }}
-            >
-              ◆ Brand Library
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Link to="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none" }}>
+              <OrbitMark size={24} />
+              <span style={{ fontSize: "15px", fontWeight: 700, letterSpacing: "-0.3px", color: "#F5F5F7" }}>
+                BrandMD<span style={{ color: "#8E8E93", fontWeight: 500 }}>.space</span>
+              </span>
             </Link>
+            {!isMobile && <span style={{ fontSize: "11px", fontWeight: 600, color: "#8E8E93", letterSpacing: "1.2px", textTransform: "uppercase", borderLeft: "1px solid rgba(255,255,255,0.12)", paddingLeft: 12 }}>
+              Builder
+            </span>}
+            {!isMobile && <Link to="/brands" style={{ marginLeft: 4, padding: "4px 12px", borderRadius: 100, border: "1px solid rgba(255,255,255,0.14)", background: "transparent", color: "#8E8E93", fontSize: "11px", fontWeight: 600, textDecoration: "none", letterSpacing: 0.3, transition: "all 0.18s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#F5F5F7"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#8E8E93"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; }}
+            >
+              Library
+            </Link>}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            {aiEnabled && (
-              <div style={{ padding: "3px 9px", borderRadius: "5px", border: "1px solid rgba(155,89,182,0.2)", background: "rgba(155,89,182,0.06)" }}>
-                <span style={{ fontSize: "10px", color: "#9b59b6", fontWeight: 700 }}>✦ AI ON</span>
+            {aiEnabled && !isMobile && (
+              <div style={{ padding: "3px 9px", borderRadius: "5px", border: "1px solid rgba(0,113,227,0.2)", background: "rgba(0,113,227,0.06)" }}>
+                <span style={{ fontSize: "10px", color: "#0071E3", fontWeight: 700 }}>✦ AI ON</span>
               </div>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            {!isMobile && <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <div style={{ width: "80px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
-                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg, ${brand.primaryColor || "#e94560"}, ${brand.accentColor || "#f39c12"})`, transition: "width 0.5s" }} />
+                <div style={{ width: `${progress}%`, height: "100%", background: "#0071E3", transition: "width 0.5s" }} />
               </div>
               <span style={{ fontSize: "11px", color: "#666" }}>{progress}%</span>
-            </div>
-            <button onClick={handleSave} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: saved ? "rgba(46,204,113,0.15)" : "rgba(255,255,255,0.06)", border: saved ? "1px solid rgba(46,204,113,0.3)" : "1px solid rgba(255,255,255,0.08)", color: saved ? "#2ecc71" : "#aaa", fontSize: "12px", fontWeight: 500, transition: "all 0.3s" }}>
+            </div>}
+            <button onClick={handleSave} style={{ padding: "6px 16px", borderRadius: "7px", cursor: "pointer", background: saved ? "rgba(50,215,75,0.15)" : "rgba(255,255,255,0.06)", border: saved ? "1px solid rgba(50,215,75,0.3)" : "1px solid rgba(255,255,255,0.08)", color: saved ? "#32D74B" : "#aaa", fontSize: "12px", fontWeight: 500, transition: "all 0.3s" }}>
               {saved ? "✓ Saved" : "Save"}
             </button>
             <button
@@ -2040,7 +2058,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
               <Link
                 to={boardId ? `/studio/${boardId}` : "/studio"}
                 onClick={() => sessionStorage.setItem("studio_brand", JSON.stringify(brand))}
-                style={{ padding: "6px 16px", borderRadius: "7px", background: `linear-gradient(135deg, ${brand.primaryColor || "#e94560"}, ${brand.accentColor || "#f39c12"})`, color: "#fff", fontSize: "12px", fontWeight: 700, textDecoration: "none", display: "inline-block", letterSpacing: 0.2 }}
+                style={{ padding: "6px 16px", borderRadius: 100, background: "#0071E3", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none", display: "inline-block", letterSpacing: 0.2 }}
               >
                 ✦ Content Studio
               </Link>
@@ -2050,45 +2068,65 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
 
         {/* SHARE URL BANNER */}
         {shareUrl && (
-          <div style={{ padding: "10px 24px", background: "rgba(46,204,113,0.08)", borderBottom: "1px solid rgba(46,204,113,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-            <span style={{ fontSize: "13px", color: "#2ecc71" }}>Your board is live at: <strong>{shareUrl}</strong></span>
-            <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={{ padding: "4px 12px", borderRadius: "6px", border: "1px solid rgba(46,204,113,0.3)", background: "transparent", color: "#2ecc71", fontSize: "12px", cursor: "pointer" }}>Copy Link</button>
+          <div style={{ padding: "10px 24px", background: "rgba(50,215,75,0.08)", borderBottom: "1px solid rgba(50,215,75,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+            <span style={{ fontSize: "13px", color: "#32D74B" }}>Your board is live at: <strong>{shareUrl}</strong></span>
+            <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={{ padding: "4px 12px", borderRadius: "6px", border: "1px solid rgba(50,215,75,0.3)", background: "transparent", color: "#32D74B", fontSize: "12px", cursor: "pointer" }}>Copy Link</button>
           </div>
         )}
 
         {/* BODY */}
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* SIDEBAR */}
-          <nav style={{ width: "220px", borderRight: "1px solid rgba(255,255,255,0.06)", overflowY: "auto", padding: "16px 0", flexShrink: 0 }}>
-            {PHASES.map((phase, pi) => (
-              <div key={pi}>
-                <div style={{ padding: "8px 20px", fontSize: "10px", fontWeight: 700, color: phase.color, textTransform: "uppercase", letterSpacing: "1.5px", marginTop: pi > 0 ? "8px" : 0 }}>{phase.name}</div>
-                {SECTIONS.filter((s) => s.phase === pi).map((s) => {
-                  const isActive = activeSection === s.id;
-                  const ac = brand.primaryColor || "#e94560";
-                  const locked = !isUnlocked(s.tier || "free");
-                  const lockColor = s.tier === "registered" ? "#2ecc71" : "#f39c12";
-                  return (
-                    <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
-                      display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 20px",
-                      border: "none", cursor: "pointer", fontSize: "13px", textAlign: "left",
-                      background: isActive ? `rgba(${hexToRgbStr(ac)},0.08)` : "transparent",
-                      color: isActive ? ac : locked ? "#3a3a3a" : "#888",
-                      borderLeft: isActive ? `2px solid ${ac}` : "2px solid transparent",
-                      fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s",
-                    }}>
-                      <span style={{ fontSize: "14px", width: "20px", opacity: locked ? 0.4 : 1 }}>{s.icon}</span>
-                      <span style={{ flex: 1 }}>{s.label}</span>
-                      {locked && <span style={{ fontSize: "9px", color: lockColor, opacity: 0.7 }}>🔒</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </nav>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flex: 1, overflow: "hidden" }}>
+          {/* NAVIGATION — sidebar on desktop, horizontal chip strip on mobile */}
+          {isMobile ? (
+            <nav style={{ display: "flex", gap: "6px", overflowX: "auto", padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0, WebkitOverflowScrolling: "touch" }}>
+              {SECTIONS.map((s) => {
+                const isActive = activeSection === s.id;
+                const locked = !isUnlocked(s.tier || "free");
+                return (
+                  <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
+                    padding: "7px 14px", borderRadius: 100, whiteSpace: "nowrap", flexShrink: 0,
+                    border: isActive ? "1px solid rgba(0,113,227,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    background: isActive ? "rgba(0,113,227,0.12)" : "transparent", cursor: "pointer",
+                    color: isActive ? "#0071E3" : locked ? "#4a4a4a" : "#999",
+                    fontSize: "12px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif",
+                  }}>
+                    {s.label}{locked ? " 🔒" : ""}
+                  </button>
+                );
+              })}
+            </nav>
+          ) : (
+            <nav style={{ width: "220px", borderRight: "1px solid rgba(255,255,255,0.06)", overflowY: "auto", padding: "16px 0", flexShrink: 0 }}>
+              {PHASES.map((phase, pi) => (
+                <div key={pi}>
+                  <div style={{ padding: "8px 20px", fontSize: "10px", fontWeight: 700, color: phase.color, textTransform: "uppercase", letterSpacing: "1.5px", marginTop: pi > 0 ? "8px" : 0 }}>{phase.name}</div>
+                  {SECTIONS.filter((s) => s.phase === pi).map((s) => {
+                    const isActive = activeSection === s.id;
+                    const ac = "#0071E3";
+                    const locked = !isUnlocked(s.tier || "free");
+                    const lockColor = s.tier === "registered" ? "#32D74B" : "#FF9F0A";
+                    return (
+                      <button key={s.id} onClick={() => scrollToSection(s.id)} style={{
+                        display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 20px",
+                        border: "none", cursor: "pointer", fontSize: "13px", textAlign: "left",
+                        background: isActive ? `rgba(${hexToRgbStr(ac)},0.08)` : "transparent",
+                        color: isActive ? ac : locked ? "#3a3a3a" : "#888",
+                        borderLeft: isActive ? `2px solid ${ac}` : "2px solid transparent",
+                        fontFamily: "'Inter', -apple-system, sans-serif", transition: "all 0.2s",
+                      }}>
+                        <span style={{ fontSize: "14px", width: "20px", opacity: locked ? 0.4 : 1 }}>{s.icon}</span>
+                        <span style={{ flex: 1 }}>{s.label}</span>
+                        {locked && <span style={{ fontSize: "9px", color: lockColor, opacity: 0.7 }}>🔒</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </nav>
+          )}
 
           {/* MAIN CONTENT */}
-          <main ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "32px 40px" }}>
+          <main ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: isMobile ? "24px 18px" : "32px 40px" }}>
             {SECTIONS.map((s) => (
               <div key={s.id} ref={(el) => (sectionRefs.current[s.id] = el)} style={{ marginBottom: "48px", maxWidth: "700px" }}>
                 {renderSection(s.id)}

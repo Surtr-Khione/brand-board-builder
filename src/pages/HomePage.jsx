@@ -118,7 +118,7 @@ const MISSIONS = [
   {
     verb: "Chart.",
     Icon: CompassIcon,
-    body: "Nineteen sections across five phases — strategy, voice, visual system, governance. Nothing decorative; every field feeds the board your team will actually use. Still free.",
+    body: "Thirty-one sections across five phases — strategy, voice, visual system, governance, deployment. Nothing decorative; every field feeds the board your team will actually use. Still free.",
     links: [{ label: "Start charting", to: "/builder" }],
   },
   {
@@ -174,6 +174,7 @@ function ScoreCard({ brand }) {
 
 export default function HomePage() {
   const [brands, setBrands] = useState([]);
+  const [totalBrands, setTotalBrands] = useState(null);
   const [findQuery, setFindQuery] = useState("");
   const [heroUrl, setHeroUrl] = useState("");
   const navigate = useNavigate();
@@ -194,7 +195,7 @@ export default function HomePage() {
       "content",
       "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute — free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
     );
-    searchBrands({ limit: 15, featured: true }).then((d) => setBrands(d.brands || []));
+    searchBrands({ limit: 15, featured: true }).then((d) => { setBrands(d.brands || []); if (d.totalBrands) setTotalBrands(d.totalBrands); });
   }, []);
 
   const latestPosts = BLOG_POSTS.slice(0, 3);
@@ -322,7 +323,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
-            {brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 19 brand dimensions &nbsp;&middot;&nbsp; one board
+            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; one board
             &nbsp;&middot;&nbsp; <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the Library</Link>
           </div>
         </div>
@@ -461,7 +462,7 @@ export default function HomePage() {
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
               <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
-                Star charts &middot; {brands.length} brands decoded
+                Star charts &middot; {totalBrands || brands.length} brands decoded
               </div>
               <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 14 }}>
                 See how the greats score.

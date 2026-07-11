@@ -120,9 +120,14 @@ export default function BrandProfile({ slug }) {
 
   const { brand, snapshots } = data;
   const { score: gravityScore } = computeGravityScore(brand);
-  const pc = brand.primary_color || "#e94560";
+  const pc = brand.primary_color || "#0071E3";
   const sc = brand.secondary_color || "#111";
-  const ac = brand.accent_color || "#f39c12";
+  const ac = brand.accent_color || "#64D2FF";
+  // Ink-safe accent for the dark editorial canvas: brands whose primary is
+  // near-black (Apple, most luxury palettes) would otherwise paint their own
+  // masthead invisible. Prefer the first brand color that actually reads on
+  // black; starlight if the whole palette is dark.
+  const pcInk = [pc, ac, brand.secondary_color].find((c) => c && luma(c) > 70) || "#F5F5F7";
   const heroLight = luma(pc) > 155;
   const heroText = heroLight ? "rgba(0,0,0,0.92)" : "#ffffff";
   const heroMuted = heroLight ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.55)";
@@ -348,22 +353,22 @@ export default function BrandProfile({ slug }) {
       {(brand.mission || brand.elevator) && (
         <section style={{
           padding: "120px 48px",
-          background: `linear-gradient(180deg, rgba(${rgb(pc)},0.06) 0%, rgba(${rgb(pc)},0.03) 100%)`,
-          borderTop: `1px solid rgba(${rgb(pc)},0.1)`,
-          borderBottom: `1px solid rgba(${rgb(pc)},0.1)`,
+          background: `linear-gradient(180deg, rgba(${rgb(pcInk)},0.06) 0%, rgba(${rgb(pcInk)},0.03) 100%)`,
+          borderTop: `1px solid rgba(${rgb(pcInk)},0.1)`,
+          borderBottom: `1px solid rgba(${rgb(pcInk)},0.1)`,
           position: "relative", overflow: "hidden",
         }}>
           {/* Giant decorative quote */}
           <div style={{
             position: "absolute", top: -40, left: 32,
             fontSize: "28vw", lineHeight: 1,
-            color: `rgba(${rgb(pc)},0.05)`,
+            color: `rgba(${rgb(pcInk)},0.05)`,
             fontFamily: "'Playfair Display', serif",
             fontWeight: 900, userSelect: "none", pointerEvents: "none",
           }}>"</div>
 
           <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: `rgba(${rgb(pc)},0.5)`, textTransform: "uppercase", marginBottom: 40 }}>
+            <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: `rgba(${rgb(pcInk)},0.5)`, textTransform: "uppercase", marginBottom: 40 }}>
               {brand.mission ? "Mission" : "Elevator Pitch"}
             </div>
             <div style={{
@@ -377,13 +382,13 @@ export default function BrandProfile({ slug }) {
             </div>
             {/* Attribution */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
-              <div style={{ width: 40, height: 1, background: `rgba(${rgb(pc)},0.3)` }} />
-              <BrandLogo website={brand.website} name={brand.brand_name} size={28} radius={6} pc={pc} />
+              <div style={{ width: 40, height: 1, background: `rgba(${rgb(pcInk)},0.3)` }} />
+              <BrandLogo website={brand.website} name={brand.brand_name} size={28} radius={6} pc={pcInk} />
               <div style={{ fontSize: 11, fontWeight: 700, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
                 {brand.brand_name}
-                {brand.archetype && <span style={{ color: `rgba(${rgb(pc)},0.6)` }}>&nbsp;·&nbsp;{brand.archetype}</span>}
+                {brand.archetype && <span style={{ color: `rgba(${rgb(pcInk)},0.6)` }}>&nbsp;·&nbsp;{brand.archetype}</span>}
               </div>
-              <div style={{ width: 40, height: 1, background: `rgba(${rgb(pc)},0.3)` }} />
+              <div style={{ width: 40, height: 1, background: `rgba(${rgb(pcInk)},0.3)` }} />
             </div>
           </div>
         </section>
@@ -396,14 +401,14 @@ export default function BrandProfile({ slug }) {
         <section style={{ background: "#060606", padding: "0", overflow: "hidden" }}>
           <div style={{
             padding: "100px 48px",
-            background: `linear-gradient(90deg, rgba(${rgb(pc)},0.04) 0%, transparent 100%)`,
-            borderLeft: `4px solid ${pc}`,
+            background: `linear-gradient(90deg, rgba(${rgb(pcInk)},0.04) 0%, transparent 100%)`,
+            borderLeft: `4px solid ${pcInk}`,
           }}>
             <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#2a2a2a", textTransform: "uppercase", marginBottom: 20 }}>Brand Archetype</div>
             <div style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: "clamp(56px, 9vw, 120px)",
-              fontWeight: 900, color: pc,
+              fontWeight: 900, color: pcInk,
               lineHeight: 0.9, letterSpacing: "-2px",
               marginBottom: 24,
             }}>
@@ -416,7 +421,7 @@ export default function BrandProfile({ slug }) {
                   <span key={p} style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 24, fontStyle: "italic",
-                    color: i === 0 ? `rgba(${rgb(pc)},0.9)` : i === 1 ? `rgba(${rgb(pc)},0.65)` : `rgba(${rgb(pc)},0.4)`,
+                    color: i === 0 ? `rgba(${rgb(pcInk)},0.9)` : i === 1 ? `rgba(${rgb(pcInk)},0.65)` : `rgba(${rgb(pcInk)},0.4)`,
                     fontWeight: 700, letterSpacing: "-0.3px",
                   }}>{p}</span>
                 ))}
@@ -437,12 +442,12 @@ export default function BrandProfile({ slug }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: brand.body_font && brand.body_font !== brand.primary_font ? "1fr 1fr" : "1fr", gap: 48 }}>
             {brand.primary_font && (
-              <div style={{ padding: "48px", background: "#0c0c0c", borderRadius: 16, border: `1px solid rgba(${rgb(pc)},0.1)`, overflow: "hidden" }}>
-                <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pc)},0.5)`, textTransform: "uppercase", marginBottom: 32 }}>Display · Heading</div>
+              <div style={{ padding: "48px", background: "#0c0c0c", borderRadius: 16, border: `1px solid rgba(${rgb(pcInk)},0.1)`, overflow: "hidden" }}>
+                <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pcInk)},0.5)`, textTransform: "uppercase", marginBottom: 32 }}>Display · Heading</div>
                 <div style={{
                   fontFamily: `'${brand.primary_font}', 'Playfair Display', Georgia, serif`,
                   fontSize: "clamp(64px, 9vw, 110px)",
-                  fontWeight: 900, color: pc, lineHeight: 0.88,
+                  fontWeight: 900, color: pcInk, lineHeight: 0.88,
                   letterSpacing: "-3px", marginBottom: 32,
                 }}>Aa</div>
                 <div style={{
@@ -498,7 +503,7 @@ export default function BrandProfile({ slug }) {
                 fontSize: `clamp(${Math.max(32, 56 - i * 8)}px, ${5 - i * 0.8}vw, ${Math.max(48, 80 - i * 14)}px)`,
                 fontWeight: i === 0 ? 900 : 700,
                 fontStyle: i % 2 === 1 ? "italic" : "normal",
-                color: i === 0 ? pc : i === 1 ? `rgba(${rgb(pc)},0.55)` : `rgba(${rgb(pc)},0.3)`,
+                color: i === 0 ? pcInk : i === 1 ? `rgba(${rgb(pcInk)},0.55)` : `rgba(${rgb(pcInk)},0.3)`,
                 lineHeight: 1.05, letterSpacing: "-1px",
               }}>{t}</div>
             ))}
@@ -506,8 +511,8 @@ export default function BrandProfile({ slug }) {
 
           {/* Social personality as editorial block */}
           {brand.social_personality && (
-            <div style={{ maxWidth: 640, padding: "32px 40px", background: "#0a0a0a", borderRadius: 14, border: `1px solid rgba(${rgb(pc)},0.12)`, borderLeft: `4px solid ${pc}` }}>
-              <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pc)},0.4)`, textTransform: "uppercase", marginBottom: 14 }}>Social Personality</div>
+            <div style={{ maxWidth: 640, padding: "32px 40px", background: "#0a0a0a", borderRadius: 14, border: `1px solid rgba(${rgb(pcInk)},0.12)`, borderLeft: `4px solid ${pcInk}` }}>
+              <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pcInk)},0.4)`, textTransform: "uppercase", marginBottom: 14 }}>Social Personality</div>
               <div style={{ fontSize: 16, color: "#c8c4bb", lineHeight: 1.65, fontStyle: "italic" }}>"{brand.social_personality}"</div>
             </div>
           )}
@@ -531,8 +536,8 @@ export default function BrandProfile({ slug }) {
               </div>
             )}
             {brand.vision && (
-              <div style={{ paddingLeft: 28, borderLeft: `2px solid rgba(${rgb(pc)},0.2)` }}>
-                <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pc)},0.35)`, textTransform: "uppercase", marginBottom: 18 }}>Vision</div>
+              <div style={{ paddingLeft: 28, borderLeft: `2px solid rgba(${rgb(pcInk)},0.2)` }}>
+                <div style={{ fontSize: 9, letterSpacing: 3, fontWeight: 800, color: `rgba(${rgb(pcInk)},0.35)`, textTransform: "uppercase", marginBottom: 18 }}>Vision</div>
                 <div style={{ fontSize: 20, color: "#c8c4bb", lineHeight: 1.65, fontStyle: "italic" }}>{brand.vision}</div>
               </div>
             )}
@@ -563,7 +568,7 @@ export default function BrandProfile({ slug }) {
             {/* Visual moodboard placeholder — branded color blocks */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 6 }}>
               <div style={{ borderRadius: 10, background: pc, aspectRatio: "1" }} />
-              <div style={{ borderRadius: 10, background: `rgba(${rgb(pc)},0.4)`, aspectRatio: "1" }} />
+              <div style={{ borderRadius: 10, background: `rgba(${rgb(pcInk)},0.4)`, aspectRatio: "1" }} />
               <div style={{ borderRadius: 10, background: sc, aspectRatio: "1" }} />
               <div style={{ borderRadius: 10, background: `rgba(${rgb(ac)},0.6)`, aspectRatio: "1" }} />
             </div>
@@ -589,15 +594,15 @@ export default function BrandProfile({ slug }) {
                 <div style={{ width: 72, textAlign: "right", flexShrink: 0, paddingTop: 2 }}>
                   <div style={{
                     fontFamily: "'Playfair Display', serif",
-                    fontSize: 22, fontWeight: 800, color: i === 0 ? pc : "#2a2a2a",
+                    fontSize: 22, fontWeight: 800, color: i === 0 ? pcInk : "#2a2a2a",
                     letterSpacing: "-0.5px",
                   }}>{snap.year}</div>
                 </div>
                 {/* Dot */}
                 <div style={{
                   width: 10, height: 10, borderRadius: "50%",
-                  background: i === 0 ? pc : "#1a1a1a",
-                  border: `2px solid ${i === 0 ? pc : "#222"}`,
+                  background: i === 0 ? pcInk : "#1a1a1a",
+                  border: `2px solid ${i === 0 ? pcInk : "#222"}`,
                   flexShrink: 0, marginTop: 5, position: "relative", zIndex: 1,
                 }} />
                 {/* Content */}
@@ -650,7 +655,7 @@ export default function BrandProfile({ slug }) {
           ════════════════════════════════════════ */}
       <section style={{
         minHeight: "60vh",
-        background: `linear-gradient(155deg, ${pc} 0%, rgba(${rgb(pc)},0.65) 50%, rgba(${rgb(pc)},0.1) 100%)`,
+        background: `linear-gradient(155deg, ${pcInk} 0%, rgba(${rgb(pcInk)},0.65) 50%, rgba(${rgb(pcInk)},0.1) 100%)`,
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "100px 48px", textAlign: "center", position: "relative", overflow: "hidden",
       }}>
@@ -659,7 +664,7 @@ export default function BrandProfile({ slug }) {
 
         {/* Logo */}
         <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
-          <BrandLogo website={brand.website} name={brand.brand_name} size={100} radius={20} pc={pc} />
+          <BrandLogo website={brand.website} name={brand.brand_name} size={100} radius={20} pc={pcInk} />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }}>

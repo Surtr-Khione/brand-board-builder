@@ -52,24 +52,27 @@ Deno.serve(async (req) => {
     const limit = Math.min(parseInt(params.get("limit") || "24", 10) || 24, 100);
     const offset = Math.max(parseInt(params.get("offset") || "0", 10) || 0, 0);
 
-    let query = db.from("public_brands").select("*");
+    let query = db.from("public_brands").select("*", { count: "exact" });
     if (q) query = query.textSearch("fts", q, { type: "websearch", config: "english" });
     if (archetype) query = query.eq("archetype", archetype);
     if (industry) query = query.eq("industry", industry);
     if (featured) query = query.eq("is_featured", true);
 
-    const { data: brands, error } = await query
+    const { data: brands, error, count } = await query
       .order("is_featured", { ascending: false })
       .order("view_count", { ascending: false })
       .range(offset, offset + limit - 1);
     if (error) throw error;
 
-    const { data: facetRows } = await db
-      .from("public_brands").select("archetype, industry");
+    const { data: facetRows, count: totalAll } = await db
+      .from("public_brands").select("archetype, industry", { count: "exact" });
     const uniq = (xs: (string | null)[]) => [...new Set(xs.filter(Boolean))].sort() as string[];
 
     return json({
       brands: brands || [],
+      // total = rows matching THIS query; totalBrands = whole library
+      total: count ?? (brands || []).length,
+      totalBrands: totalAll ?? null,
       facets: {
         archetypes: uniq((facetRows || []).map((r) => r.archetype)),
         industries: uniq((facetRows || []).map((r) => r.industry)),

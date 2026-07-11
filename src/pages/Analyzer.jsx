@@ -301,7 +301,7 @@ export default function Analyzer() {
         <div style={{ maxWidth: 860, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 26 }}>
           {[
             { label: "Free", text: "Analyze instantly. No account, no card, no limit on scans." },
-            { label: "Still free", text: "Chart your full 19-part identity in the Builder — save it with just an email." },
+            { label: "Still free", text: "Chart your full 31-section identity in the Builder — save it with just an email." },
             { label: "When you're ready", text: "Content Studio turns a finished board into ongoing content and campaigns." },
           ].map((step) => (
             <div key={step.label}>

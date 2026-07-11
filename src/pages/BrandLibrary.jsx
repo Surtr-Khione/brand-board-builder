@@ -42,6 +42,7 @@ const ARCHETYPE_COLORS = {
 export default function BrandLibrary() {
   const [searchParams] = useSearchParams();
   const [brands, setBrands] = useState([]);
+  const [totalBrands, setTotalBrands] = useState(null);
   const [facets, setFacets] = useState({ archetypes: [], industries: [] });
   const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [archetype, setArchetype] = useState("");
@@ -64,6 +65,7 @@ export default function BrandLibrary() {
     setLoading(true);
     const data = await searchBrands({ q: debounced, archetype, featured: verifiedOnly || undefined, limit: 48 });
     setBrands(data.brands || []);
+    if (data.totalBrands) setTotalBrands(data.totalBrands);
     if (data.facets) setFacets(data.facets);
     setLoading(false);
   }, [debounced, archetype, verifiedOnly]);
@@ -82,7 +84,7 @@ export default function BrandLibrary() {
           Star Charts <span style={{ color: "#0071E3" }}>of the Greats</span>
         </h1>
         <p style={{ fontSize: 15, color: "#8E8E93", maxWidth: 460, margin: "0 auto 28px", lineHeight: 1.65 }}>
-          {brands.length || 15} iconic brands decoded — colors, fonts, archetype, mission, and year-by-year evolution.
+          {totalBrands || brands.length || 15} iconic brands decoded — colors, fonts, archetype, mission, and year-by-year evolution.
         </p>
         <div style={{ position: "relative", maxWidth: 520, margin: "0 auto" }}>
           <input
@@ -105,7 +107,7 @@ export default function BrandLibrary() {
             border: !archetype ? "1px solid #e94560" : "1px solid #222",
             background: !archetype ? "rgba(233,69,96,0.12)" : "#0c0c0c",
             color: !archetype ? "#e94560" : "#555", transition: "all 0.18s",
-          }}>All {brands.length || 15}</button>
+          }}>All {totalBrands || brands.length || 15}</button>
           {facets.archetypes.map(a => (
             <button key={a} onClick={() => setArchetype(a === archetype ? "" : a)} style={{
               padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
