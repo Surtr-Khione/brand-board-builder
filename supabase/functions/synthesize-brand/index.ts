@@ -1,4 +1,5 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
+import { makeDb, rateLimited, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,6 +7,7 @@ const corsHeaders = {
 };
 
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+const db = makeDb();
 
 const SYSTEM_PROMPT = `You are a senior brand intelligence analyst — part McKinsey strategist, part behavioral economist, part investigative journalist. You synthesize brand signals across multiple sources into board-level strategic intelligence.
 
@@ -148,6 +150,9 @@ Deno.serve(async (req) => {
 
   try {
     const { sources = [], existingBrand = {} } = await req.json();
+    if (await rateLimited(db, req, "synthesize-brand", 5)) {
+      return new Response(JSON.stringify({ error: RATE_LIMIT_MSG }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Build detailed source summaries for analysis
     const sourceSummaries = sources

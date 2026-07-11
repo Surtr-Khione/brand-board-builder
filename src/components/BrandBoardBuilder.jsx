@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, createContext, useContext } f
 import { Link } from "react-router-dom";
 import { saveBoard, loadBoard, generateBoardId } from "../lib/storage";
 import { sendLeadToGHL } from "../lib/ghl";
+import { track } from "../lib/track";
 import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
 import { getTier, isUnlocked, register as _register, upgradePro as _upgradePro, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
@@ -34,6 +35,10 @@ const PHASES = [
   { name: "Govern", color: "#0071E3", sections: ["accessibility", "guidelines"] },
   { name: "Deploy", color: "#0071E3", sections: ["score", "integrations", "export"] },
 ];
+
+// The sections that close Gravity signals — "Core" mode shows only these,
+// so a new founder faces seven decisions instead of a 31-section wall.
+const CORE_SECTION_IDS = new Set(["overview", "identity", "archetype", "pillars", "voice", "colors", "typography", "score", "export"]);
 
 // tier: free | registered | pro
 const SECTIONS = [
@@ -1831,6 +1836,9 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
   const [brand, setBrand] = useState({ ...DEFAULT_BRAND });
   const [activeSection, setActiveSection] = useState("overview");
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches);
+  const [coreMode, setCoreMode] = useState(() => localStorage.getItem("bmd_core_mode") !== "0");
+  const toggleCoreMode = (on) => { setCoreMode(on); localStorage.setItem("bmd_core_mode", on ? "1" : "0"); };
+  const visibleSections = coreMode ? SECTIONS.filter((s) => CORE_SECTION_IDS.has(s.id)) : SECTIONS;
   const [showEmailGate, setShowEmailGate] = useState(false);
   const [boardId, setBoardId] = useState(initialBoardId || null);
   const [email, setEmail] = useState(null);
@@ -1927,6 +1935,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     setBoardId(newBoardId);
     setEmail(userEmail);
     setSaved(true);
+    track("board_saved", { boardId: newBoardId });
     setShowEmailGate(false);
     const url = `${window.location.origin}/board/${newBoardId}`;
     setShareUrl(url);
@@ -2123,7 +2132,14 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
           {/* NAVIGATION — sidebar on desktop, horizontal chip strip on mobile */}
           {isMobile ? (
             <nav style={{ display: "flex", gap: "6px", overflowX: "auto", padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0, WebkitOverflowScrolling: "touch" }}>
-              {SECTIONS.map((s) => {
+              <button onClick={() => toggleCoreMode(!coreMode)} style={{
+                padding: "7px 14px", borderRadius: 100, whiteSpace: "nowrap", flexShrink: 0, cursor: "pointer",
+                border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)",
+                color: "#F5F5F7", fontSize: "12px", fontWeight: 700, fontFamily: "'Inter', -apple-system, sans-serif",
+              }}>
+                {coreMode ? "Core · show all 31" : "All · show core 7"}
+              </button>
+              {visibleSections.map((s) => {
                 const isActive = activeSection === s.id;
                 const locked = !isUnlocked(s.tier || "free");
                 return (
@@ -2141,10 +2157,22 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
             </nav>
           ) : (
             <nav style={{ width: "220px", borderRight: "1px solid rgba(255,255,255,0.06)", overflowY: "auto", padding: "16px 0", flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: 4, margin: "0 16px 14px", padding: 3, borderRadius: 100, border: "1px solid rgba(255,255,255,0.1)" }}>
+                {[["Core 7", true], ["Full 31", false]].map(([label, on]) => (
+                  <button key={label} onClick={() => toggleCoreMode(on)} style={{
+                    flex: 1, padding: "6px 0", borderRadius: 100, border: "none", cursor: "pointer",
+                    background: coreMode === on ? "#0071E3" : "transparent",
+                    color: coreMode === on ? "#fff" : "#8E8E93",
+                    fontSize: "11px", fontWeight: 700, fontFamily: "'Inter', -apple-system, sans-serif", transition: "all 0.15s",
+                  }}>{label}</button>
+                ))}
+              </div>
               {PHASES.map((phase, pi) => (
                 <div key={pi}>
-                  <div style={{ padding: "8px 20px", fontSize: "10px", fontWeight: 700, color: phase.color, textTransform: "uppercase", letterSpacing: "1.5px", marginTop: pi > 0 ? "8px" : 0 }}>{phase.name}</div>
-                  {SECTIONS.filter((s) => s.phase === pi).map((s) => {
+                  {visibleSections.some((s) => s.phase === pi) && (
+                    <div style={{ padding: "8px 20px", fontSize: "10px", fontWeight: 700, color: phase.color, textTransform: "uppercase", letterSpacing: "1.5px", marginTop: pi > 0 ? "8px" : 0 }}>{phase.name}</div>
+                  )}
+                  {visibleSections.filter((s) => s.phase === pi).map((s) => {
                     const isActive = activeSection === s.id;
                     const ac = "#0071E3";
                     const locked = !isUnlocked(s.tier || "free");
@@ -2171,11 +2199,20 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
 
           {/* MAIN CONTENT */}
           <main ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: isMobile ? "24px 18px" : "32px 40px" }}>
-            {SECTIONS.map((s) => (
+            {visibleSections.map((s) => (
               <div key={s.id} ref={(el) => (sectionRefs.current[s.id] = el)} style={{ marginBottom: "48px", maxWidth: "700px" }}>
                 {renderSection(s.id)}
               </div>
             ))}
+            {coreMode && (
+              <div style={{ maxWidth: "700px", marginBottom: "48px", padding: "24px 26px", borderRadius: "12px", border: "1px dashed rgba(255,255,255,0.15)", textAlign: "center" }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "#ccc", marginBottom: 6 }}>That's the core. 22 more sections go deeper.</div>
+                <div style={{ fontSize: "12.5px", color: "#666", lineHeight: 1.6, marginBottom: 14 }}>ICPs, StoryBrand, offer architecture, platform voices, sensory system, and more.</div>
+                <button onClick={() => toggleCoreMode(false)} style={{ padding: "10px 22px", borderRadius: 100, border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "#F5F5F7", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+                  Show the full board
+                </button>
+              </div>
+            )}
           </main>
         </div>
 

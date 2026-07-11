@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import SiteNav from "../components/SiteNav";
 import { driftCheck } from "../lib/ai";
 import { loadBoard } from "../lib/storage";
+import { track } from "../lib/track";
 
 const CHARCOAL = "#1D1D1F";
 const TITANIUM = "#8E8E93";
@@ -38,6 +39,7 @@ export default function DriftWatch() {
       const res = await driftCheck({ boardId });
       if (!res?.drift) throw new Error("The check returned nothing — try again.");
       setDrift(res.drift);
+      track("drift_run", { boardId, alignment: res.drift.alignment, items: res.drift.items.length });
     } catch (e) {
       setError(e.message || "Drift check failed.");
     }

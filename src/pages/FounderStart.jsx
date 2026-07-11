@@ -6,6 +6,7 @@ import { founderBrief, isAIAvailable } from "../lib/ai";
 import { mapSynthesisToBoard } from "../lib/synthesisMap";
 import { register, getEmail } from "../lib/auth";
 import { sendLeadToGHL } from "../lib/ghl";
+import { track } from "../lib/track";
 import { ARCHETYPES } from "../lib/archetypes";
 import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 
@@ -127,7 +128,7 @@ export default function FounderStart() {
   };
 
   const handleGate = async ({ email, firstName }) => {
-    register(email);
+    await register(email);
     setShowEmailGate(false);
     sendLeadToGHL({ email, firstName, boardId: "", boardUrl: `${window.location.origin}/start` });
     await runGenerate();
@@ -145,6 +146,7 @@ export default function FounderStart() {
       });
       if (!res?.synthesis) throw new Error("The strategist returned nothing — try again.");
       setResult(mapSynthesisToBoard(res.synthesis));
+      track("founder_generated", { brandName: res.synthesis.brandName });
     } catch (e) {
       setError(e.message || "Something broke mid-build. Try again.");
     }

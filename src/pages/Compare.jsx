@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SiteNav from "../components/SiteNav";
 import { scanWebsite, isAIAvailable } from "../lib/ai";
 import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
+import { track } from "../lib/track";
 
 const CHARCOAL = "#1D1D1F";
 const TITANIUM = "#8E8E93";
@@ -74,6 +75,7 @@ export default function Compare() {
     if (entered.length < 2 || running) return;
     setRunning(true);
     setResults(entered.map((url) => ({ url, state: "scanning" })));
+    track("compare_run", { count: entered.length });
     await Promise.all(entered.map(async (url, i) => {
       try {
         const scan = await scanWebsite(url);

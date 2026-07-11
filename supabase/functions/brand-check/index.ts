@@ -1,9 +1,10 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
+import { makeDb, rateLimited, spendCredit, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 // Brand Check: grade a draft against the board's voice system and rewrite it
 // on-brand. The recurring-use engine — the board stops being documentation
-// and becomes enforcement. Contract: POST { brand, draft, channel? } →
-// { check: { score, verdict, violations[], strengths[], rewrite } }
+// and becomes enforcement. Contract: POST { brand, draft, channel?, creditToken } →
+// { check: {...}, creditsRemaining }. Costs one server-side credit.
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -12,6 +13,7 @@ const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+const db = makeDb();
 
 function brandCtx(b: Record<string, unknown>): string {
   const arr = (v: unknown) => Array.isArray(v) ? (v as string[]).filter(Boolean).join(" · ") : (v || "");
@@ -96,13 +98,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
-    const { brand = {}, draft, channel } = await req.json();
+    const { brand = {}, draft, channel, creditToken } = await req.json();
     if (!draft || typeof draft !== "string" || !draft.trim()) {
       return json({ error: "Paste a draft to check." }, 400);
     }
     if (draft.length > 20000) {
       return json({ error: "Draft too long — check up to ~20,000 characters at a time." }, 400);
     }
+
+    if (await rateLimited(db, req, "brand-check", 12)) return json({ error: RATE_LIMIT_MSG }, 429);
+    const spend = await spendCredit(db, creditToken);
+    if (!spend.ok) return json({ error: spend.error }, spend.status);
 
     const userPrompt = `Check the following draft against this brand system.
 
@@ -129,7 +135,7 @@ Grade it, list every real violation with quoted evidence, note what it gets righ
     const toolUse = response.content.find((b: { type: string }) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("Model did not return structured output");
 
-    return json({ check: toolUse.input });
+    return json({ check: toolUse.input, creditsRemaining: spend.remaining });
   } catch (err) {
     return json({ error: String(err?.message || err) }, 500);
   }

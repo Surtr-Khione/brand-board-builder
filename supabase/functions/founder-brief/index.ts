@@ -1,4 +1,5 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
+import { makeDb, rateLimited, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,6 +7,7 @@ const corsHeaders = {
 };
 
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+const db = makeDb();
 
 // Same analyst persona as synthesize-brand, but pointed at CREATION: the input
 // is a founder's brief, not scraped evidence, so the job is to make sharp,
@@ -161,6 +163,9 @@ Deno.serve(async (req) => {
 
   try {
     const { brief = {} } = await req.json();
+    if (await rateLimited(db, req, "founder-brief", 3)) {
+      return new Response(JSON.stringify({ error: RATE_LIMIT_MSG }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const oneLiner = (brief.oneLiner || "").trim();
     if (!oneLiner) {

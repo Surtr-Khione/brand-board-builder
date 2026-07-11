@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { loadBoard } from "../lib/storage";
 import { generateContent } from "../lib/ai";
+import { track } from "../lib/track";
 import {
   buildUserPrompt, buildBrandCtx, buildIcpCtx, DEFAULT_SYSTEM_PROMPT, FORMATS, suggestTopics, FIELD_HINTS,
 } from "../lib/promptBuilder";
 import {
-  getTier, getCredits, getEmail, register, upgradePro, spendCredit, CREDIT_PACKS, TIERS, isUnlocked,
+  getTier, getCredits, getEmail, register, upgradePro, setCredits, syncCredits, CREDIT_PACKS, TIERS, isUnlocked,
 } from "../lib/auth";
 
 // ─── Content types ────────────────────────────────────────────────────────────
@@ -351,8 +352,9 @@ export default function ContentStudio() {
         userPromptOverride:   usingCustomPrompt ? customUserPrompt   : undefined,
       });
       setOutput(result.content);
-      spendCredit();
+      if (typeof result.creditsRemaining === "number") setCredits(result.creditsRemaining);
       refreshAuth();
+      track("studio_generated", { contentType: type.id });
     } catch (err) {
       setError(err.message || "Generation failed. Please try again.");
     }

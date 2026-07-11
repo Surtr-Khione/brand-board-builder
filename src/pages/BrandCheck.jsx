@@ -4,7 +4,8 @@ import SiteNav from "../components/SiteNav";
 import EmailGate from "../components/EmailGate";
 import { brandCheck, isAIAvailable } from "../lib/ai";
 import { loadBoard } from "../lib/storage";
-import { getTier, register, getCredits, spendCredit } from "../lib/auth";
+import { getTier, register, getCredits, setCredits, syncCredits } from "../lib/auth";
+import { track } from "../lib/track";
 import { sendLeadToGHL } from "../lib/ghl";
 
 const CHARCOAL = "#1D1D1F";
@@ -40,6 +41,7 @@ export default function BrandCheck() {
 
   useEffect(() => {
     document.title = "Brand Check — Grade Any Draft Against Your Brand | BrandMD";
+    syncCredits();
   }, []);
 
   useEffect(() => {
@@ -62,8 +64,9 @@ export default function BrandCheck() {
     try {
       const res = await brandCheck(brand, draft.trim(), channel || undefined);
       if (!res?.check) throw new Error("The check returned nothing — try again.");
-      spendCredit();
+      if (typeof res.creditsRemaining === "number") setCredits(res.creditsRemaining);
       setResult(res.check);
+      track("check_run", { boardId, score: res.check.score, channel: channel || null });
     } catch (e) {
       setError(e.message || "Check failed — try again.");
     }
@@ -82,7 +85,7 @@ export default function BrandCheck() {
   };
 
   const handleGate = async ({ email, firstName }) => {
-    register(email);
+    await register(email);
     setShowGate(false);
     sendLeadToGHL({ email, firstName, boardId: boardId || "", boardUrl: `${window.location.origin}/check` });
     await runCheck();

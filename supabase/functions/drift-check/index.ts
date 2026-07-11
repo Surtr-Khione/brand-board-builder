@@ -1,5 +1,6 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { rateLimited, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 // Drift Watch: rescan the board's live website and diff what the world sees
 // against what the board says the brand is. Deterministic checks (colors,
@@ -35,6 +36,7 @@ Deno.serve(async (req) => {
 
   try {
     const { boardId, brand: passedBrand } = await req.json();
+    if (await rateLimited(db, req, "drift-check", 6)) return json({ error: RATE_LIMIT_MSG }, 429);
 
     let brand: Record<string, unknown> | null = passedBrand || null;
     if (!brand && boardId) {

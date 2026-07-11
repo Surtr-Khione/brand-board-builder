@@ -1,4 +1,5 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
+import { makeDb, rateLimited, spendCredit, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,7 @@ const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+const db = makeDb();
 
 // ── Brand context builder ────────────────────────────────────────────────────
 function brandCtx(b: Record<string, unknown>): string {
@@ -254,9 +256,13 @@ FOLLOW-UP: Email sequence concept for each result tier`,
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { brand = {}, contentType, topic, icpIndex, additionalContext, platform, systemPromptOverride, userPromptOverride } = await req.json();
+    const { brand = {}, contentType, topic, icpIndex, additionalContext, platform, systemPromptOverride, userPromptOverride, creditToken } = await req.json();
 
     if (!contentType) return json({ error: "contentType required" }, 400);
+
+    if (await rateLimited(db, req, "generate-content", 12)) return json({ error: RATE_LIMIT_MSG }, 429);
+    const spend = await spendCredit(db, creditToken);
+    if (!spend.ok) return json({ error: spend.error }, spend.status);
 
     const formatInstructions = FORMATS[contentType] || `Create a high-quality ${contentType} that perfectly matches the brand's voice and targets the specified ICP.`;
 
@@ -319,7 +325,7 @@ Write the complete ${contentType.replace(/-/g, " ")} now. Do not add meta-commen
     const content = response.content.find((b: { type: string }) => b.type === "text");
     if (!content || content.type !== "text") throw new Error("No content generated");
 
-    return json({ content: content.text, contentType, usage: response.usage });
+    return json({ content: content.text, contentType, usage: response.usage, creditsRemaining: spend.remaining });
   } catch (err) {
     return json({ error: String(err) }, 500);
   }
