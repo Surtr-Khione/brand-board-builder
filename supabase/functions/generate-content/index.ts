@@ -254,7 +254,7 @@ FOLLOW-UP: Email sequence concept for each result tier`,
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { brand = {}, contentType, topic, icpIndex, additionalContext, platform } = await req.json();
+    const { brand = {}, contentType, topic, icpIndex, additionalContext, platform, systemPromptOverride, userPromptOverride } = await req.json();
 
     if (!contentType) return json({ error: "contentType required" }, 400);
 
@@ -304,11 +304,16 @@ ${formatInstructions}
 
 Write the complete ${contentType.replace(/-/g, " ")} now. Do not add meta-commentary, explanations, or "here is your content" preambles — output only the actual content:`;
 
+    // The Studio's Prompt Editor (power mode) sends the exact prompts the user
+    // edited — honor them verbatim when present.
+    const finalSystem = typeof systemPromptOverride === "string" && systemPromptOverride.trim() ? systemPromptOverride : systemPrompt;
+    const finalUser = typeof userPromptOverride === "string" && userPromptOverride.trim() ? userPromptOverride : userPrompt;
+
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt }],
+      system: finalSystem,
+      messages: [{ role: "user", content: finalUser }],
     });
 
     const content = response.content.find((b: { type: string }) => b.type === "text");

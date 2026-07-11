@@ -6,6 +6,7 @@ const ACCENT_BLUE = "#0071E3";
 
 const NAV_LINKS = [
   { to: "/analyzer", label: "Analyzer" },
+  { to: "/start", label: "Start" },
   { to: "/builder", label: "Builder" },
   { to: "/brands", label: "Library" },
   { to: "/blog", label: "Blog" },

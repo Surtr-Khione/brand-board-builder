@@ -1414,8 +1414,8 @@ function CalendarSection({ brand, update }) {
   );
 }
 
-function ScoreSection({ brand }) {
-  const { score, missing } = computeGravityScore(brand);
+function ScoreSection({ brand, onNavigate }) {
+  const { score, roadmap } = computeGravityScore(brand);
   const color = gravityScoreColor(score);
   return (
     <div>
@@ -1425,14 +1425,42 @@ function ScoreSection({ brand }) {
         <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", marginTop: "16px", overflow: "hidden" }}>
           <div style={{ width: `${score}%`, height: "100%", background: color, borderRadius: "4px", transition: "width 0.5s" }} />
         </div>
-        {missing.length > 0 && (
-          <div style={{ marginTop: "20px", textAlign: "left", maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-              Still missing
+        {roadmap.length > 0 ? (
+          <div style={{ marginTop: "24px", textAlign: "left", maxWidth: 460, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+              Your roadmap
             </div>
-            {missing.map((m) => (
-              <div key={m} style={{ fontSize: "13px", color: "#777", padding: "5px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>{m}</div>
+            <div style={{ fontSize: "12px", color: "#666", marginBottom: 12, lineHeight: 1.5 }}>
+              Each step is worth +{roadmap[0].weight} Gravity. Click one to jump straight to it.
+            </div>
+            {roadmap.map((step, i) => (
+              <button
+                key={step.label}
+                onClick={() => onNavigate?.(step.sectionId)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                  width: "100%", textAlign: "left", padding: "12px 14px", marginBottom: 8,
+                  borderRadius: "10px", cursor: "pointer", fontFamily: "inherit",
+                  border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)",
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0,113,227,0.5)"; e.currentTarget.style.background = "rgba(0,113,227,0.06)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#555", flexShrink: 0 }}>{i + 1}</span>
+                  <span>
+                    <span style={{ display: "block", fontSize: "13.5px", fontWeight: 600, color: "#ddd" }}>{step.fix}</span>
+                    <span style={{ display: "block", fontSize: "11.5px", color: "#666", marginTop: 2 }}>{step.label}</span>
+                  </span>
+                </span>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#0071E3", flexShrink: 0 }}>+{step.weight} →</span>
+              </button>
             ))}
+          </div>
+        ) : (
+          <div style={{ marginTop: "20px", fontSize: "13px", color: "#2ecc71", fontWeight: 600 }}>
+            Every gravity signal is defined. This brand holds together.
           </div>
         )}
       </div>
@@ -1542,7 +1570,7 @@ function IntegrationsSection({ brand, update }) {
   );
 }
 
-function ExportSection({ brand, onSave, email }) {
+function ExportSection({ brand, onSave, email, boardId }) {
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(null);
   const [pubErr, setPubErr] = useState(null);
@@ -1580,6 +1608,19 @@ function ExportSection({ brand, onSave, email }) {
         <button onClick={exportJSON} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
           📄 Export as JSON (for LLMs)
         </button>
+        {boardId ? (
+          <Link
+            to={`/board/${boardId}/guidelines`}
+            style={{ display: "block", textAlign: "center", textDecoration: "none", padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}
+          >
+            📖 Open Brand Guidelines (share & print)
+          </Link>
+        ) : (
+          <div style={{ textAlign: "center", padding: "14px 24px", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.1)", color: "#555", fontSize: "13px", fontFamily: "'DM Sans', sans-serif" }}>
+            📖 Brand Guidelines unlock once the board is saved — a shareable, print-ready
+            document your whole team can work from.
+          </div>
+        )}
         {!published ? (
           <button onClick={handlePublish} disabled={publishing} style={{ padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(0,113,227,0.35)", background: "rgba(0,113,227,0.08)", color: publishing ? "#666" : "#0071E3", fontSize: "15px", fontWeight: 600, cursor: publishing ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }}>
             {publishing ? "Publishing..." : "◆ Get Your Brand Certificate"}
@@ -1790,6 +1831,19 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     } catch {}
   }, []);
 
+  // Seed from the Founder Start flow (/start) — unlike brand-clone this is a
+  // full synthesis already mapped to board fields, so merge everything.
+  useEffect(() => {
+    const seed = sessionStorage.getItem("founder-seed");
+    if (!seed) return;
+    sessionStorage.removeItem("founder-seed");
+    try {
+      const updates = JSON.parse(seed);
+      setBrand((prev) => ({ ...prev, ...updates }));
+      setSaved(false);
+    } catch {}
+  }, []);
+
   const update = useCallback((key, value) => {
     setBrand((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
@@ -1937,9 +1991,9 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       media: <MediaSection brand={brand} update={update} />,
       accessibility: <AccessibilitySection brand={brand} update={update} />,
       guidelines: <CustomFieldsSection brand={brand} update={update} />,
-      score: <ScoreSection brand={brand} />,
+      score: <ScoreSection brand={brand} onNavigate={scrollToSection} />,
       integrations: <IntegrationsSection brand={brand} update={update} />,
-      export: <ExportSection brand={brand} onSave={handleSave} email={email} />,
+      export: <ExportSection brand={brand} onSave={handleSave} email={email} boardId={boardId} />,
     };
     return map[id] || null;
   };

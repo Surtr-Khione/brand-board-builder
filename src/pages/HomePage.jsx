@@ -315,6 +315,12 @@ export default function HomePage() {
             </button>
           </form>
 
+          <div style={{ fontSize: 14, color: TITANIUM, marginBottom: 18, textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
+            No website yet?{" "}
+            <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+              Start from your idea →
+            </Link>
+          </div>
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
             {brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 19 brand dimensions &nbsp;&middot;&nbsp; one board
             &nbsp;&middot;&nbsp; <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the Library</Link>

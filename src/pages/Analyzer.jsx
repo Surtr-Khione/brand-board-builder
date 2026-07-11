@@ -112,6 +112,12 @@ export default function Analyzer() {
           brand archetype, and a real Gravity Score — the same first read a brand
           diagnostician would give it.
         </p>
+        <div style={{ fontSize: 13.5, color: TITANIUM, marginTop: 16 }}>
+          Nothing live to scan yet?{" "}
+          <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+            Build your brand from the idea →
+          </Link>
+        </div>
       </div>
 
       {/* SCAN PANELS */}

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { scanSocial, analyzePDF, synthesizeBrand } from "../lib/ai";
+import { mapSynthesisToBoard } from "../lib/synthesisMap";
 
 const PLATFORMS = [
   // Social
@@ -163,58 +164,17 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
         .map(([type, data]) => ({ type, url: urls[type] || "", data }));
       const result = await synthesizeBrand(sources, {});
       if (result?.synthesis) {
-        const s = result.synthesis;
-        const updates = {};
-        // Core fields
-        for (const k of ["brandName","tagline","industry","elevator","mission","vision","brandPromise","whyDifferent","archetype","socialPersonality","photoStyle","photoMood","audioMood","competitivePositioning"]) {
-          if (s[k]) updates[k] = s[k];
+        const updates = mapSynthesisToBoard(result.synthesis);
+        // Scanned sources keep authority over colors — synthesis colors are
+        // inferred, a scan's are observed. mapSynthesisToBoard includes them
+        // for the from-zero founder path; here we drop them unless no scan
+        // found colors at all.
+        const scannedColors = Object.values(sourceData).some((d) => d?.colors?.length);
+        if (scannedColors) {
+          delete updates.primaryColor;
+          delete updates.secondaryColor;
+          delete updates.accentColor;
         }
-        // Arrays
-        if (s.coreValues?.some(Boolean)) updates.coreValues = s.coreValues;
-        if (s.toneAttributes?.some(Boolean)) updates.toneAttributes = s.toneAttributes;
-        if (s.brandPersonality?.some(Boolean)) updates.brandPersonality = s.brandPersonality;
-        if (s.messagingDos?.some(Boolean)) updates.messagingDos = s.messagingDos;
-        if (s.messagingDonts?.some(Boolean)) updates.messagingDonts = s.messagingDonts;
-        if (s.wordsAlways?.some(Boolean)) updates.wordsAlways = s.wordsAlways;
-        if (s.wordsNever?.some(Boolean)) updates.wordsNever = s.wordsNever;
-        if (s.differentiators?.some(Boolean)) updates.differentiators = s.differentiators;
-        if (s.moodboardKeywords?.some(Boolean)) updates.moodboardKeywords = s.moodboardKeywords;
-        // Platform voices
-        for (const k of ["voiceInstagram","voiceLinkedIn","voiceYouTube","voiceTikTok","voiceFacebook","voiceTwitter"]) {
-          if (s[k]) updates[k] = s[k];
-        }
-        // Audience
-        for (const k of ["audienceAge","audienceRole","audiencePains","audienceGoals"]) {
-          if (s[k]) updates[k] = s[k];
-        }
-        // Content pillars (structured)
-        if (s.contentPillars?.length) {
-          updates.contentPillars = s.contentPillars.map(p =>
-            typeof p === "string"
-              ? { name: p, description: "", topics: ["", ""], audience: "" }
-              : { name: p.name || "", description: p.description || "", topics: Array.isArray(p.topics) ? p.topics : ["", ""], audience: p.rationale || "" }
-          );
-        }
-        // ICPs — top 3 customer profiles
-        if (s.icps?.length) {
-          updates.icps = s.icps.slice(0, 3).map((icp, i) => ({
-            id: String(i + 1),
-            title: icp.title || "",
-            segment: icp.segment || "",
-            demographics: icp.demographics || "",
-            psychographics: icp.psychographics || "",
-            painPoints: icp.painPoints || ["", ""],
-            goals: icp.goals || ["", ""],
-            buyingTriggers: icp.buyingTriggers || ["", ""],
-            channels: icp.channels || "",
-            messageAngle: icp.messageAngle || "",
-            ltv: icp.ltv || "",
-            acquisition: icp.acquisition || "",
-          }));
-        }
-        // Color rationale stored in notes if present
-        if (s.primaryFont) updates.primaryFont = s.primaryFont;
-        if (s.bodyFont) updates.bodyFont = s.bodyFont;
         // Sources map
         updates.sources = urls;
         onApply(updates);

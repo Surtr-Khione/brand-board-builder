@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env — never commit (anon key is public but service keys must never land here)
+.env

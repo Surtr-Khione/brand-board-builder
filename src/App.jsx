@@ -5,6 +5,8 @@ import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
 import ContentStudio from './pages/ContentStudio';
+import FounderStart from './pages/FounderStart';
+import BrandGuidelines from './pages/BrandGuidelines';
 import Analyzer from './pages/Analyzer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
@@ -27,8 +29,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/start" element={<FounderStart />} />
         <Route path="/builder" element={<BrandBoardBuilder />} />
         <Route path="/board/:boardId" element={<BoardPage />} />
+        <Route path="/board/:boardId/guidelines" element={<BrandGuidelines />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
         <Route path="/analyzer" element={<Analyzer />} />
