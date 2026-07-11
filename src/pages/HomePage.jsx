@@ -335,9 +335,15 @@ export default function HomePage() {
           <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>
             Search the index
           </div>
-          <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 26 }}>
+          <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 12 }}>
             See how <span style={{ color: ACCENT_BLUE }}>anyone else</span> scores.
           </h2>
+          <div style={{ fontSize: 13.5, color: TITANIUM, marginBottom: 26 }}>
+            Or put yourself next to them:{" "}
+            <Link to="/compare" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+              compare brands side by side →
+            </Link>
+          </div>
           <form onSubmit={submitFind} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <input
               value={findQuery}

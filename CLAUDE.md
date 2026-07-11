@@ -27,6 +27,13 @@ Deployed 2026-07-10: `scan-website`, `ai-suggest` (pre-existing) + `synthesize-b
 ## Design identity
 Archetype: The Sage/Magician, enemy "Guesswork." Near-black + titanium `#8E8E93` + off-white `#F5F5F7` + system blue `#0071E3` only. Single Inter family. Guidelines page is deliberately light/paper (it's a print document). Ryan iterates fast on visuals — rebuild with reasoning, don't re-skin.
 
+## Retention layer (built 2026-07-11, on founder-release)
+The board is now something content is *checked against*, not just built from:
+- **Brand Check** (`/check`, `/check/:boardId` + `brand-check` fn, Sonnet): grades any draft against the board's voice/rules with quoted-evidence violations + an on-brand rewrite. Gated: register → 3 credits, 1/check (the natural first paid loop once Stripe lands).
+- **Drift Watch** (`/board/:id/drift` + `drift-check` fn): rescans the board's website via scan-website, diffs colors/tagline/fonts/archetype deterministically + a Haiku voice read → alignment score. On-demand now; scheduled email version needs pg_cron + an email sender (Ryan's call).
+- **brand.md** (`brand-md` fn): permanent AI-context file per board — `/board/:id/brand.md` and `/brands/:slug/brand.md` 302 via `public/_redirects` to the fn. Surfaced in Export with copy button.
+- **Compare** (`/compare`): scan 2-3 sites side-by-side, Gravity each, winner callout → Builder CTA. Free/viral. Linked from nav ("Check" added too), Analyzer, homepage.
+
 ## Next actions
 1. Ryan: review + merge the two stacked PRs (redesign → main, then founder-release), apply the edit-token migration, then `npm run build && npx wrangler pages deploy --branch=main`.
 2. Get Stripe keys from Ryan → set secrets → test checkout end-to-end.

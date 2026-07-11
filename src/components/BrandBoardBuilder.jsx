@@ -1577,6 +1577,33 @@ function IntegrationsSection({ brand, update }) {
   );
 }
 
+// The permanent AI-context URL: paste it into ChatGPT/Claude/Cursor instead
+// of re-explaining the brand every session. Always reflects the saved board.
+function BrandMdRow({ boardId }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/board/${boardId}/brand.md`;
+  return (
+    <div style={{ padding: "14px 16px", borderRadius: "10px", border: "1px solid rgba(0,113,227,0.25)", background: "rgba(0,113,227,0.05)" }}>
+      <div style={{ fontSize: "12px", fontWeight: 700, color: "#0071E3", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 6 }}>
+        Your brand.md — AI context file
+      </div>
+      <div style={{ fontSize: "12px", color: "#888", lineHeight: 1.6, marginBottom: 10 }}>
+        Paste this URL into ChatGPT, Claude, or any AI tool and it writes with your full
+        brand system — always current, no re-explaining.
+      </div>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <code style={{ flex: 1, fontSize: "11.5px", color: "#ccc", background: "rgba(0,0,0,0.35)", padding: "8px 10px", borderRadius: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{url}</code>
+        <button
+          onClick={() => navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); })}
+          style={{ padding: "8px 16px", borderRadius: 6, border: "none", background: "#0071E3", color: "#fff", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+        >
+          {copied ? "Copied ✓" : "Copy"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ExportSection({ brand, onSave, email, boardId }) {
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(null);
@@ -1616,16 +1643,33 @@ function ExportSection({ brand, onSave, email, boardId }) {
           📄 Export as JSON (for LLMs)
         </button>
         {boardId ? (
-          <Link
-            to={`/board/${boardId}/guidelines`}
-            style={{ display: "block", textAlign: "center", textDecoration: "none", padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif" }}
-          >
-            📖 Open Brand Guidelines (share & print)
-          </Link>
+          <>
+            <Link
+              to={`/board/${boardId}/guidelines`}
+              style={{ display: "block", textAlign: "center", textDecoration: "none", padding: "14px 24px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "15px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif" }}
+            >
+              📖 Open Brand Guidelines (share & print)
+            </Link>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <Link
+                to={`/check/${boardId}`}
+                style={{ flex: 1, minWidth: 200, textAlign: "center", textDecoration: "none", padding: "14px 18px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "14px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif" }}
+              >
+                ✓ Brand Check a draft
+              </Link>
+              <Link
+                to={`/board/${boardId}/drift`}
+                style={{ flex: 1, minWidth: 200, textAlign: "center", textDecoration: "none", padding: "14px 18px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#ccc", fontSize: "14px", fontWeight: 600, fontFamily: "'Inter', -apple-system, sans-serif" }}
+              >
+                ◎ Run Drift Watch
+              </Link>
+            </div>
+            <BrandMdRow boardId={boardId} />
+          </>
         ) : (
           <div style={{ textAlign: "center", padding: "14px 24px", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.1)", color: "#555", fontSize: "13px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-            📖 Brand Guidelines unlock once the board is saved — a shareable, print-ready
-            document your whole team can work from.
+            📖 Save the board to unlock Brand Guidelines, Brand Check, Drift Watch, and your
+            permanent brand.md URL — the context file you paste into any AI tool.
           </div>
         )}
         {!published ? (

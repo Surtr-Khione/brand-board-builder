@@ -7,6 +7,9 @@ import HomePage from './pages/HomePage';
 import ContentStudio from './pages/ContentStudio';
 import FounderStart from './pages/FounderStart';
 import BrandGuidelines from './pages/BrandGuidelines';
+import BrandCheck from './pages/BrandCheck';
+import Compare from './pages/Compare';
+import DriftWatch from './pages/DriftWatch';
 import Analyzer from './pages/Analyzer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
@@ -33,6 +36,10 @@ export default function App() {
         <Route path="/builder" element={<BrandBoardBuilder />} />
         <Route path="/board/:boardId" element={<BoardPage />} />
         <Route path="/board/:boardId/guidelines" element={<BrandGuidelines />} />
+        <Route path="/board/:boardId/drift" element={<DriftWatch />} />
+        <Route path="/check" element={<BrandCheck />} />
+        <Route path="/check/:boardId" element={<BrandCheck />} />
+        <Route path="/compare" element={<Compare />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
         <Route path="/analyzer" element={<Analyzer />} />

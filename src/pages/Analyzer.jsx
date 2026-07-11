@@ -267,11 +267,18 @@ export default function Analyzer() {
                 </button>
               )}
               <Link
-                to="/brands"
+                to="/compare"
                 className="bmd-link"
                 style={{ color: ACCENT_BLUE, textDecoration: "none", fontSize: 14, fontWeight: 500 }}
               >
-                Explore the Library instead &nbsp;›
+                Compare vs competitors &nbsp;›
+              </Link>
+              <Link
+                to="/brands"
+                className="bmd-link"
+                style={{ color: TITANIUM, textDecoration: "none", fontSize: 14, fontWeight: 500 }}
+              >
+                Explore the Library &nbsp;›
               </Link>
             </div>
 
