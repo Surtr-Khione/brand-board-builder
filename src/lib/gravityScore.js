@@ -64,8 +64,11 @@ const SIGNALS = [
   { label: "Full color system (primary, secondary, accent)", weight: 10, sectionId: "colors", fix: "Choose your three-color system", test: colorsChosen },
   { label: "Typography defined", weight: 10, sectionId: "typography", fix: "Choose your primary typeface", test: (b) => has(b, "primary_font", "primaryFont") },
   { label: "Messaging rules (do/don't say)", weight: 10, sectionId: "voice", fix: "Set your do-say / don't-say rules", test: (b) =>
-      has(b, "brand_data.doSay", "brand_data.dontSay", "messagingDos", "messagingDonts") },
-  { label: "Content pillars or audience", weight: 10, sectionId: "pillars", fix: "Define content pillars or your audience", test: (b) => has(b, "brand_data.contentPillars", "contentPillars", "audience", "icps") },
+      has(b, "brand_data.doSay", "brand_data.dontSay", "messagingDos", "messagingDonts",
+          "do_say", "dont_say", "brand_data.messagingDos", "brand_data.messagingDonts") },
+  { label: "Content pillars or audience", weight: 10, sectionId: "pillars", fix: "Define content pillars or your audience", test: (b) =>
+      has(b, "brand_data.contentPillars", "contentPillars", "audience", "icps",
+          "brand_data.audienceRole", "brand_data.audiencePains", "brand_data.icps", "audienceRole", "audiencePains") },
   { label: "Manifesto or core values", weight: 10, sectionId: "identity", fix: "Write your core values", test: (b) => has(b, "brand_data.manifesto", "brand_data.coreValues", "coreValues") },
 ];
 

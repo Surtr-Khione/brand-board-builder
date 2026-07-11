@@ -5,6 +5,7 @@ import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { BLOG_POSTS } from "../lib/blogPosts";
 import { useReveal } from "../lib/useReveal";
 import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
+import { TrustBand, BrandPill, OrbitRule } from "../components/TrustMarks";
 import "../styles/space-theme.css";
 
 const VOID = "#000000";
@@ -175,6 +176,7 @@ function ScoreCard({ brand }) {
 export default function HomePage() {
   const [brands, setBrands] = useState([]);
   const [totalBrands, setTotalBrands] = useState(null);
+  const [marqueeBrands, setMarqueeBrands] = useState([]);
   const [findQuery, setFindQuery] = useState("");
   const [heroUrl, setHeroUrl] = useState("");
   const navigate = useNavigate();
@@ -196,6 +198,7 @@ export default function HomePage() {
       "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute — free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
     );
     searchBrands({ limit: 15, featured: true }).then((d) => { setBrands(d.brands || []); if (d.totalBrands) setTotalBrands(d.totalBrands); });
+    searchBrands({ limit: 36 }).then((d) => setMarqueeBrands(d.brands || []));
   }, []);
 
   const latestPosts = BLOG_POSTS.slice(0, 3);
@@ -322,9 +325,11 @@ export default function HomePage() {
               Start from your idea →
             </Link>
           </div>
+          <div style={{ marginBottom: 20 }}>
+            <TrustBand totalBrands={totalBrands} />
+          </div>
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
-            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; one board
-            &nbsp;&middot;&nbsp; <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the Library</Link>
+            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; scores published publicly
           </div>
         </div>
       </div>
@@ -332,6 +337,7 @@ export default function HomePage() {
       {/* ══ FIND — search the index; Fortune 500 scrolls quietly behind it ══ */}
       <div style={{ padding: "80px 40px 100px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <Reveal style={{ maxWidth: 640, margin: "0 auto 56px", textAlign: "center" }}>
+          <OrbitRule />
           <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>
             Search the index
           </div>
@@ -375,17 +381,15 @@ export default function HomePage() {
             WebkitMaskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
           }}
         >
-          <div className="bmd-marquee-track" style={{ display: "flex", width: "max-content", gap: 30 }}>
-            {[...FORTUNE_500, ...FORTUNE_500].map((name, i) => (
-              <Link
-                key={i}
-                to={`/brands?q=${encodeURIComponent(name)}`}
-                className="bmd-link"
-                style={{ fontSize: 14, color: "#6E6E73", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500, flexShrink: 0 }}
-              >
-                {name}
-              </Link>
-            ))}
+          <div className="bmd-marquee-track" style={{ display: "flex", width: "max-content", gap: 14, alignItems: "center" }}>
+            {marqueeBrands.length > 0
+              ? [...marqueeBrands, ...marqueeBrands].map((b, i) => <BrandPill key={`${b.slug}-${i}`} brand={b} />)
+              : [...FORTUNE_500, ...FORTUNE_500].map((name, i) => (
+                  <Link key={i} to={`/brands?q=${encodeURIComponent(name)}`} className="bmd-link"
+                    style={{ fontSize: 14, color: "#6E6E73", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500, flexShrink: 0 }}>
+                    {name}
+                  </Link>
+                ))}
           </div>
         </div>
       </div>
@@ -394,6 +398,7 @@ export default function HomePage() {
       <div style={{ padding: "10px 40px 120px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", paddingTop: 90 }}>
           <Reveal style={{ textAlign: "center", marginBottom: 64 }}>
+            <OrbitRule />
             <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 4vw, 46px)", letterSpacing: "-1.2px" }}>
               Three instruments. One trajectory.
             </h2>
