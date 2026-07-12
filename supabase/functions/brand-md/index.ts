@@ -128,17 +128,24 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
-    const params = new URL(req.url).searchParams;
-    const boardId = params.get("board");
-    const slug = params.get("slug");
+    const u = new URL(req.url);
+    // Accept both query (?board= / ?slug=) and path style
+    // (/brand-md/board/:id, /brand-md/slug/:slug) — Cloudflare Pages
+    // _redirects only substitutes placeholders into path segments.
+    const segs = u.pathname.split("/").filter(Boolean);
+    const tail2 = segs.slice(-2);
+    const boardId = u.searchParams.get("board") || (tail2[0] === "board" ? decodeURIComponent(tail2[1] || "") : null);
+    const slug = u.searchParams.get("slug") || (tail2[0] === "slug" ? decodeURIComponent(tail2[1] || "") : null);
 
     let brand: Record<string, unknown> | null = null;
     let canonicalUrl = SITE;
 
     if (boardId) {
+      // Knowing the unguessable board_id is the read capability (boards are
+      // RLS-hidden from direct REST; this fn returns brand content only).
       const { data } = await db.from("brand_boards")
-        .select("brand_data, is_public").eq("board_id", boardId).maybeSingle();
-      if (!data || data.is_public === false) return new Response("Not found", { status: 404, headers: cors });
+        .select("brand_data").eq("board_id", boardId).maybeSingle();
+      if (!data) return new Response("Not found", { status: 404, headers: cors });
       brand = data.brand_data || {};
       canonicalUrl = `${SITE}/board/${boardId}/brand.md`;
     } else if (slug) {

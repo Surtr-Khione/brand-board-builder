@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     const newId = genBoardId();
     const { data: inserted, error } = await db
       .from("brand_boards")
-      .insert({ board_id: newId, brand_data: brand, email: cleanEmail, title, is_public: true })
+      .insert({ board_id: newId, brand_data: brand, email: cleanEmail, title, is_public: false })
       .select("board_id, edit_token")
       .single();
     if (error) throw error;

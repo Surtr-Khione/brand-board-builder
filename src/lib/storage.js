@@ -34,16 +34,17 @@ async function saveViaFunction(boardId, brandData, email) {
 }
 
 async function loadFromSupabase(boardId) {
-  // Explicit column list — edit_token and email must never reach the client
-  // (see supabase/migrations/…hide_edit_token… which enforces this at the DB).
-  const { data, error } = await supabase
-    .from('brand_boards')
-    .select('board_id, title, brand_data, is_public, created_at, updated_at')
-    .eq('board_id', boardId)
-    .single();
-
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
+  // Boards are is_public=false, so anonymous REST selects return nothing —
+  // reads go through the get-board edge fn, which returns only safe fields
+  // (never edit_token or email). Knowing the board URL is the capability.
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const r = await fetch(`${url}/functions/v1/get-board?board=${encodeURIComponent(boardId)}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json();
 }
 
 // ═══════════════════════════════════════════
