@@ -14,7 +14,10 @@ Deployed 2026-07-10: `scan-website`, `ai-suggest` (pre-existing) + `synthesize-b
 
 **History lesson (2026-07-10):** the live site was silently half-dead — synthesize/generate/publish/search all 404'd, and `brand_boards` RLS (accounts-era, `user_id`-based) blocked the anonymous save flow entirely (0 rows ever saved). The functions above restored it. Board saves now go through `save-board`, which mints an `edit_token` per anonymous board (localStorage `bmd_edit_token_<id>`); tokenless saves against an existing board fork a copy.
 
-## ⚠️ Required migration before/with merging founder-release
+## 🚀 LIVE IN PRODUCTION (deployed 2026-07-11, user-approved)
+brandmd.space serves the founder-release build (bundle `index-DHe5iMhW`) via direct Pages upload — **main is now BEHIND production**; merging PR #3 → #4 is required git hygiene, not a launch step. Board security shipped WITHOUT the column-privilege migration: boards save `is_public=false` (anon REST returns permission denied), reads go through the `get-board` fn (safe fields only), `brand-md` uses path-style routes (`/brand-md/board/:id`) because Pages `_redirects` won't substitute placeholders into query strings. Cloudflare creds: 1Password vault "Infrastructure" → CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID (account "RT Cloudflare").
+
+## Optional hardening migration (no longer launch-blocking)
 `supabase/migrations/20260710_hide_edit_token_and_email_from_reads.sql` — column-privilege REVOKE/GRANT so anon readers of public boards can't see `edit_token` (the write credential) or `email` (PII). Blocked from automated apply by permissions; apply via SQL editor or MCP. Frontend already selects explicit columns and won't break.
 
 ## Current state (2026-07-10)
@@ -44,7 +47,7 @@ The board is now something content is *checked against*, not just built from:
 - **Nurture sequence**: `marketing/nurture/` — 5 GHL-ready emails + wiring README. ⚠️ `VITE_GHL_WEBHOOK_URL` is UNSET in prod → lead capture currently dead; Ryan must pick a GHL location and set it.
 
 ## Next actions
-1. Ryan: review + merge the two stacked PRs (redesign → main, then founder-release), apply the edit-token migration, then `npm run build && npx wrangler pages deploy --branch=main`.
+1. Ryan: merge the two stacked PRs (redesign → main, then founder-release) so main matches production.
 2. Get Stripe keys from Ryan → set secrets → test checkout end-to-end.
 3. Rebuild `scan-social` / `analyze-pdf` / `analyze-image` (sources lost) to restore multi-source Brand Intelligence.
 4. Restyle Builder + Studio onto the titanium system.
