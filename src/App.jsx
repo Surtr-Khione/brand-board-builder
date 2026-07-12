@@ -1,15 +1,27 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useParams, useLocation } from 'react-router-dom';
 import BrandBoardBuilder from './components/BrandBoardBuilder';
 import BrandLibrary from './pages/BrandLibrary';
 import BrandProfile from './pages/BrandProfile';
 import HomePage from './pages/HomePage';
 import ContentStudio from './pages/ContentStudio';
+import FounderStart from './pages/FounderStart';
+import BrandGuidelines from './pages/BrandGuidelines';
+import BrandCheck from './pages/BrandCheck';
+import Compare from './pages/Compare';
+import DriftWatch from './pages/DriftWatch';
 import Analyzer from './pages/Analyzer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import { FloatingFeedback } from './components/FeedbackButton';
 import { captureReferral } from './lib/auth';
+import { track } from './lib/track';
+
+function PageViews() {
+  const location = useLocation();
+  useEffect(() => { track('page_view'); }, [location.pathname]);
+  return null;
+}
 
 function BoardPage() {
   const { boardId } = useParams();
@@ -25,10 +37,17 @@ export default function App() {
   useEffect(() => { captureReferral(); }, []);
   return (
     <BrowserRouter>
+      <PageViews />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/start" element={<FounderStart />} />
         <Route path="/builder" element={<BrandBoardBuilder />} />
         <Route path="/board/:boardId" element={<BoardPage />} />
+        <Route path="/board/:boardId/guidelines" element={<BrandGuidelines />} />
+        <Route path="/board/:boardId/drift" element={<DriftWatch />} />
+        <Route path="/check" element={<BrandCheck />} />
+        <Route path="/check/:boardId" element={<BrandCheck />} />
+        <Route path="/compare" element={<Compare />} />
         <Route path="/brands" element={<BrandLibrary />} />
         <Route path="/brands/:slug" element={<BrandProfilePage />} />
         <Route path="/analyzer" element={<Analyzer />} />

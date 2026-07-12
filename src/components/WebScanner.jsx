@@ -109,10 +109,10 @@ export default function WebScanner({ onApply, initialUrl = "" }) {
 
   if (applied && result) {
     return (
-      <div style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(46,204,113,0.2)", background: "rgba(46,204,113,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+      <div style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(50,215,75,0.2)", background: "rgba(50,215,75,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 16 }}>✓</span>
-          <span style={{ fontSize: 13, color: "#2ecc71" }}>Brand data imported from <strong>{url}</strong></span>
+          <span style={{ fontSize: 13, color: "#32D74B" }}>Brand data imported from <strong>{url}</strong></span>
         </div>
         <button onClick={reset} style={ghostBtn}>Re-scan</button>
       </div>
@@ -138,21 +138,21 @@ export default function WebScanner({ onApply, initialUrl = "" }) {
           disabled={scanning}
           style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#e0e0e0", fontSize: 14, fontFamily: "inherit", outline: "none" }}
         />
-        <button onClick={handleScan} disabled={scanning || !url.trim()} style={{ padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: scanning || !url.trim() ? "rgba(233,69,96,0.3)" : "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>
+        <button onClick={handleScan} disabled={scanning || !url.trim()} style={{ padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: scanning || !url.trim() ? "rgba(0,113,227,0.3)" : "linear-gradient(135deg,#0071E3,#005BB8)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>
           {scanning ? "Scanning..." : "Scan Website"}
         </button>
       </div>
 
-      {error && <div style={{ marginTop: 10, fontSize: 12, color: "#e94560" }}>{error}</div>}
+      {error && <div style={{ marginTop: 10, fontSize: 12, color: "#FF453A" }}>{error}</div>}
 
       {scanning && (
         <div style={{ marginTop: 16 }}>
           {STEPS.map((s, i) => (
             <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 16, height: 16, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, background: i < stepIdx ? "#2ecc71" : i === stepIdx ? "#e94560" : "rgba(255,255,255,0.06)", color: i <= stepIdx ? "#fff" : "#444" }}>
+              <div style={{ width: 16, height: 16, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, background: i < stepIdx ? "#32D74B" : i === stepIdx ? "#0071E3" : "rgba(255,255,255,0.06)", color: i <= stepIdx ? "#fff" : "#444" }}>
                 {i < stepIdx ? "✓" : i + 1}
               </div>
-              <span style={{ fontSize: 12, color: i === stepIdx ? "#e0e0e0" : i < stepIdx ? "#2ecc71" : "#444" }}>
+              <span style={{ fontSize: 12, color: i === stepIdx ? "#e0e0e0" : i < stepIdx ? "#32D74B" : "#444" }}>
                 {s.label}{i === stepIdx && " ●"}
               </span>
             </div>
@@ -249,7 +249,7 @@ export default function WebScanner({ onApply, initialUrl = "" }) {
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleApply} style={{ padding: "9px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
+            <button onClick={handleApply} style={{ padding: "9px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#0071E3,#005BB8)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
               Apply to My Board
             </button>
             <button onClick={reset} style={ghostBtn}>Scan again</button>
