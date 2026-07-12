@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getBrand } from "../lib/brands";
+import CertificateShare from "../components/CertificateShare";
+import { computeGravityScore } from "../lib/gravityScore";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -117,6 +119,7 @@ export default function BrandProfile({ slug }) {
   }
 
   const { brand, snapshots } = data;
+  const { score: gravityScore } = computeGravityScore(brand);
   const pc = brand.primary_color || "#e94560";
   const sc = brand.secondary_color || "#111";
   const ac = brand.accent_color || "#f39c12";
@@ -233,6 +236,13 @@ export default function BrandProfile({ slug }) {
 
           {/* Meta row */}
           <div className="fadein-3" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, paddingLeft: 156 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "7px 16px", borderRadius: 8, background: "#0071E3",
+              fontSize: 13, fontWeight: 700, color: "#FFFFFF",
+            }}>
+              Gravity Score: {gravityScore}
+            </span>
             {brand.brand_valuation && (
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: 7,
@@ -621,6 +631,19 @@ export default function BrandProfile({ slug }) {
           </div>
         </section>
       )}
+
+      {/* ════════════════════════════════════════
+          SHARE THIS CERTIFICATE — the distribution engine
+          ════════════════════════════════════════ */}
+      <section style={{ padding: "80px 48px", background: "#060606", borderTop: "1px solid #0d0d0d" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 32 }}>
+          <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#2a2a2a", textTransform: "uppercase" }}>Share This Certificate</div>
+          <div style={{ flex: 1, height: 1, background: "#111" }} />
+        </div>
+        <div style={{ maxWidth: 640 }}>
+          <CertificateShare brand={brand} url={`/brands/${slug}`} />
+        </div>
+      </section>
 
       {/* ════════════════════════════════════════
           CLOSING SPREAD — clone CTA

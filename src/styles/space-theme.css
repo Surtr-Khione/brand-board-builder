@@ -1,0 +1,64 @@
+/* BrandMD — the diagnostic reveal: scattered, undocumented fragments
+   resolve into a clean, aligned system as a scan line passes through.
+   Quiet realistic starfield as ambient texture, scroll reveals elsewhere.
+   No borrowed "product shot" motion. */
+
+@keyframes bmd-settle {
+  0%, 100% { left: var(--bmd-x0); top: var(--bmd-y0); transform: rotate(var(--bmd-r0)); opacity: 0.4; filter: blur(1.5px); }
+  45%, 55% { left: var(--bmd-xf); top: var(--bmd-yf); transform: rotate(0deg); opacity: 1; filter: blur(0px); }
+}
+@keyframes bmd-scan {
+  0%   { top: -6%; opacity: 0; }
+  12%  { opacity: 1; }
+  50%  { top: 50%; opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: 106%; opacity: 0; }
+}
+@keyframes bmd-twinkle {
+  0%, 100% { opacity: var(--bmd-tw-min, 0.2); }
+  50%      { opacity: var(--bmd-tw-max, 0.6); }
+}
+@keyframes bmd-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.bmd-fragment, .bmd-scanline, .bmd-star {
+  will-change: transform, opacity, top, left;
+}
+.bmd-marquee-track {
+  animation: bmd-marquee 46s linear infinite;
+}
+.bmd-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.bmd-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bmd-reveal.bmd-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.bmd-cta:focus-visible,
+.bmd-link:focus-visible,
+.bmd-card-link:focus-visible,
+.bmd-navlink:focus-visible {
+  outline: 2px solid #0071E3;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bmd-fragment, .bmd-scanline, .bmd-star, .bmd-marquee-track {
+    animation: none !important;
+  }
+  .bmd-reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

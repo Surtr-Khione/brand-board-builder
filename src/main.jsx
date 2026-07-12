@@ -6,7 +6,7 @@ import App from './App';
 const style = document.createElement('style');
 style.textContent = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', -apple-system, sans-serif; background: #0a0a0f; overflow-x: hidden; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #000000; overflow-x: hidden; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
