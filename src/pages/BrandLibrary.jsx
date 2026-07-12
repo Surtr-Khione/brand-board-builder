@@ -104,9 +104,9 @@ export default function BrandLibrary() {
         <div style={{ marginBottom: 32, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => setArchetype("")} style={{
             padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
-            border: !archetype ? "1px solid #e94560" : "1px solid #222",
-            background: !archetype ? "rgba(233,69,96,0.12)" : "#0c0c0c",
-            color: !archetype ? "#e94560" : "#555", transition: "all 0.18s",
+            border: !archetype ? "1px solid #0071E3" : "1px solid #222",
+            background: !archetype ? "rgba(0,113,227,0.12)" : "#0c0c0c",
+            color: !archetype ? "#0071E3" : "#555", transition: "all 0.18s",
           }}>All {totalBrands || brands.length || 15}</button>
           {facets.archetypes.map(a => (
             <button key={a} onClick={() => setArchetype(a === archetype ? "" : a)} style={{

@@ -77,3 +77,145 @@
 @media (prefers-reduced-motion: reduce) {
   .bmd-logo-chip:hover { transform: none; }
 }
+
+/* ── The Gravity Well: scroll-driven 3D hero ─────────────────────────── */
+.bmd3d-runway {
+  --p: 0;
+  --tilt: calc(56deg + var(--p) * 22deg);
+  --wellR: min(46vw, 560px);
+  height: 235vh;
+  position: relative;
+}
+@media (max-width: 760px) {
+  .bmd3d-runway { height: 185vh; --wellR: 62vw; }
+}
+.bmd3d-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  perspective: 1150px;
+  perspective-origin: 50% 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bmd3d-well {
+  position: absolute;
+  left: 50%;
+  top: calc(80% + var(--p) * 10%);
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt)) translateZ(calc(var(--p) * 240px));
+  z-index: 0;
+}
+.bmd3d-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 245, 247, 0.11);
+  box-shadow: 0 0 40px rgba(0, 113, 227, 0.05) inset;
+  transform-style: preserve-3d;
+}
+.bmd3d-tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: rgba(100, 210, 255, 0.65);
+  box-shadow: 0 0 8px rgba(100, 210, 255, 0.5);
+}
+.bmd3d-orbiter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  text-decoration: none;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
+}
+.bmd3d-frag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 245, 247, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+}
+.bmd3d-frag-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #0071e3;
+  box-shadow: 0 0 10px rgba(0, 113, 227, 0.7);
+}
+.bmd3d-core {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 84px;
+  height: 84px;
+  margin: -42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f5f5f7, #c9bdaf 36%, #5a5a5e 68%, #1d1d1f);
+  transform: rotateX(calc(-1 * var(--tilt))) translateZ(34px) scale(calc(0.8 + var(--p) * 0.2));
+  box-shadow: 0 0 60px rgba(0, 113, 227, 0.25);
+}
+.bmd3d-glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--wellR) * 1.5);
+  height: calc(var(--wellR) * 1.5);
+  margin: calc(var(--wellR) * -0.75);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 113, 227, 0.16), transparent 62%);
+  filter: blur(6px);
+}
+.bmd3d-fore {
+  position: relative;
+  z-index: 2;
+  max-width: 780px;
+  padding: 0 28px;
+  text-align: center;
+  transform: translateY(calc(var(--p) * -5vh)) scale(calc(1 - var(--p) * 0.045));
+  opacity: calc(1.15 - var(--p) * 0.45);
+}
+.bmd3d-cue {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #6e6e73;
+  opacity: calc(1 - var(--p) * 3);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bmd3d-runway { height: auto; --p: 0.3 !important; }
+  .bmd3d-sticky { position: relative; min-height: 100vh; }
+}
+
+/* Section entrances gain quiet depth — the rest of the page stays 3D */
+.bmd-reveal {
+  opacity: 0;
+  transform: perspective(900px) translateY(30px) rotateX(7deg) scale(0.975);
+  transform-origin: 50% 100%;
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bmd-reveal.bmd-in {
+  opacity: 1;
+  transform: perspective(900px) translateY(0) rotateX(0) scale(1);
+}
