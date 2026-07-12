@@ -83,24 +83,38 @@ function ScoreRationale({ brand, ink }) {
   const missing = signals.filter((x) => !x.met).map((x) => SIGNAL_PHRASES[x.label] || x.label.toLowerCase());
   const name = brand.brand_name || "This brand";
 
-  let opening;
-  if (score >= 90) opening = `${name} holds a Gravity Score of ${score} — nearly every strategic signal is committed and pulling in the same direction.`;
-  else if (score >= 70) opening = `${name} carries a Gravity Score of ${score}. The spine of the identity is on record and coherent.`;
-  else if (score >= 50) opening = `${name} sits at a Gravity Score of ${score} — the essentials are documented, but much of the deeper system isn't on public record yet.`;
-  else opening = `${name} scores ${score} — only fragments of a documented identity are on record here.`;
+  // Preferred: the paragraph written in the brand's own documented voice
+  // (voice-rationale fn, stored on the row with the score it described).
+  // Only used while it still matches the live number; deterministic fallback
+  // otherwise, so prose and score can never disagree.
+  const stored = brand.brand_data?.scoreRationale;
+  const voiceText = stored && stored.score === score && typeof stored.text === "string" ? stored.text : null;
+
+  let fallback;
+  if (score >= 90) fallback = `${name} holds a Gravity Score of ${score} — nearly every strategic signal is committed and pulling in the same direction.`;
+  else if (score >= 70) fallback = `${name} carries a Gravity Score of ${score}. The spine of the identity is on record and coherent.`;
+  else if (score >= 50) fallback = `${name} sits at a Gravity Score of ${score} — the essentials are documented, but much of the deeper system isn't on public record yet.`;
+  else fallback = `${name} scores ${score} — only fragments of a documented identity are on record here.`;
 
   return (
     <section style={{ background: "#0a0a0a", borderBottom: "1px solid #101010", padding: "56px 48px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: `rgba(${rgb(ink || "#888888")},0.6)`, textTransform: "uppercase", marginBottom: 18 }}>
-          Why this score
+          {voiceText ? `The score of ${score}, in ${name}'s voice` : "Why this score"}
         </div>
-        <p style={{ fontSize: 16.5, lineHeight: 1.75, color: "#c9c9c9", margin: 0 }}>
-          {opening}
-          {met.length > 0 && <> On record: {listOut(met)}.</>}
-          {missing.length > 0 && <> Not yet on record: {listOut(missing)} — each worth +10 when it lands.</>}
-        </p>
-        <p style={{ fontSize: 12.5, lineHeight: 1.7, color: "#5a5a5a", margin: "14px 0 0" }}>
+        {voiceText ? (
+          <p style={{ fontSize: 18, lineHeight: 1.8, color: "#d6d6d6", margin: 0, fontStyle: "italic" }}>
+            &ldquo;{voiceText}&rdquo;
+          </p>
+        ) : (
+          <p style={{ fontSize: 16.5, lineHeight: 1.75, color: "#c9c9c9", margin: 0 }}>
+            {fallback}
+            {met.length > 0 && <> On record: {listOut(met)}.</>}
+            {missing.length > 0 && <> Not yet on record: {listOut(missing)} — each worth +10 when it lands.</>}
+          </p>
+        )}
+        <p style={{ fontSize: 12.5, lineHeight: 1.7, color: "#5a5a5a", margin: "16px 0 0" }}>
+          {voiceText && <>Written by BrandMD's voice engine in {name}'s documented voice — the same system behind Brand Check — not a statement by the company. {missing.length > 0 && <>Still uncharted: {listOut(missing)} — each worth +10. </>}</>}
           Gravity measures how much of a coherent, documented identity exists in this public
           profile — what the brand demonstrably commits to, not how successful the business is.
           Own this brand? <Link to="/builder" style={{ color: "#0071E3", textDecoration: "none" }}>Chart the missing pieces</Link> and the score follows.
