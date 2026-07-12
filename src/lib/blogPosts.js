@@ -1,4 +1,6 @@
-export const BLOG_POSTS = [
+import { BREAKDOWN_POSTS } from "./blogBreakdowns.js";
+
+export const EDITORIAL_POSTS = [
   {
     slug: "brand-gravity",
     title: "Brand gravity: the one metric that actually matters",
@@ -74,6 +76,8 @@ export const BLOG_POSTS = [
     ],
   },
 ];
+
+export const BLOG_POSTS = [...EDITORIAL_POSTS, ...BREAKDOWN_POSTS];
 
 export function getPostBySlug(slug) {
   return BLOG_POSTS.find((p) => p.slug === slug) || null;

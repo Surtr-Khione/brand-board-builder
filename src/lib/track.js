@@ -25,3 +25,16 @@ export function track(event, meta = {}) {
     }).catch(() => {});
   } catch { /* analytics must never break the product */ }
 }
+
+// Client errors are invisible without this — beacon them as events,
+// throttled hard so a render loop can't flood the table.
+let errorCount = 0;
+function beacon(kind, message) {
+  if (errorCount >= 3) return;
+  errorCount++;
+  track("client_error", { kind, message: String(message).slice(0, 300) });
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("error", (e) => beacon("error", e.message || e.type));
+  window.addEventListener("unhandledrejection", (e) => beacon("rejection", e.reason?.message || e.reason || "unhandled"));
+}

@@ -9,23 +9,26 @@ const SANS = "'Inter', -apple-system, sans-serif";
 const TITANIUM = "#8E8E93";
 
 // The hero credibility row — chosen for instant recognition + prestige spread
+const LOGO_CACHE = "https://bukgitgwwmzdjibekmzb.supabase.co/storage/v1/object/public/brand-assets/logos";
 export const MARQUE_BRANDS = [
   { slug: "apple", domain: "apple.com", name: "Apple" },
   { slug: "nike", domain: "nike.com", name: "Nike" },
   { slug: "rolex", domain: "rolex.com", name: "Rolex" },
-  { slug: "porsche", domain: "porsche.com", name: "Porsche" },
-  { slug: "google", domain: "google.com", name: "Google" },
+  { slug: "porsche-united-states", domain: "porsche.com", name: "Porsche" },
+  { slug: "google-alphabet", domain: "google.com", name: "Google" },
   { slug: "lego", domain: "lego.com", name: "LEGO" },
   { slug: "mastercard", domain: "mastercard.com", name: "Mastercard" },
   { slug: "ferrari", domain: "ferrari.com", name: "Ferrari" },
-];
+].map((b) => ({ ...b, src: `${LOGO_CACHE}/${b.slug}.png` }));
 
-export function LogoTile({ domain, name, size = 30, radius = 8, mono = true }) {
+export function LogoTile({ domain, name, size = 30, radius = 8, mono = true, src }) {
   const [idx, setIdx] = useState(0);
+  // Own cache first (never ad-blocked), logo services as fallback
   const sources = [
-    `https://logo.clearbit.com/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-  ];
+    src,
+    domain ? `https://logo.clearbit.com/${domain}` : null,
+    domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null,
+  ].filter(Boolean);
   return (
     <span style={{
       width: size, height: size, borderRadius: radius, background: "#FFFFFF",
@@ -59,7 +62,7 @@ export function TrustBand({ totalBrands }) {
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
         {MARQUE_BRANDS.map((b) => (
           <Link key={b.slug} to={`/brands/${b.slug}`} title={`${b.name} — brand profile`} className="bmd-logo-chip">
-            <LogoTile domain={b.domain} name={b.name} />
+            <LogoTile domain={b.domain} name={b.name} src={b.src} />
           </Link>
         ))}
         <Link
@@ -90,7 +93,7 @@ export function BrandPill({ brand }) {
         border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.02)",
       }}
     >
-      {domain && <LogoTile domain={domain} name={brand.brand_name} size={26} radius={100} />}
+      <LogoTile domain={domain} name={brand.brand_name} size={26} radius={100} src={brand.logo_url} />
       <span style={{ fontSize: 13.5, fontWeight: 600, color: "#F5F5F7", fontFamily: SANS, whiteSpace: "nowrap" }}>{brand.brand_name}</span>
     </Link>
   );

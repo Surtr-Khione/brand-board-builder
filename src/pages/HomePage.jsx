@@ -276,7 +276,12 @@ export default function HomePage() {
         >
           <div className="bmd-marquee-track" style={{ display: "flex", width: "max-content", gap: 14, alignItems: "center" }}>
             {marqueeBrands.length > 0
-              ? [...marqueeBrands, ...marqueeBrands].map((b, i) => <BrandPill key={`${b.slug}-${i}`} brand={b} />)
+              ? [
+                  ...marqueeBrands.map((b) => <BrandPill key={b.slug} brand={b} />),
+                  <div key="dup" aria-hidden="true" style={{ display: "contents" }}>
+                    {marqueeBrands.map((b) => <BrandPill key={`${b.slug}-dup`} brand={b} />)}
+                  </div>,
+                ]
               : [...FORTUNE_500, ...FORTUNE_500].map((name, i) => (
                   <Link key={i} to={`/brands?q=${encodeURIComponent(name)}`} className="bmd-link"
                     style={{ fontSize: 14, color: "#6E6E73", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500, flexShrink: 0 }}>
@@ -383,7 +388,7 @@ export default function HomePage() {
                       background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
                       padding: "26px 16px 22px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
                     }}>
-                      <LogoTile domain={b.website?.replace(/^https?:\/\//, "").split("/")[0]} name={b.brand_name} size={64} radius={16} mono={false} />
+                      <LogoTile domain={b.website?.replace(/^https?:\/\//, "").split("/")[0]} name={b.brand_name} size={64} radius={16} mono={false} src={b.logo_url} />
                       <div style={{ fontWeight: 600, fontSize: 13.5, letterSpacing: "-0.1px", textAlign: "center" }}>{b.brand_name}</div>
                     </div>
                   </Link>
@@ -474,6 +479,8 @@ export default function HomePage() {
           <span style={{ fontSize: 12, color: "#6E6E73" }}>Give your brand gravity. — brandmd.space</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
+          <Link to="/privacy" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Privacy</Link>
+          <Link to="/terms" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Terms</Link>
           <Link to="/analyzer" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Analyzer</Link>
           <Link to="/builder" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Builder</Link>
           <Link to="/brands" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Library</Link>
