@@ -4,7 +4,7 @@ import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { BLOG_POSTS } from "../lib/blogPosts";
 import { useReveal } from "../lib/useReveal";
-import { BrandPill, OrbitRule } from "../components/TrustMarks";
+import { BrandPill, OrbitRule, LogoTile } from "../components/TrustMarks";
 import GravityWell from "../components/GravityWell";
 import "../styles/space-theme.css";
 
@@ -130,49 +130,7 @@ const MISSIONS = [
   },
 ];
 
-function ScoreCard({ brand }) {
-  const [logoIdx, setLogoIdx] = useState(0);
-  const domain = brand.website?.replace(/^https?:\/\//, "").split("/")[0];
-  const logoSources = domain
-    ? [`https://logo.clearbit.com/${domain}`, `https://www.google.com/s2/favicons?domain=${domain}&sz=128`]
-    : [];
-  const logoUrl = logoSources[logoIdx] || null;
-
-  return (
-    <Link to={`/brands/${brand.slug}`} className="bmd-card-link" style={{ textDecoration: "none", color: "inherit" }}>
-      <div
-        style={{
-          borderRadius: 18, border: "1px solid rgba(255,255,255,0.09)", height: "100%",
-          background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
-          padding: "28px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-        }}
-      >
-        <div style={{
-          width: 68, height: 68, borderRadius: 16, background: "#FFFFFF", flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: 18,
-        }}>
-          {logoUrl ? (
-            <img
-              src={logoUrl} alt={brand.brand_name} loading="lazy"
-              onError={() => setLogoIdx((i) => i + 1)}
-              style={{ width: 44, height: 44, objectFit: "contain" }}
-            />
-          ) : (
-            <span style={{ fontSize: 26, fontWeight: 800, color: "#111", fontFamily: SANS }}>{brand.brand_name.charAt(0)}</span>
-          )}
-        </div>
-        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 14, letterSpacing: "-0.2px" }}>{brand.brand_name}</div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: ACCENT_ICE, lineHeight: 1.2 }}>{brand.archetype || "—"}</div>
-        <div style={{ fontSize: 10.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.2, textTransform: "uppercase", marginTop: 6 }}>
-          Archetype
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default function HomePage() {
-  const [brands, setBrands] = useState([]);
   const [totalBrands, setTotalBrands] = useState(null);
   const [marqueeBrands, setMarqueeBrands] = useState([]);
   const [findQuery, setFindQuery] = useState("");
@@ -195,8 +153,10 @@ export default function HomePage() {
       "content",
       "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute — free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
     );
-    searchBrands({ limit: 15, featured: true }).then((d) => { setBrands(d.brands || []); if (d.totalBrands) setTotalBrands(d.totalBrands); });
-    searchBrands({ limit: 36 }).then((d) => setMarqueeBrands(d.brands || []));
+    searchBrands({ limit: 36 }).then((d) => {
+      setMarqueeBrands(d.brands || []);
+      if (d.totalBrands) setTotalBrands(d.totalBrands);
+    });
   }, []);
 
   const latestPosts = BLOG_POSTS.slice(0, 3);
@@ -262,7 +222,7 @@ export default function HomePage() {
           The marks in orbit ran this exact scan
         </div>
         <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2, marginTop: 8 }}>
-          {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp;{" "}
+          {totalBrands || 85} brands decoded &nbsp;&middot;&nbsp;{" "}
           <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the index</Link>
         </div>
       </GravityWell>
@@ -341,6 +301,7 @@ export default function HomePage() {
             {MISSIONS.map((m, i) => (
               <Reveal key={m.verb} style={{ transitionDelay: `${i * 90}ms` }}>
                 <div
+                  className="bmd-lift"
                   style={{
                     padding: "36px 30px", borderRadius: 20, height: "100%",
                     background: `linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
@@ -400,50 +361,71 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ══ SCORE CARDS — big logos, real scores, the conversion moment ══ */}
-      {brands.length > 0 && (
-        <div style={{ padding: "0 40px 110px" }}>
+      {/* ══ THE INDEX — the logo wall: marks only, no labels doing double duty ══ */}
+      {marqueeBrands.length > 0 && (
+        <div style={{ padding: "0 40px 90px" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
-                The index &middot; {totalBrands || brands.length} brands decoded
-              </div>
-              <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 14 }}>
-                See how the greats score.
+              <OrbitRule />
+              <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 12 }}>
+                Already decoded.
               </h2>
-              <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 480, margin: "0 auto" }}>
-                Every brand here is decoded the same way — archetype, voice, colors, and the strategy underneath, on one public page.
+              <p style={{ fontSize: 15.5, color: TITANIUM, maxWidth: 460, margin: "0 auto" }}>
+                {totalBrands || 85} brands in the public index — every one on the same 31-section lens.
               </p>
             </Reveal>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 40 }}>
-              {brands.map((b, i) => (
-                <Reveal key={b.slug} style={{ transitionDelay: `${(i % 6) * 60}ms` }}>
-                  <ScoreCard brand={b} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 14, marginBottom: 34 }}>
+              {marqueeBrands.slice(0, 18).map((b, i) => (
+                <Reveal key={b.slug} style={{ transitionDelay: `${(i % 6) * 50}ms` }}>
+                  <Link to={`/brands/${b.slug}`} className="bmd-lift" style={{ textDecoration: "none", color: "inherit", display: "block", borderRadius: 18 }}>
+                    <div style={{
+                      borderRadius: 18, border: "1px solid rgba(255,255,255,0.09)",
+                      background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
+                      padding: "26px 16px 22px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+                    }}>
+                      <LogoTile domain={b.website?.replace(/^https?:\/\//, "").split("/")[0]} name={b.brand_name} size={64} radius={16} mono={false} />
+                      <div style={{ fontWeight: 600, fontSize: 13.5, letterSpacing: "-0.1px", textAlign: "center" }}>{b.brand_name}</div>
+                    </div>
+                  </Link>
                 </Reveal>
               ))}
             </div>
-
             <Reveal style={{ textAlign: "center" }}>
-              <Link
-                to="/analyzer"
-                className="bmd-cta"
-                style={{
-                  display: "inline-block", padding: "14px 30px", borderRadius: 100, textDecoration: "none",
-                  background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, marginBottom: 16,
-                }}
-              >
-                Get Your Score — Free
+              <Link to="/brands" className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
+                Browse the full index &nbsp;›
               </Link>
-              <div>
-                <Link to="/brands" className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
-                  Browse all charts &nbsp;›
-                </Link>
-              </div>
             </Reveal>
           </div>
         </div>
       )}
+
+      {/* ══ CLOSING CTA — one clean ask ══ */}
+      <div style={{ padding: "0 40px 120px" }}>
+        <Reveal style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-1.2px", marginBottom: 16 }}>
+            Your brand has a number.
+          </h2>
+          <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 440, margin: "0 auto 30px", lineHeight: 1.65 }}>
+            One scan tells you what a stranger — or an AI — reads from your site today.
+            Free, instant, and the roadmap comes with it.
+          </p>
+          <Link
+            to="/analyzer"
+            className="bmd-cta"
+            style={{
+              display: "inline-block", padding: "15px 34px", borderRadius: 100, textDecoration: "none",
+              background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15.5, fontWeight: 600, marginBottom: 18,
+            }}
+          >
+            Get Your Score — Free
+          </Link>
+          <div style={{ fontSize: 13.5 }}>
+            <Link to="/start" className="bmd-link" style={{ color: TITANIUM, textDecoration: "none", fontWeight: 500 }}>
+              No website yet? Start from your idea&nbsp;›
+            </Link>
+          </div>
+        </Reveal>
+      </div>
 
       {/* ══ JOURNAL TEASER ══ */}
       <div style={{ padding: "0 40px 120px" }}>
@@ -466,7 +448,7 @@ export default function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
             {latestPosts.map((post, i) => (
               <Reveal key={post.slug} style={{ transitionDelay: `${i * 80}ms` }}>
-                <Link to={`/blog/${post.slug}`} className="bmd-card-link" style={{ textDecoration: "none", color: "inherit" }}>
+                <Link to={`/blog/${post.slug}`} className="bmd-card-link bmd-lift" style={{ textDecoration: "none", color: "inherit", display: "block", borderRadius: 16, height: "100%" }}>
                   <div style={{
                     padding: "24px 26px", borderRadius: 16, height: "100%",
                     border: "1px solid rgba(255,255,255,0.08)",
