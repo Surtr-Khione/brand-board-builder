@@ -4,7 +4,6 @@ import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { BLOG_POSTS } from "../lib/blogPosts";
 import { useReveal } from "../lib/useReveal";
-import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 import { TrustBand, BrandPill, OrbitRule } from "../components/TrustMarks";
 import "../styles/space-theme.css";
 
@@ -132,8 +131,6 @@ const MISSIONS = [
 
 function ScoreCard({ brand }) {
   const [logoIdx, setLogoIdx] = useState(0);
-  const { score } = computeGravityScore(brand);
-  const color = gravityScoreColor(score);
   const domain = brand.website?.replace(/^https?:\/\//, "").split("/")[0];
   const logoSources = domain
     ? [`https://logo.clearbit.com/${domain}`, `https://www.google.com/s2/favicons?domain=${domain}&sz=128`]
@@ -163,10 +160,10 @@ function ScoreCard({ brand }) {
             <span style={{ fontSize: 26, fontWeight: 800, color: "#111", fontFamily: SANS }}>{brand.brand_name.charAt(0)}</span>
           )}
         </div>
-        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, letterSpacing: "-0.2px" }}>{brand.brand_name}</div>
-        <div style={{ fontSize: 40, fontWeight: 800, color, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 14, letterSpacing: "-0.2px" }}>{brand.brand_name}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: ACCENT_ICE, lineHeight: 1.2 }}>{brand.archetype || "—"}</div>
         <div style={{ fontSize: 10.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.2, textTransform: "uppercase", marginTop: 6 }}>
-          Gravity Score
+          Archetype
         </div>
       </div>
     </Link>
@@ -329,7 +326,7 @@ export default function HomePage() {
             <TrustBand totalBrands={totalBrands} />
           </div>
           <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
-            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; scores published publicly
+            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; free to explore
           </div>
         </div>
       </div>
@@ -342,7 +339,7 @@ export default function HomePage() {
             Search the index
           </div>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 12 }}>
-            See how <span style={{ color: ACCENT_BLUE }}>anyone else</span> scores.
+            Look up <span style={{ color: ACCENT_BLUE }}>any brand</span> in the index.
           </h2>
           <div style={{ fontSize: 13.5, color: TITANIUM, marginBottom: 26 }}>
             Or put yourself next to them:{" "}
@@ -473,13 +470,13 @@ export default function HomePage() {
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
               <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
-                Star charts &middot; {totalBrands || brands.length} brands decoded
+                The index &middot; {totalBrands || brands.length} brands decoded
               </div>
               <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 14 }}>
                 See how the greats score.
               </h2>
               <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 480, margin: "0 auto" }}>
-                Every brand here has a real Gravity Score — not a vanity metric, a coherence read across archetype, voice, and system.
+                Every brand here is decoded the same way — archetype, voice, colors, and the strategy underneath, on one public page.
               </p>
             </Reveal>
 

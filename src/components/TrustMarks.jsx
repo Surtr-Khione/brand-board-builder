@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
 
 // Borrowed-trust surfaces: the library's world-class brands, rendered as
 // quiet monochrome marks that take color on hover. Trust by association,
@@ -77,10 +76,9 @@ export function TrustBand({ totalBrands }) {
 
 // A marquee pill: logo, name, live Gravity Score — links to the public profile
 export function BrandPill({ brand }) {
-  const { score } = computeGravityScore(brand);
-  // Score badges only on verified (fully charted) brands — partially charted
-  // library rows would show mid scores that read as warnings, not proof.
-  const showScore = brand.is_verified && score >= 75;
+  // No scores on the homepage until the algorithm is dialed in — library
+  // scores currently measure profile completeness, which reads as a verdict
+  // on the brand itself and clusters weirdly (Nike at 60 next to CVS at 80).
   const domain = brand.website?.replace(/^https?:\/\//, "").split("/")[0];
   return (
     <Link
@@ -94,7 +92,6 @@ export function BrandPill({ brand }) {
     >
       {domain && <LogoTile domain={domain} name={brand.brand_name} size={26} radius={100} />}
       <span style={{ fontSize: 13.5, fontWeight: 600, color: "#F5F5F7", fontFamily: SANS, whiteSpace: "nowrap" }}>{brand.brand_name}</span>
-      {showScore && <span style={{ fontSize: 12.5, fontWeight: 800, color: gravityScoreColor(score), fontFamily: SANS }}>{score}</span>}
     </Link>
   );
 }
