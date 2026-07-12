@@ -122,7 +122,7 @@ export default function GravityWell({ children }) {
                   translateZ(24px)`,
               }}
             >
-              <LogoTile domain={b.domain} name={b.name} size={34} radius={10} />
+              <LogoTile domain={b.domain} name={b.name} size={34} radius={10} src={b.src} />
             </Link>
           ))}
 
