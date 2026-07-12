@@ -1443,7 +1443,7 @@ function ScoreSection({ brand, onNavigate }) {
               Your roadmap
             </div>
             <div style={{ fontSize: "12px", color: "#666", marginBottom: 12, lineHeight: 1.5 }}>
-              Each step is worth +{roadmap[0].weight} Gravity. Click one to jump straight to it.
+              Each step shows what it adds to your Gravity. Click one to jump straight to it.
             </div>
             {roadmap.map((step, i) => (
               <button

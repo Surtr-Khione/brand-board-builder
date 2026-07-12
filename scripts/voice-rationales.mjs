@@ -12,16 +12,25 @@ if (!KEY) { console.error("Set SUPABASE_SERVICE_KEY"); process.exit(1); }
 const H = { "Content-Type": "application/json", Authorization: `Bearer ${KEY}`, apikey: KEY, "x-bmd-internal": INTERNAL };
 
 const SIGNAL_PHRASES = {
-  "Archetype defined": "a committed archetype",
-  "Secondary archetype or a named enemy": "a named enemy or secondary archetype",
-  "Mission or vision": "a stated mission",
-  "Tagline or elevator pitch": "a signature line",
-  "Voice defined (2+ tone attributes)": "a defined voice",
-  "Full color system (primary, secondary, accent)": "a complete color system",
-  "Typography defined": "committed typography",
-  "Messaging rules (do/don't say)": "explicit messaging rules",
-  "Content pillars or audience": "defined content pillars or audience",
-  "Manifesto or core values": "stated core values",
+  "Mission": "a stated mission",
+  "Vision": "a stated vision",
+  "Core values (3+)": "committed core values",
+  "Primary archetype": "a committed archetype",
+  "Secondary archetype or named enemy": "a named enemy or secondary archetype",
+  "Differentiation": "documented differentiation",
+  "Tagline": "a signature line",
+  "Elevator pitch": "an elevator pitch",
+  "Do-say rules (2+)": "do-say messaging rules",
+  "Don't-say rules (2+)": "don't-say rules",
+  "Voice basics (2+ tone attributes)": "a defined voice",
+  "Voice depth (4+ tone attributes)": "real voice depth",
+  "Personality traits (3+)": "named personality traits",
+  "Social or platform voice": "a social voice",
+  "Full color system": "a complete color system",
+  "Typography": "committed typography",
+  "Photography direction": "a photography direction",
+  "Audience or ICPs": "a defined audience",
+  "Content pillars": "content pillars",
 };
 
 const r = await fetch(`${BASE}/functions/v1/search-brands?limit=100`, { headers: H });

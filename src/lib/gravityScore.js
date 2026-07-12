@@ -1,5 +1,8 @@
-// A brand's Gravity Score measures how much of a real, coherent identity
-// exists — not just how many form fields got filled in. Works against
+// Gravity v2 — how much of a real, coherent, documented identity exists.
+// Nineteen graded signals across identity, positioning, message, voice,
+// visual system, and audience — depth counts (four tone attributes score
+// more than two; do AND don't rules are separate points), so scores spread
+// instead of clustering the way v1's ten binary signals did. Works against
 // both a live Builder board (camelCase) and a public library row
 // (snake_case columns + brand_data JSONB) via the same resolver, so the
 // same number means the same thing everywhere it's shown.
@@ -16,30 +19,30 @@ function truthyItem(x) {
   return Boolean(x);
 }
 
+function get(brand, key) {
+  return key.includes(".") ? key.split(".").reduce((o, p) => o?.[p], brand) : brand?.[key];
+}
+
 function has(brand, ...keys) {
   for (const k of keys) {
-    const v = k.includes(".") ? k.split(".").reduce((o, p) => o?.[p], brand) : brand?.[k];
+    const v = get(brand, k);
     if (Array.isArray(v)) { if (v.some(truthyItem)) return true; continue; }
     if (v !== undefined && v !== null && String(v).trim()) return true;
   }
   return false;
 }
 
-function countTruthy(v) {
-  if (!Array.isArray(v)) return 0;
-  return v.filter((x) => (typeof x === "string" ? x.trim() : x)).length;
-}
-
-function toneCount(brand) {
-  const a = brand?.tone_attributes || brand?.toneAttributes;
-  return countTruthy(a);
+// Count real items across the first key that resolves to an array
+function countOf(brand, ...keys) {
+  for (const k of keys) {
+    const v = get(brand, k);
+    if (Array.isArray(v)) return v.filter(truthyItem).length;
+  }
+  return 0;
 }
 
 // The Builder pre-fills every new board with a placeholder palette. A color
-// system only counts as "defined" once the user (or a scan/synthesis) has
-// actually chosen it — an untouched default triplet scores zero, otherwise
-// empty boards start with +10 for a decision nobody made. Both the current
-// neutral triplet and the legacy red/navy/orange one are treated as unset.
+// system only counts as "defined" once someone actually chose it.
 const PLACEHOLDER_PALETTES = [
   ["#1d1d1f", "#f5f5f7", "#0071e3"],
   ["#e94560", "#1a1a2e", "#f39c12"],
@@ -53,23 +56,54 @@ function colorsChosen(b) {
   return !PLACEHOLDER_PALETTES.some((p) => p.every((c, i) => c === trip[i]));
 }
 
+const toneCount = (b) => countOf(b, "tone_attributes", "toneAttributes", "brand_data.toneAttributes");
+
 // sectionId points at the Builder section that closes the gap; fix is the
-// action phrased for a roadmap ("do this next"), not a report ("this is missing").
+// action phrased for a roadmap ("do this next"), not a report.
 const SIGNALS = [
-  { label: "Archetype defined", weight: 10, sectionId: "archetype", fix: "Pick the archetype your brand plays", test: (b) => has(b, "archetype") },
-  { label: "Secondary archetype or a named enemy", weight: 10, sectionId: "archetype", fix: "Name the enemy your brand fights", test: (b) => has(b, "secondaryArchetype", "brand_data.secondaryArchetype", "enemy", "brand_data.enemy") },
-  { label: "Mission or vision", weight: 10, sectionId: "identity", fix: "Write your mission or vision", test: (b) => has(b, "mission", "vision") },
-  { label: "Tagline or elevator pitch", weight: 10, sectionId: "overview", fix: "Nail a tagline or elevator pitch", test: (b) => has(b, "tagline", "elevator", "brand_data.elevatorPitch", "elevatorPitch") },
-  { label: "Voice defined (2+ tone attributes)", weight: 10, sectionId: "voice", fix: "Define at least two tone attributes", test: (b) => toneCount(b) >= 2 },
-  { label: "Full color system (primary, secondary, accent)", weight: 10, sectionId: "colors", fix: "Choose your three-color system", test: colorsChosen },
-  { label: "Typography defined", weight: 10, sectionId: "typography", fix: "Choose your primary typeface", test: (b) => has(b, "primary_font", "primaryFont") },
-  { label: "Messaging rules (do/don't say)", weight: 10, sectionId: "voice", fix: "Set your do-say / don't-say rules", test: (b) =>
-      has(b, "brand_data.doSay", "brand_data.dontSay", "messagingDos", "messagingDonts",
-          "do_say", "dont_say", "brand_data.messagingDos", "brand_data.messagingDonts") },
-  { label: "Content pillars or audience", weight: 10, sectionId: "pillars", fix: "Define content pillars or your audience", test: (b) =>
-      has(b, "brand_data.contentPillars", "contentPillars", "audience", "icps",
-          "brand_data.audienceRole", "brand_data.audiencePains", "brand_data.icps", "audienceRole", "audiencePains") },
-  { label: "Manifesto or core values", weight: 10, sectionId: "identity", fix: "Write your core values", test: (b) => has(b, "brand_data.manifesto", "brand_data.coreValues", "coreValues") },
+  // Identity core
+  { label: "Mission", weight: 5, sectionId: "identity", fix: "Write your mission",
+    test: (b) => has(b, "mission", "brand_data.mission") },
+  { label: "Vision", weight: 5, sectionId: "identity", fix: "Write your vision",
+    test: (b) => has(b, "vision", "brand_data.vision") },
+  { label: "Core values (3+)", weight: 5, sectionId: "identity", fix: "Commit to at least three core values",
+    test: (b) => countOf(b, "core_values", "coreValues", "brand_data.coreValues") >= 3 },
+  // Positioning
+  { label: "Primary archetype", weight: 5, sectionId: "archetype", fix: "Pick the archetype your brand plays",
+    test: (b) => has(b, "archetype", "brand_data.archetype") },
+  { label: "Secondary archetype or named enemy", weight: 5, sectionId: "archetype", fix: "Name the enemy your brand fights",
+    test: (b) => has(b, "secondaryArchetype", "secondary_archetype", "brand_data.secondaryArchetype", "enemy", "brand_data.enemy") },
+  { label: "Differentiation", weight: 5, sectionId: "competitive", fix: "State why you, not the incumbent way",
+    test: (b) => has(b, "whyDifferent", "why_different", "brand_data.whyDifferent", "competitivePositioning", "brand_data.competitivePositioning", "brand_data.differentiators", "competitor_diff") },
+  // Message
+  { label: "Tagline", weight: 5, sectionId: "overview", fix: "Nail your signature line",
+    test: (b) => has(b, "tagline", "brand_data.tagline") },
+  { label: "Elevator pitch", weight: 5, sectionId: "overview", fix: "Write the 30-second version",
+    test: (b) => has(b, "elevator", "brand_data.elevator", "brand_data.elevatorPitch", "elevatorPitch") },
+  { label: "Do-say rules (2+)", weight: 5, sectionId: "voice", fix: "Set your do-say rules",
+    test: (b) => countOf(b, "do_say", "messagingDos", "brand_data.messagingDos", "brand_data.doSay") >= 2 },
+  { label: "Don't-say rules (2+)", weight: 5, sectionId: "voice", fix: "Set your don't-say rules",
+    test: (b) => countOf(b, "dont_say", "messagingDonts", "brand_data.messagingDonts", "brand_data.dontSay") >= 2 },
+  // Voice
+  { label: "Voice basics (2+ tone attributes)", weight: 5, sectionId: "voice", fix: "Define at least two tone attributes",
+    test: (b) => toneCount(b) >= 2 },
+  { label: "Voice depth (4+ tone attributes)", weight: 5, sectionId: "voice", fix: "Deepen the voice to four tone attributes",
+    test: (b) => toneCount(b) >= 4 },
+  { label: "Personality traits (3+)", weight: 5, sectionId: "archetype", fix: "Name three personality traits",
+    test: (b) => countOf(b, "brand_personality", "brandPersonality", "brand_data.brandPersonality") >= 3 },
+  { label: "Social or platform voice", weight: 5, sectionId: "socialvoice", fix: "Describe how the brand behaves on social",
+    test: (b) => has(b, "socialPersonality", "social_personality", "brand_data.socialPersonality", "voiceInstagram", "brand_data.voiceInstagram", "voiceLinkedIn", "brand_data.voiceLinkedIn") },
+  // Visual system
+  { label: "Full color system", weight: 10, sectionId: "colors", fix: "Choose your three-color system", test: colorsChosen },
+  { label: "Typography", weight: 5, sectionId: "typography", fix: "Choose your primary typeface",
+    test: (b) => has(b, "primary_font", "primaryFont", "brand_data.primaryFont") },
+  { label: "Photography direction", weight: 5, sectionId: "photography", fix: "Set the photography direction",
+    test: (b) => has(b, "photoStyle", "photo_style", "brand_data.photoStyle", "photoMood", "brand_data.photoMood") },
+  // Audience
+  { label: "Audience or ICPs", weight: 5, sectionId: "audience", fix: "Define who this is for",
+    test: (b) => has(b, "audience", "audienceRole", "audiencePains", "brand_data.audienceRole", "brand_data.audiencePains", "icps", "brand_data.icps") },
+  { label: "Content pillars", weight: 5, sectionId: "pillars", fix: "Define your content pillars",
+    test: (b) => has(b, "contentPillars", "content_pillars", "brand_data.contentPillars") },
 ];
 
 export function computeGravityScore(brand) {

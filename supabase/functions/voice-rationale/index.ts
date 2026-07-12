@@ -45,8 +45,8 @@ Personality: ${v(voice.brandPersonality)}
 Voice notes: ${v(voice.socialPersonality)}
 
 GRAVITY SCORE: ${score}/100
-On record (each earned +10): ${met.join("; ") || "nothing yet"}
-Not yet on record (each worth +10): ${missing.join("; ") || "nothing — every signal is met"}
+On record: ${met.join("; ") || "nothing yet"}
+Not yet on record: ${missing.join("; ") || "nothing — every signal is met"}
 
 Write ${name}'s own explanation of this score.`,
       }],
