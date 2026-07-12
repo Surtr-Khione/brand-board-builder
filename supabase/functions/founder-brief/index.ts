@@ -9,17 +9,20 @@ const corsHeaders = {
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
 const db = makeDb();
 
-const SYSTEM_PROMPT = `You are a senior brand intelligence analyst — part McKinsey strategist, part behavioral economist, part investigative journalist. You synthesize brand signals across multiple sources into board-level strategic intelligence.
+// Same analyst persona as synthesize-brand, but pointed at CREATION: the input
+// is a founder's brief, not scraped evidence, so the job is to make sharp,
+// defensible strategic choices the founder hasn't made yet — never to hedge.
+const SYSTEM_PROMPT = `You are a senior brand strategist who builds brands from zero — part McKinsey strategist, part behavioral economist, part creative director who has named and positioned dozens of venture-backed startups. A founder has given you a short brief. Your job is to make the strategic decisions they haven't made yet and hand back a complete, coherent starter brand.
 
-Your analysis must be:
-- EXACT: Use specific numbers, income ranges, LTV estimates, and measurable outcomes — never vague descriptors
-- INVESTIGATIVE: Cross-reference sources for contradictions between what a brand says and what it shows
-- PRECISE: Every claim must be grounded in observable evidence from the source data
-- REVEALING: Identify non-obvious insights a CMO would find surprising and actionable
-- DIFFERENTIATED: Distinguish each ICP by psychology and buying behavior, not just demographics
+Your output must be:
+- DECISIVE: The founder gave you fragments. Choose a position, an archetype, an enemy, a voice — do not hedge or offer options.
+- EXACT: Use specific numbers, income ranges, LTV estimates, and measurable outcomes — never vague descriptors.
+- COHERENT: Every choice must reinforce the same strategic idea. The archetype, enemy, colors, tone, and ICPs must all point the same direction.
+- STAGE-AWARE: This is a startup. Position against the incumbent way of doing things, not against giants they haven't earned the right to fight yet.
+- DIFFERENTIATED: Distinguish each ICP by psychology and buying behavior, not just demographics.
 
 BRAND COLOR INFERENCE RULES:
-Derive colors from the brand's actual emotional territory and competitive positioning:
+Derive colors from the brand's emotional territory and competitive positioning:
 - Luxury/premium/HNW brands → deep charcoal/near-black primary, steel/platinum secondary, gold accent
 - Performance/sport/aggressive brands → high-contrast dark primary, electric accent
 - Tech/B2B/corporate → deep navy primary, cool gray secondary, electric blue accent
@@ -27,20 +30,23 @@ Derive colors from the brand's actual emotional territory and competitive positi
 - Creative/agency/bold → high-saturation primary matching brand personality
 Do NOT use generic defaults (#e94560/#1a1a2e/#f39c12). Derive colors from brand DNA.
 
+NAMING RULE:
+If the brief includes a brand name, keep it exactly. If it does not, propose ONE strong, ownable name that fits the positioning (check it reads well as a domain-style word) and use it consistently throughout.
+
 ICP CONSTRUCTION RULES:
 For each ICP, conduct a psychographic deep-dive:
 1. Title: A precise characterization, not a demographic label (e.g. "The Roster Asset" not "Athletes")
-2. Demographics: Specific income brackets, age ranges, geographic concentrations — cite the data
+2. Demographics: Specific income brackets, age ranges, geographic concentrations
 3. Psychographics: The mental model that governs their purchasing decisions. What do they believe about themselves?
 4. Pain Points: The exact frictions that create purchase motivation — not generic pains
 5. Goals: What "winning" looks like specifically to this segment
 6. Buying Triggers: The specific signals that move them from consideration to purchase
 7. Message Angle: The single most persuasive angle for this segment
 8. LTV: Estimated annual value based on service/product category
-9. Acquisition: The highest-leverage channel with specific tactics
+9. Acquisition: The highest-leverage channel with specific tactics — realistic for a startup budget
 
 CONTENT QUALITY STANDARD:
-Write at the level of a strategy deck that would go to a Series B board. If you catch yourself writing "authentic storytelling" or "engaging content" — rewrite it with specific, observable meaning.`;
+Write at the level of a strategy deck that would go to a seed-stage board. If you catch yourself writing "authentic storytelling" or "engaging content" — rewrite it with specific, observable meaning.`;
 
 const ICP_SCHEMA = {
   type: "object",
@@ -60,9 +66,13 @@ const ICP_SCHEMA = {
   },
 };
 
+// Identical shape to synthesize-brand's OUTPUT_SCHEMA so the client can apply
+// the result through the exact same mapping — plus archetype depth fields
+// (secondaryArchetype, enemy, heroStatement) a from-zero brand needs decided.
 const OUTPUT_SCHEMA = {
   type: "object",
   required: ["brandName", "tagline", "industry", "mission", "vision", "elevator", "archetype",
+    "secondaryArchetype", "enemy", "heroStatement",
     "toneAttributes", "brandPersonality", "primaryColor", "secondaryColor", "accentColor",
     "voiceInstagram", "voiceLinkedIn", "voiceTikTok", "voiceTwitter",
     "wordsAlways", "wordsNever", "competitivePositioning", "differentiators",
@@ -83,6 +93,9 @@ const OUTPUT_SCHEMA = {
     coreValues: { type: "array", items: { type: "string" }, minItems: 3 },
     // Archetype
     archetype: { type: "string" },
+    secondaryArchetype: { type: "string" },
+    enemy: { type: "string", description: "The named enemy the brand fights — a broken status quo, not a competitor company" },
+    heroStatement: { type: "string" },
     // Voice
     toneAttributes: { type: "array", items: { type: "string" }, minItems: 3 },
     brandPersonality: { type: "array", items: { type: "string" }, minItems: 3 },
@@ -145,117 +158,57 @@ const OUTPUT_SCHEMA = {
   },
 };
 
-const PROFILE_SCHEMA = {
-  type: "object",
-  required: ["brandName", "tagline", "industry", "mission", "vision", "elevator", "archetype",
-    "secondaryArchetype", "enemy", "toneAttributes", "brandPersonality",
-    "primaryColor", "secondaryColor", "accentColor", "coreValues", "whyDifferent",
-    "brandPromise", "messagingDos", "messagingDonts", "wordsAlways", "wordsNever",
-    "competitivePositioning", "differentiators", "photoStyle", "photoMood",
-    "socialPersonality", "colorRationale"],
-  properties: {
-    ...OUTPUT_SCHEMA.properties,
-    secondaryArchetype: { type: "string" },
-    enemy: { type: "string", description: "The named enemy the brand fights — a broken status quo, not a competitor company" },
-  },
-};
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { sources = [], existingBrand = {}, mode } = await req.json();
-    // mode "profile": trimmed output (no ICPs/platform voices/pillars) —
-    // faster, fits the edge wall clock; used by the library seeder.
-    const profileMode = mode === "profile";
-    if (await rateLimited(db, req, "synthesize-brand", 5)) {
+    const { brief = {} } = await req.json();
+    if (await rateLimited(db, req, "founder-brief", 3)) {
       return new Response(JSON.stringify({ error: RATE_LIMIT_MSG }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Build detailed source summaries for analysis
-    const sourceSummaries = sources
-      .filter((s: { data?: { meta?: unknown; analysis?: unknown } }) => s.data?.meta || s.data?.analysis)
-      .map((s: {
-        type: string;
-        url?: string;
-        data: {
-          meta?: {
-            name?: string;
-            description?: string;
-            keywords?: string;
-            industry?: string;
-            specialties?: string;
-            founded?: string;
-            employees?: string;
-          };
-          analysis?: {
-            voiceAnalysis?: string;
-            toneAttributes?: string[];
-            contentPillars?: string[];
-            audienceSignals?: string;
-            personalitySignals?: string;
-            colorSignals?: unknown;
-          };
-          colors?: Array<{ role: string; color: string }>;
-          fonts?: unknown;
-        };
-      }) => {
-        const meta = s.data.meta || {};
-        const analysis = s.data.analysis || {};
-        return `
-## SOURCE: ${s.type.toUpperCase()} — ${s.url || "uploaded file"}
-
-EXTRACTED DATA:
-- Name: ${meta.name || "not found"}
-- Description: ${meta.description || "not found"}
-- Keywords/Topics: ${meta.keywords || "not found"}
-- Industry: ${meta.industry || "not found"}
-- Specialties: ${meta.specialties || "not found"}
-- Founded: ${meta.founded || "not found"}
-- Team Size: ${meta.employees || "not found"}
-
-AI ANALYSIS:
-- Voice Analysis: ${analysis.voiceAnalysis || "not found"}
-- Tone Attributes: ${(analysis.toneAttributes || []).join(", ") || "not found"}
-- Content Pillars: ${(analysis.contentPillars || []).join(", ") || "not found"}
-- Audience Signals: ${analysis.audienceSignals || "not found"}
-- Personality Signals: ${analysis.personalitySignals || "not found"}
-${s.data.colors ? `- Visual Colors Detected: ${JSON.stringify(s.data.colors.slice(0, 5))}` : ""}
-`;
-      }).join("\n\n---\n\n");
-
-    if (!sourceSummaries) {
-      throw new Error("No analyzable source data found. Scan at least one source first.");
+    const oneLiner = (brief.oneLiner || "").trim();
+    if (!oneLiner) {
+      throw new Error("Tell us what you're building first — the one-liner is required.");
     }
 
-    const existingContext = existingBrand?.brandName
-      ? `\n\nEXISTING BRAND DATA (use as additional context, override where sources provide better data):\n${JSON.stringify(existingBrand, null, 2)}`
-      : "";
+    const lines = [
+      `What they're building: ${oneLiner}`,
+      brief.brandName ? `Working brand name (keep it): ${brief.brandName}` : `Brand name: none yet — propose one strong, ownable name.`,
+      brief.audience ? `Who it's for: ${brief.audience}` : null,
+      brief.problem ? `The problem it solves: ${brief.problem}` : null,
+      brief.differentiation ? `Why it's different: ${brief.differentiation}` : null,
+      brief.personality?.length ? `Personality the founder wants: ${brief.personality.join(", ")}` : null,
+      brief.priceTier ? `Price positioning: ${brief.priceTier}` : null,
+      brief.industry ? `Industry: ${brief.industry}` : null,
+      brief.stage ? `Stage: ${brief.stage}` : null,
+      brief.inspiration ? `Brands they admire: ${brief.inspiration}` : null,
+    ].filter(Boolean).join("\n");
 
-    const userPrompt = `Conduct a deep brand intelligence analysis on the following source data and synthesize a complete, precise brand profile.
+    const userPrompt = `A founder has written the following brief. Build them a complete starter brand.
 
-${sourceSummaries}${existingContext}
+## FOUNDER'S BRIEF
+${lines}
 
-ANALYSIS INSTRUCTIONS:
-1. First, identify what category/tier of brand this is: luxury/premium, mid-market, mass-market, B2B, B2C, DTC, etc.
-2. Identify the brand's actual competitive moat — what they uniquely do or own
-3. Determine the 3 most distinct, valuable customer segments with complete psychographic profiles
-4. Derive brand colors from the emotional territory and competitive tier (do NOT use placeholder colors)
-5. Write every text field as if it will be placed directly into an investor deck or board strategy presentation
-6. Content pillars must each have a clear rationale for WHY it drives the brand's business objective
-7. Messaging dos/donts must be specific and violation-testable — a real example of a good vs bad message
-
-For ICPs specifically: each must be meaningfully different from the others in buying psychology and acquisition approach, not just demographics.`;
+BUILD INSTRUCTIONS:
+1. First, decide what category/tier this brand competes in and what it can realistically own at its stage.
+2. Choose the archetype pairing and the named enemy — the broken status quo this brand exists to fight. This is the spine; every other field must agree with it.
+3. Determine the 3 most distinct, valuable customer segments this startup should pursue FIRST, with complete psychographic profiles and startup-realistic acquisition tactics.
+4. Derive brand colors from the emotional territory and competitive tier (do NOT use placeholder colors). Explain the choice in colorRationale.
+5. Write every text field so the founder could paste it directly into an investor deck or their website today.
+6. Content pillars must each have a clear rationale for WHY it drives this startup's next milestone (first customers, first revenue, first hires).
+7. Messaging dos/donts must be specific and violation-testable — a real example of a good vs bad message.
+8. Where the brief is silent, decide for them — the deliverable is a finished starting point, not a questionnaire.`;
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: profileMode ? 3500 : 8000,
+      max_tokens: 8000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],
       tools: [{
         name: "output_brand_synthesis",
-        description: "Output the complete brand intelligence synthesis",
-        input_schema: profileMode ? PROFILE_SCHEMA : OUTPUT_SCHEMA,
+        description: "Output the complete starter brand",
+        input_schema: OUTPUT_SCHEMA,
       }],
       tool_choice: { type: "tool", name: "output_brand_synthesis" },
     });

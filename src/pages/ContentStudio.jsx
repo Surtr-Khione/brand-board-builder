@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { loadBoard } from "../lib/storage";
 import { generateContent } from "../lib/ai";
+import { track } from "../lib/track";
 import {
   buildUserPrompt, buildBrandCtx, buildIcpCtx, DEFAULT_SYSTEM_PROMPT, FORMATS, suggestTopics, FIELD_HINTS,
 } from "../lib/promptBuilder";
 import {
-  getTier, getCredits, getEmail, register, upgradePro, spendCredit, CREDIT_PACKS, TIERS, isUnlocked,
+  getTier, getCredits, getEmail, register, upgradePro, setCredits, syncCredits, CREDIT_PACKS, TIERS, isUnlocked,
 } from "../lib/auth";
 
 // ─── Content types ────────────────────────────────────────────────────────────
@@ -31,11 +32,11 @@ const CONTENT_TYPES = [
     { id: "podcast-script",    label: "Podcast Script",      icon: "🎙", desc: "Episode outline + narration" },
     { id: "music-brief",       label: "Music Brief",         icon: "🎼", desc: "Sonic identity brief" },
   ]},
-  { category: "PR & Comms",       icon: "📣", color: "#9b59b6", types: [
+  { category: "PR & Comms",       icon: "📣", color: "#0071E3", types: [
     { id: "pr-pitch",          label: "Media Pitch",         icon: "📰", desc: "Pitch to press or podcast" },
     { id: "press-release",     label: "Press Release",       icon: "📢", desc: "AP-style release" },
   ]},
-  { category: "Visual & Interactive", icon: "◌", color: "#f39c12", types: [
+  { category: "Visual & Interactive", icon: "◌", color: "#FF9F0A", types: [
     { id: "image-prompt",      label: "AI Image Prompt",     icon: "🖼",  desc: "3 directions — 2-pass design process" },
     { id: "quiz-concept",      label: "Quiz / Assessment",   icon: "◉",  desc: "Lead-gen quiz with result tiers" },
   ]},
@@ -70,14 +71,14 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
         {done ? (
           <div style={{ textAlign:"center",padding:"20px 0" }}>
             <div style={{ fontSize:32,marginBottom:12 }}>✓</div>
-            <div style={{ fontSize:18,fontWeight:800,color:"#2ecc71" }}>You're in! 3 free credits added.</div>
+            <div style={{ fontSize:18,fontWeight:800,color:"#32D74B" }}>You're in! 3 free credits added.</div>
           </div>
         ) : (
           <>
             <div style={{ fontSize:24,marginBottom:8 }}>◈</div>
             <div style={{ fontSize:18,fontWeight:800,color:"#fff",marginBottom:6 }}>{reason}</div>
             <div style={{ fontSize:13,color:"#555",lineHeight:1.6,marginBottom:20 }}>
-              Register free to unlock Content Studio and get <strong style={{color:"#2ecc71"}}>3 free credits</strong> to generate content.
+              Register free to unlock Content Studio and get <strong style={{color:"#32D74B"}}>3 free credits</strong> to generate content.
             </div>
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -86,7 +87,7 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
               style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
             />
             <div style={{ display:"flex",gap:10 }}>
-              <button onClick={submit} style={{ flex:1,padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+              <button onClick={submit} style={{ flex:1,padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
                 Get 3 Free Credits →
               </button>
               <button onClick={onClose} style={{ padding:"12px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
@@ -112,17 +113,17 @@ function CreditsModal({ onClose }) {
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20 }}>
           {CREDIT_PACKS.map(p => (
             <button key={p.id} onClick={() => setSelected(p.id)}
-              style={{ padding:"14px 12px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",textAlign:"left",border:`1px solid ${selected===p.id?"rgba(233,69,96,0.4)":"rgba(255,255,255,0.07)"}`,background:selected===p.id?"rgba(233,69,96,0.08)":"rgba(255,255,255,0.02)" }}>
-              <div style={{ fontSize:13,fontWeight:800,color:selected===p.id?"#e94560":"#ccc" }}>{p.label}</div>
+              style={{ padding:"14px 12px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",textAlign:"left",border:`1px solid ${selected===p.id?"rgba(0,113,227,0.4)":"rgba(255,255,255,0.07)"}`,background:selected===p.id?"rgba(0,113,227,0.08)":"rgba(255,255,255,0.02)" }}>
+              <div style={{ fontSize:13,fontWeight:800,color:selected===p.id?"#0071E3":"#ccc" }}>{p.label}</div>
               <div style={{ fontSize:20,fontWeight:800,color:selected===p.id?"#fff":"#888",marginTop:2 }}>{p.credits} <span style={{ fontSize:12,fontWeight:400,color:"#444" }}>credits</span></div>
-              <div style={{ fontSize:16,fontWeight:700,color:selected===p.id?"#e94560":"#555",marginTop:2 }}>{p.price}</div>
+              <div style={{ fontSize:16,fontWeight:700,color:selected===p.id?"#0071E3":"#555",marginTop:2 }}>{p.price}</div>
               <div style={{ fontSize:10,color:"#333",marginTop:2 }}>{p.perCredit} / credit</div>
             </button>
           ))}
         </div>
         {pack && (
           <div style={{ display:"flex",gap:10 }}>
-            <button onClick={() => { upgradePro(pack.credits); onClose(); }} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#e94560,#c62a42)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+            <button onClick={() => { upgradePro(pack.credits); onClose(); }} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#0071E3,#005BB8)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
               Buy {pack.credits} Credits for {pack.price}
             </button>
             <button onClick={onClose} style={{ padding:"13px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
@@ -157,7 +158,7 @@ function PromptEditorModal({ brand, contentType, topic, icpIndex, additionalCont
           <div style={{ display:"flex",alignItems:"center",gap:12 }}>
             <span style={{ fontSize:16 }}>⚙</span>
             <span style={{ fontSize:14,fontWeight:800,color:"#fff" }}>Prompt Editor</span>
-            <div style={{ fontSize:10,padding:"2px 8px",borderRadius:4,border:"1px solid rgba(155,89,182,0.3)",color:"#9b59b6",fontWeight:700 }}>POWER MODE</div>
+            <div style={{ fontSize:10,padding:"2px 8px",borderRadius:4,border:"1px solid rgba(0,113,227,0.3)",color:"#0071E3",fontWeight:700 }}>POWER MODE</div>
           </div>
           <button onClick={onClose} style={{ background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:18,padding:4 }}>✕</button>
         </div>
@@ -166,8 +167,8 @@ function PromptEditorModal({ brand, contentType, topic, icpIndex, additionalCont
         <div style={{ display:"flex",gap:2,padding:"10px 20px 0",borderBottom:"1px solid rgba(255,255,255,0.06)",flexShrink:0 }}>
           {[["system","System Prompt","Persona & quality instructions"],["user","User Prompt","Full brand context + format brief"]].map(([id,label,sub]) => (
             <button key={id} onClick={() => setTab(id)}
-              style={{ padding:"8px 16px 10px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",borderBottom:`2px solid ${tab===id?"#9b59b6":"transparent"}`,marginBottom:-1,transition:"all 0.15s" }}>
-              <div style={{ fontSize:13,fontWeight:tab===id?700:400,color:tab===id?"#9b59b6":"#444" }}>{label}</div>
+              style={{ padding:"8px 16px 10px",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",borderBottom:`2px solid ${tab===id?"#0071E3":"transparent"}`,marginBottom:-1,transition:"all 0.15s" }}>
+              <div style={{ fontSize:13,fontWeight:tab===id?700:400,color:tab===id?"#0071E3":"#444" }}>{label}</div>
               <div style={{ fontSize:10,color:"#333",marginTop:2 }}>{sub}</div>
             </button>
           ))}
@@ -178,7 +179,7 @@ function PromptEditorModal({ brand, contentType, topic, icpIndex, additionalCont
           <textarea
             value={current}
             onChange={e => setter(e.target.value)}
-            style={{ flex:1,width:"100%",padding:"14px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.025)",color:"#d0d0d0",fontSize:12.5,fontFamily:"'DM Mono','SF Mono',monospace",lineHeight:1.7,outline:"none",resize:"none",boxSizing:"border-box" }}
+            style={{ flex:1,width:"100%",padding:"14px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.025)",color:"#d0d0d0",fontSize:12.5,fontFamily:"ui-monospace,'SF Mono',monospace",lineHeight:1.7,outline:"none",resize:"none",boxSizing:"border-box" }}
           />
           <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:12,flexShrink:0 }}>
             <div style={{ fontSize:11,color:"#333" }}>
@@ -191,7 +192,7 @@ function PromptEditorModal({ brand, contentType, topic, icpIndex, additionalCont
                 ⟳ Reset
               </button>
               <button onClick={() => onApply(sysPrompt, userPrompt)}
-                style={{ padding:"8px 16px",borderRadius:7,border:"none",background:"linear-gradient(135deg,#9b59b6,#7d3c98)",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                style={{ padding:"8px 16px",borderRadius:7,border:"none",background:"linear-gradient(135deg,#0071E3,#005BB8)",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
                 ✓ Use Custom Prompt
               </button>
             </div>
@@ -236,16 +237,16 @@ function TypeCard({ type, selected, onClick, onQuickGenerate }) {
 // ─── Credits badge ─────────────────────────────────────────────────────────────
 function CreditsBadge({ credits, tier, onBuy, onRegister }) {
   if (tier === "free") return (
-    <button onClick={onRegister} style={{ padding:"5px 12px",borderRadius:20,border:"1px solid rgba(46,204,113,0.3)",background:"rgba(46,204,113,0.08)",color:"#2ecc71",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+    <button onClick={onRegister} style={{ padding:"5px 12px",borderRadius:20,border:"1px solid rgba(50,215,75,0.3)",background:"rgba(50,215,75,0.08)",color:"#32D74B",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
       Get 3 free credits →
     </button>
   );
   return (
     <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-      <div style={{ fontSize:11,color:credits===0?"#e94560":"#aaa",fontWeight:600 }}>
-        <span style={{ color:credits>5?"#2ecc71":credits>1?"#f39c12":"#e94560",fontWeight:800,fontSize:13 }}>{credits}</span> credit{credits!==1?"s":""}
+      <div style={{ fontSize:11,color:credits===0?"#0071E3":"#aaa",fontWeight:600 }}>
+        <span style={{ color:credits>5?"#32D74B":credits>1?"#FF9F0A":"#0071E3",fontWeight:800,fontSize:13 }}>{credits}</span> credit{credits!==1?"s":""}
       </div>
-      <button onClick={onBuy} style={{ padding:"5px 12px",borderRadius:20,border:"1px solid rgba(233,69,96,0.3)",background:"rgba(233,69,96,0.07)",color:"#e94560",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+      <button onClick={onBuy} style={{ padding:"5px 12px",borderRadius:20,border:"1px solid rgba(0,113,227,0.3)",background:"rgba(0,113,227,0.07)",color:"#0071E3",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
         + Buy
       </button>
     </div>
@@ -257,7 +258,7 @@ function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
   return (
     <button onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-      style={{ padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,0.1)",background:copied?"rgba(46,204,113,0.1)":"rgba(255,255,255,0.04)",color:copied?"#2ecc71":"#aaa",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,transition:"all 0.2s" }}>
+      style={{ padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,0.1)",background:copied?"rgba(50,215,75,0.1)":"rgba(255,255,255,0.04)",color:copied?"#32D74B":"#aaa",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:600,transition:"all 0.2s" }}>
       {copied ? "✓ Copied" : "Copy"}
     </button>
   );
@@ -265,6 +266,13 @@ function CopyButton({ text }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ContentStudio() {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const onChange = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   const { boardId } = useParams();
 
   const [brand, setBrand]               = useState(null);
@@ -344,8 +352,9 @@ export default function ContentStudio() {
         userPromptOverride:   usingCustomPrompt ? customUserPrompt   : undefined,
       });
       setOutput(result.content);
-      spendCredit();
+      if (typeof result.creditsRemaining === "number") setCredits(result.creditsRemaining);
       refreshAuth();
+      track("studio_generated", { contentType: type.id });
     } catch (err) {
       setError(err.message || "Generation failed. Please try again.");
     }
@@ -359,23 +368,29 @@ export default function ContentStudio() {
     setShowPromptEditor(false);
   };
 
-  if (loading) return <div style={{ height:"100vh",background:"#0a0a0f",display:"flex",alignItems:"center",justifyContent:"center",color:"#333",fontFamily:"'DM Sans',sans-serif" }}>Loading…</div>;
+  if (loading) return <div style={{ height:"100vh",background:"#000000",display:"flex",alignItems:"center",justifyContent:"center",color:"#333",fontFamily:"'Inter', -apple-system, sans-serif" }}>Loading…</div>;
 
   if (!brand) return (
-    <div style={{ height:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,fontFamily:"'DM Sans',sans-serif",color:"#555" }}>
-      <div style={{ fontSize:32,opacity:0.2 }}>◈</div>
-      <div style={{ fontSize:16,fontWeight:600,color:"#666" }}>No brand data found</div>
-      <Link to="/builder" style={{ padding:"10px 20px",borderRadius:8,background:"linear-gradient(135deg,#e94560,#c62a42)",color:"#fff",textDecoration:"none",fontSize:14,fontWeight:700 }}>Build Your Brand →</Link>
+    <div style={{ height:"100vh",background:"#000000",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,fontFamily:"'Inter', -apple-system, sans-serif",color:"#8E8E93",padding:"0 24px",textAlign:"center" }}>
+      <div style={{ fontSize:17,fontWeight:700,color:"#F5F5F7",letterSpacing:"-0.3px" }}>Content Studio needs a brand board first</div>
+      <div style={{ fontSize:13.5,color:"#8E8E93",maxWidth:400,lineHeight:1.6 }}>
+        Everything the Studio writes is generated from your board — voice, audience, offers, stories. Open yours, or create one in a few minutes.
+      </div>
+      <div style={{ display:"flex",gap:10,marginTop:8,flexWrap:"wrap",justifyContent:"center" }}>
+        <Link to="/builder" style={{ padding:"11px 24px",borderRadius:100,background:"#0071E3",color:"#fff",textDecoration:"none",fontSize:13.5,fontWeight:600 }}>Open the Builder</Link>
+        <Link to="/start" style={{ padding:"11px 24px",borderRadius:100,border:"1px solid rgba(255,255,255,0.18)",color:"#F5F5F7",textDecoration:"none",fontSize:13.5,fontWeight:600 }}>Start from an idea</Link>
+      </div>
     </div>
   );
 
-  const bc   = brand.primaryColor || "#e94560";
-  const ac   = brand.accentColor  || "#f39c12";
+  // App chrome stays system-blue regardless of the brand's own palette —
+  // a near-black brand primary would otherwise paint the Generate button invisible.
+  const bc   = "#0071E3";
+  const ac   = "#64D2FF";
   const icps = Array.isArray(brand.icps) ? brand.icps.filter(i => i.title || i.segment) : [];
 
   return (
-    <div style={{ height:"100vh",display:"flex",flexDirection:"column",background:"#0a0a0f",fontFamily:"'DM Sans',sans-serif",color:"#e0e0e0",overflow:"hidden" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <div style={{ height:"100vh",display:"flex",flexDirection:"column",background:"#000000",fontFamily:"'Inter', -apple-system, sans-serif",color:"#e0e0e0",overflow:"hidden" }}>
 
       {/* Header */}
       <header style={{ padding:"10px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(10,10,15,0.98)",backdropFilter:"blur(12px)",flexShrink:0,zIndex:100 }}>
@@ -387,7 +402,7 @@ export default function ContentStudio() {
             <span style={{ fontSize:13,fontWeight:800,color:"#fff",letterSpacing:-0.3 }}>Content Studio</span>
           </div>
           {usingCustomPrompt && (
-            <div style={{ fontSize:10,padding:"2px 8px",borderRadius:4,border:"1px solid rgba(155,89,182,0.4)",color:"#9b59b6",fontWeight:700 }}>
+            <div style={{ fontSize:10,padding:"2px 8px",borderRadius:4,border:"1px solid rgba(0,113,227,0.4)",color:"#0071E3",fontWeight:700 }}>
               ⚙ Custom prompt active
             </div>
           )}
@@ -399,10 +414,10 @@ export default function ContentStudio() {
       </header>
 
       {/* Body */}
-      <div style={{ flex:1,display:"flex",overflow:"hidden" }}>
+      <div style={{ flex:1,display:"flex",flexDirection:isMobile?"column":"row",overflow:isMobile?"auto":"hidden" }}>
 
         {/* LEFT: Type list */}
-        <div style={{ width:220,borderRight:"1px solid rgba(255,255,255,0.05)",overflowY:"auto",flexShrink:0,padding:"14px 10px" }}>
+        <div style={{ width:isMobile?"100%":220,maxHeight:isMobile?200:"none",boxSizing:"border-box",borderRight:isMobile?"none":"1px solid rgba(255,255,255,0.05)",borderBottom:isMobile?"1px solid rgba(255,255,255,0.05)":"none",overflowY:"auto",flexShrink:0,padding:"14px 10px" }}>
           {CONTENT_TYPES.map(cat => (
             <div key={cat.category} style={{ marginBottom:18 }}>
               <div style={{ display:"flex",alignItems:"center",gap:5,marginBottom:7,padding:"0 4px" }}>
@@ -424,16 +439,16 @@ export default function ContentStudio() {
         </div>
 
         {/* CENTER: Config */}
-        <div style={{ width:300,borderRight:"1px solid rgba(255,255,255,0.05)",overflowY:"auto",flexShrink:0 }}>
+        <div style={{ width:isMobile?"100%":300,boxSizing:"border-box",borderRight:isMobile?"none":"1px solid rgba(255,255,255,0.05)",borderBottom:isMobile?"1px solid rgba(255,255,255,0.05)":"none",overflowY:isMobile?"visible":"auto",flexShrink:0 }}>
           {!selectedType ? (
             <div style={{ padding:"48px 24px",textAlign:"center" }}>
               <div style={{ fontSize:32,opacity:0.08,marginBottom:14 }}>✦</div>
               <div style={{ fontSize:13,color:"#2a2a2a",lineHeight:1.7 }}>Pick a content format from the left<br />or click ▶ on any card to quick-generate</div>
               {tier === "free" && (
-                <div style={{ marginTop:28,padding:"16px",borderRadius:10,border:"1px solid rgba(46,204,113,0.12)",background:"rgba(46,204,113,0.04)" }}>
-                  <div style={{ fontSize:13,fontWeight:700,color:"#2ecc71",marginBottom:6 }}>Register free → 3 credits</div>
+                <div style={{ marginTop:28,padding:"16px",borderRadius:10,border:"1px solid rgba(50,215,75,0.12)",background:"rgba(50,215,75,0.04)" }}>
+                  <div style={{ fontSize:13,fontWeight:700,color:"#32D74B",marginBottom:6 }}>Register free → 3 credits</div>
                   <div style={{ fontSize:11,color:"#333",marginBottom:10 }}>Each credit generates one piece of content across all 17 formats.</div>
-                  <button onClick={() => setShowRegister(true)} style={{ width:"100%",padding:"9px 0",borderRadius:7,border:"none",background:"linear-gradient(135deg,#2ecc71,#27ae60)",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                  <button onClick={() => setShowRegister(true)} style={{ width:"100%",padding:"9px 0",borderRadius:7,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
                     Get 3 Free Credits
                   </button>
                 </div>
@@ -507,30 +522,30 @@ export default function ContentStudio() {
                   {generating ? "Writing…" : `✦ Generate`}
                 </button>
                 <button onClick={() => setShowPromptEditor(true)} title="Edit prompt"
-                  style={{ width:40,padding:"12px 0",borderRadius:9,border:"1px solid rgba(155,89,182,0.25)",background:usingCustomPrompt?"rgba(155,89,182,0.12)":"rgba(255,255,255,0.03)",color:usingCustomPrompt?"#9b59b6":"#444",cursor:"pointer",fontSize:14,fontFamily:"inherit",transition:"all 0.2s" }}>
+                  style={{ width:40,padding:"12px 0",borderRadius:9,border:"1px solid rgba(0,113,227,0.25)",background:usingCustomPrompt?"rgba(0,113,227,0.12)":"rgba(255,255,255,0.03)",color:usingCustomPrompt?"#0071E3":"#444",cursor:"pointer",fontSize:14,fontFamily:"inherit",transition:"all 0.2s" }}>
                   ⚙
                 </button>
               </div>
 
               {usingCustomPrompt && (
                 <button onClick={() => setUsingCustomPrompt(false)}
-                  style={{ width:"100%",marginTop:7,padding:"6px 0",borderRadius:7,border:"1px solid rgba(155,89,182,0.2)",background:"transparent",color:"#9b59b6",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                  style={{ width:"100%",marginTop:7,padding:"6px 0",borderRadius:7,border:"1px solid rgba(0,113,227,0.2)",background:"transparent",color:"#0071E3",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                   ✕ Clear custom prompt
                 </button>
               )}
 
               {tier === "free" && (
-                <div style={{ marginTop:10,padding:"10px 12px",borderRadius:8,border:"1px solid rgba(46,204,113,0.12)",background:"rgba(46,204,113,0.04)",textAlign:"center" }}>
-                  <div style={{ fontSize:11,color:"#2ecc71",fontWeight:700,marginBottom:4 }}>Register free to generate</div>
-                  <button onClick={() => setShowRegister(true)} style={{ fontSize:11,color:"#2ecc71",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",fontWeight:600 }}>Get 3 free credits →</button>
+                <div style={{ marginTop:10,padding:"10px 12px",borderRadius:8,border:"1px solid rgba(50,215,75,0.12)",background:"rgba(50,215,75,0.04)",textAlign:"center" }}>
+                  <div style={{ fontSize:11,color:"#32D74B",fontWeight:700,marginBottom:4 }}>Register free to generate</div>
+                  <button onClick={() => setShowRegister(true)} style={{ fontSize:11,color:"#32D74B",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",fontWeight:600 }}>Get 3 free credits →</button>
                 </div>
               )}
               {tier !== "free" && credits === 0 && (
-                <div style={{ marginTop:10,fontSize:11,color:"#e94560",textAlign:"center" }}>
-                  No credits left · <button onClick={() => setShowCredits(true)} style={{ background:"none",border:"none",color:"#e94560",cursor:"pointer",fontFamily:"inherit",fontSize:11,fontWeight:700,textDecoration:"underline",padding:0 }}>Buy credits</button>
+                <div style={{ marginTop:10,fontSize:11,color:"#0071E3",textAlign:"center" }}>
+                  No credits left · <button onClick={() => setShowCredits(true)} style={{ background:"none",border:"none",color:"#0071E3",cursor:"pointer",fontFamily:"inherit",fontSize:11,fontWeight:700,textDecoration:"underline",padding:0 }}>Buy credits</button>
                 </div>
               )}
-              {error && <div style={{ marginTop:10,fontSize:11,color:"#e94560",padding:"9px 11px",borderRadius:7,border:"1px solid rgba(233,69,96,0.15)",background:"rgba(233,69,96,0.04)" }}>{error}</div>}
+              {error && <div style={{ marginTop:10,fontSize:11,color:"#FF453A",padding:"9px 11px",borderRadius:7,border:"1px solid rgba(255,69,58,0.2)",background:"rgba(255,69,58,0.05)" }}>{error}</div>}
             </div>
           )}
         </div>
@@ -590,7 +605,7 @@ export default function ContentStudio() {
                 </div>
               </div>
               <div style={{ flex:1,overflowY:"auto",padding:"24px 32px" }}>
-                <pre style={{ fontFamily:"'DM Sans',sans-serif",fontSize:13.5,lineHeight:1.85,color:"#d0d0d0",whiteSpace:"pre-wrap",wordBreak:"break-word",margin:0 }}>
+                <pre style={{ fontFamily:"'Inter', -apple-system, sans-serif",fontSize:13.5,lineHeight:1.85,color:"#d0d0d0",whiteSpace:"pre-wrap",wordBreak:"break-word",margin:0 }}>
                   {output}
                 </pre>
               </div>

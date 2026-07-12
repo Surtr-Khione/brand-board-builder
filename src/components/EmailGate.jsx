@@ -42,19 +42,19 @@ export default function EmailGate({
       }}>
         <div style={{
           width: '48px', height: '48px', borderRadius: '12px',
-          background: 'linear-gradient(135deg, #e94560, #c62a42)',
+          background: 'linear-gradient(135deg, #0071E3, #005BB8)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '20px',
         }}>B</div>
 
         <h2 style={{
           fontSize: '22px', fontWeight: 700, color: '#fff', margin: '0 0 8px',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', -apple-system, sans-serif",
         }}>{title}</h2>
 
         <p style={{
           fontSize: '14px', color: '#999', margin: '0 0 24px', lineHeight: 1.6,
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', -apple-system, sans-serif",
         }}>
           {subtitle}
         </p>
@@ -69,7 +69,7 @@ export default function EmailGate({
               width: '100%', padding: '12px 16px', borderRadius: '10px',
               border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
               color: '#fff', fontSize: '14px', marginBottom: '12px',
-              fontFamily: "'DM Sans', sans-serif", outline: 'none',
+              fontFamily: "'Inter', -apple-system, sans-serif", outline: 'none',
               boxSizing: 'border-box',
             }}
           />
@@ -81,14 +81,14 @@ export default function EmailGate({
             required
             style={{
               width: '100%', padding: '12px 16px', borderRadius: '10px',
-              border: `1px solid ${error ? '#e94560' : 'rgba(255,255,255,0.1)'}`,
+              border: `1px solid ${error ? '#FF453A' : 'rgba(255,255,255,0.1)'}`,
               background: 'rgba(255,255,255,0.04)',
               color: '#fff', fontSize: '14px', marginBottom: '8px',
-              fontFamily: "'DM Sans', sans-serif", outline: 'none',
+              fontFamily: "'Inter', -apple-system, sans-serif", outline: 'none',
               boxSizing: 'border-box',
             }}
           />
-          {error && <p style={{ color: '#e94560', fontSize: '12px', margin: '0 0 12px' }}>{error}</p>}
+          {error && <p style={{ color: '#FF453A', fontSize: '12px', margin: '0 0 12px' }}>{error}</p>}
 
           <button
             type="submit"
@@ -96,10 +96,10 @@ export default function EmailGate({
             style={{
               width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
               background: loading
-                ? 'rgba(233,69,96,0.4)'
-                : 'linear-gradient(135deg, #e94560, #c62a42)',
+                ? 'rgba(0,113,227,0.4)'
+                : 'linear-gradient(135deg, #0071E3, #005BB8)',
               color: '#fff', fontSize: '15px', fontWeight: 600, cursor: loading ? 'wait' : 'pointer',
-              fontFamily: "'DM Sans', sans-serif", marginTop: '8px',
+              fontFamily: "'Inter', -apple-system, sans-serif", marginTop: '8px',
               transition: 'all 0.2s',
             }}
           >
@@ -113,7 +113,7 @@ export default function EmailGate({
             width: '100%', padding: '10px', marginTop: '12px', borderRadius: '10px',
             border: '1px solid rgba(255,255,255,0.06)', background: 'transparent',
             color: '#666', fontSize: '13px', cursor: 'pointer',
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', -apple-system, sans-serif",
           }}
         >
           Continue without saving

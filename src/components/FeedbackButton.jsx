@@ -65,12 +65,12 @@ export default function FeedbackButton({ section }) {
           display: "flex", alignItems: "center", gap: 5,
           padding: "5px 10px", borderRadius: 8,
           border: "1px solid rgba(255,255,255,0.08)",
-          background: open ? "rgba(233,69,96,0.12)" : "rgba(255,255,255,0.03)",
-          color: open ? "#e94560" : "#444",
+          background: open ? "rgba(0,113,227,0.12)" : "rgba(255,255,255,0.03)",
+          color: open ? "#0071E3" : "#444",
           fontSize: 11, fontWeight: 600, cursor: "pointer",
           fontFamily: "inherit", transition: "all 0.18s",
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.color = "#e94560"; }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.color = "#0071E3"; }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.color = "#444"; }}
       >
         ⚑ Feedback
@@ -84,7 +84,7 @@ export default function FeedbackButton({ section }) {
           borderRadius: 12, padding: 16, zIndex: 9999,
           boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
         }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#f0ece3", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F5F7", marginBottom: 4 }}>
             Flag an issue
           </div>
           <div style={{ fontSize: 11, color: "#444", marginBottom: 12 }}>
@@ -92,7 +92,7 @@ export default function FeedbackButton({ section }) {
           </div>
 
           {status === "done" ? (
-            <div style={{ textAlign: "center", padding: "20px 0", color: "#2ecc71", fontSize: 13, fontWeight: 600 }}>
+            <div style={{ textAlign: "center", padding: "20px 0", color: "#32D74B", fontSize: 13, fontWeight: 600 }}>
               ✓ Thanks — we'll review it
             </div>
           ) : (
@@ -123,7 +123,7 @@ export default function FeedbackButton({ section }) {
                 }}
               />
               {status === "error" && (
-                <div style={{ fontSize: 11, color: "#e94560", marginTop: 6 }}>Couldn't submit — try again</div>
+                <div style={{ fontSize: 11, color: "#0071E3", marginTop: 6 }}>Couldn't submit — try again</div>
               )}
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button
@@ -131,7 +131,7 @@ export default function FeedbackButton({ section }) {
                   disabled={!message.trim() || status === "sending"}
                   style={{
                     flex: 1, padding: "8px 0", borderRadius: 8, border: "none",
-                    background: !message.trim() ? "rgba(233,69,96,0.25)" : "linear-gradient(135deg,#e94560,#c62a42)",
+                    background: !message.trim() ? "rgba(0,113,227,0.25)" : "linear-gradient(135deg,#0071E3,#005BB8)",
                     color: "#fff", fontSize: 12, fontWeight: 700, cursor: !message.trim() ? "not-allowed" : "pointer",
                     fontFamily: "inherit",
                   }}
@@ -190,11 +190,11 @@ export function FloatingFeedback() {
           width: 310, background: "#111", border: "1px solid #222",
           borderRadius: 14, padding: 18, boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#f0ece3", marginBottom: 3 }}>Share feedback</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F5F7", marginBottom: 3 }}>Share feedback</div>
           <div style={{ fontSize: 11, color: "#444", marginBottom: 14 }}>What's working? What needs improvement?</div>
 
           {status === "done" ? (
-            <div style={{ textAlign: "center", padding: "24px 0", color: "#2ecc71", fontSize: 13, fontWeight: 600 }}>
+            <div style={{ textAlign: "center", padding: "24px 0", color: "#32D74B", fontSize: 13, fontWeight: 600 }}>
               ✓ Feedback received — thank you!
             </div>
           ) : (
@@ -213,11 +213,11 @@ export function FloatingFeedback() {
                 placeholder="Email (optional)"
                 style={{ width: "100%", padding: "8px 12px", borderRadius: 8, marginTop: 8, border: "1px solid #1e1e1e", background: "#0a0a0a", color: "#e0e0e0", fontSize: 12, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
               />
-              {status === "error" && <div style={{ fontSize: 11, color: "#e94560", marginTop: 6 }}>Submit failed — please try again</div>}
+              {status === "error" && <div style={{ fontSize: 11, color: "#FF453A", marginTop: 6 }}>Submit failed — please try again</div>}
               <button
                 onClick={handleSubmit}
                 disabled={!message.trim() || status === "sending"}
-                style={{ marginTop: 12, width: "100%", padding: "10px 0", borderRadius: 8, border: "none", background: !message.trim() ? "rgba(233,69,96,0.25)" : "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: !message.trim() ? "not-allowed" : "pointer", fontFamily: "inherit" }}
+                style={{ marginTop: 12, width: "100%", padding: "10px 0", borderRadius: 8, border: "none", background: !message.trim() ? "rgba(0,113,227,0.25)" : "linear-gradient(135deg,#0071E3,#005BB8)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: !message.trim() ? "not-allowed" : "pointer", fontFamily: "inherit" }}
               >
                 {status === "sending" ? "Sending..." : "Send Feedback"}
               </button>
@@ -231,9 +231,9 @@ export function FloatingFeedback() {
         onClick={() => setOpen(o => !o)}
         style={{
           width: 46, height: 46, borderRadius: "50%",
-          background: open ? "#c62a42" : "linear-gradient(135deg,#e94560,#c62a42)",
+          background: open ? "#005BB8" : "linear-gradient(135deg,#0071E3,#005BB8)",
           border: "none", color: "#fff", fontSize: 18, cursor: "pointer",
-          boxShadow: "0 4px 20px rgba(233,69,96,0.4)",
+          boxShadow: "0 4px 20px rgba(0,113,227,0.4)",
           transition: "transform 0.2s, box-shadow 0.2s",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}

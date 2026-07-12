@@ -112,6 +112,12 @@ export default function Analyzer() {
           brand archetype, and a real Gravity Score — the same first read a brand
           diagnostician would give it.
         </p>
+        <div style={{ fontSize: 13.5, color: TITANIUM, marginTop: 16 }}>
+          Nothing live to scan yet?{" "}
+          <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+            Build your brand from the idea →
+          </Link>
+        </div>
       </div>
 
       {/* SCAN PANELS */}
@@ -261,11 +267,18 @@ export default function Analyzer() {
                 </button>
               )}
               <Link
-                to="/brands"
+                to="/compare"
                 className="bmd-link"
                 style={{ color: ACCENT_BLUE, textDecoration: "none", fontSize: 14, fontWeight: 500 }}
               >
-                Explore the Library instead &nbsp;›
+                Compare vs competitors &nbsp;›
+              </Link>
+              <Link
+                to="/brands"
+                className="bmd-link"
+                style={{ color: TITANIUM, textDecoration: "none", fontSize: 14, fontWeight: 500 }}
+              >
+                Explore the Library &nbsp;›
               </Link>
             </div>
 
@@ -295,7 +308,7 @@ export default function Analyzer() {
         <div style={{ maxWidth: 860, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 26 }}>
           {[
             { label: "Free", text: "Analyze instantly. No account, no card, no limit on scans." },
-            { label: "Still free", text: "Chart your full 19-part identity in the Builder — save it with just an email." },
+            { label: "Still free", text: "Chart your full 31-section identity in the Builder — save it with just an email." },
             { label: "When you're ready", text: "Content Studio turns a finished board into ongoing content and campaigns." },
           ].map((step) => (
             <div key={step.label}>
