@@ -59,16 +59,25 @@ function BrandLogo({ website, name, size = 100, radius = 20, pc }) {
 // says plainly what Gravity measures: the documented public identity in THIS
 // profile, not a judgment of the business.
 const SIGNAL_PHRASES = {
-  "Archetype defined": "a committed archetype",
-  "Secondary archetype or a named enemy": "a named enemy or secondary archetype",
-  "Mission or vision": "a stated mission",
-  "Tagline or elevator pitch": "a signature line",
-  "Voice defined (2+ tone attributes)": "a defined voice",
-  "Full color system (primary, secondary, accent)": "a complete color system",
-  "Typography defined": "committed typography",
-  "Messaging rules (do/don't say)": "explicit messaging rules",
-  "Content pillars or audience": "defined content pillars or audience",
-  "Manifesto or core values": "stated core values",
+  "Mission": "a stated mission",
+  "Vision": "a stated vision",
+  "Core values (3+)": "committed core values",
+  "Primary archetype": "a committed archetype",
+  "Secondary archetype or named enemy": "a named enemy or secondary archetype",
+  "Differentiation": "documented differentiation",
+  "Tagline": "a signature line",
+  "Elevator pitch": "an elevator pitch",
+  "Do-say rules (2+)": "do-say messaging rules",
+  "Don't-say rules (2+)": "don't-say rules",
+  "Voice basics (2+ tone attributes)": "a defined voice",
+  "Voice depth (4+ tone attributes)": "real voice depth",
+  "Personality traits (3+)": "named personality traits",
+  "Social or platform voice": "a social voice",
+  "Full color system": "a complete color system",
+  "Typography": "committed typography",
+  "Photography direction": "a photography direction",
+  "Audience or ICPs": "a defined audience",
+  "Content pillars": "content pillars",
 };
 
 function listOut(items) {
@@ -110,11 +119,11 @@ function ScoreRationale({ brand, ink }) {
           <p style={{ fontSize: 16.5, lineHeight: 1.75, color: "#c9c9c9", margin: 0 }}>
             {fallback}
             {met.length > 0 && <> On record: {listOut(met)}.</>}
-            {missing.length > 0 && <> Not yet on record: {listOut(missing)} — each worth +10 when it lands.</>}
+            {missing.length > 0 && <> Not yet on record: {listOut(missing)}.</>}
           </p>
         )}
         <p style={{ fontSize: 12.5, lineHeight: 1.7, color: "#5a5a5a", margin: "16px 0 0" }}>
-          {voiceText && <>Written by BrandMD's voice engine in {name}'s documented voice — the same system behind Brand Check — not a statement by the company. {missing.length > 0 && <>Still uncharted: {listOut(missing)} — each worth +10. </>}</>}
+          {voiceText && <>Written by BrandMD's voice engine in {name}'s documented voice — the same system behind Brand Check — not a statement by the company. {missing.length > 0 && <>Still uncharted: {listOut(missing)}. </>}</>}
           Gravity measures how much of a coherent, documented identity exists in this public
           profile — what the brand demonstrably commits to, not how successful the business is.
           Own this brand? <Link to="/builder" style={{ color: "#0071E3", textDecoration: "none" }}>Chart the missing pieces</Link> and the score follows.
