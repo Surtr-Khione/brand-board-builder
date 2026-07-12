@@ -20,7 +20,7 @@ export const MARQUE_BRANDS = [
   { slug: "ferrari", domain: "ferrari.com", name: "Ferrari" },
 ];
 
-export function LogoTile({ domain, name, size = 30, radius = 8 }) {
+export function LogoTile({ domain, name, size = 30, radius = 8, mono = true }) {
   const [idx, setIdx] = useState(0);
   const sources = [
     `https://logo.clearbit.com/${domain}`,
@@ -36,7 +36,7 @@ export function LogoTile({ domain, name, size = 30, radius = 8 }) {
         <img
           src={sources[idx]} alt={name} loading="lazy"
           onError={() => setIdx((i) => i + 1)}
-          className="bmd-trust-logo"
+          className={mono ? "bmd-trust-logo" : undefined}
           style={{ width: Math.round(size * 0.62), height: Math.round(size * 0.62), objectFit: "contain" }}
         />
       ) : (

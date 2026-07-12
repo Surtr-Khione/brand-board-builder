@@ -40,13 +40,13 @@ export default function GravityWell({ children }) {
       el.style.setProperty("--p", "0.3");
       return;
     }
+    // Lerped camera: scroll sets the target, a persistent rAF eases the
+    // rendered value toward it — the descent feels liquid instead of
+    // stepping with each wheel notch.
     let raf = 0;
+    let current = -1;
     const orbiters = el.querySelectorAll("[data-angle]");
-    const update = () => {
-      raf = 0;
-      const rect = el.getBoundingClientRect();
-      const runway = rect.height - window.innerHeight;
-      const p = Math.min(1, Math.max(0, -rect.top / Math.max(runway, 1)));
+    const apply = (p) => {
       el.style.setProperty("--p", p.toFixed(4));
       // Depth cue + headline protection: marks dim as they swing to the back
       // of the orbit (visually the top), brighten at the front.
@@ -55,13 +55,26 @@ export default function GravityWell({ children }) {
         o.style.opacity = (0.18 + 0.82 * Math.max(0, Math.sin(a)) * (0.55 + p * 0.6)).toFixed(3);
       }
     };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    const target = () => {
+      const rect = el.getBoundingClientRect();
+      const runway = rect.height - window.innerHeight;
+      return Math.min(1, Math.max(0, -rect.top / Math.max(runway, 1)));
+    };
+    const tick = () => {
+      const t = target();
+      if (current < 0) current = t;
+      current += (t - current) * 0.1;
+      if (Math.abs(t - current) < 0.0006) { current = t; apply(current); raf = 0; return; }
+      apply(current);
+      raf = requestAnimationFrame(tick);
+    };
+    const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    wake();
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("resize", wake, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", wake);
+      window.removeEventListener("resize", wake);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
