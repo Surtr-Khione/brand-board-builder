@@ -4,7 +4,8 @@ import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { BLOG_POSTS } from "../lib/blogPosts";
 import { useReveal } from "../lib/useReveal";
-import { TrustBand, BrandPill, OrbitRule } from "../components/TrustMarks";
+import { BrandPill, OrbitRule } from "../components/TrustMarks";
+import GravityWell from "../components/GravityWell";
 import "../styles/space-theme.css";
 
 const VOID = "#000000";
@@ -204,132 +205,67 @@ export default function HomePage() {
     <div style={{ background: VOID, color: STARLIGHT, fontFamily: SANS, minHeight: "100vh" }}>
       <SiteNav transparent />
 
-      {/* ══ HERO — scattered fragments resolving into order as a scan passes through ══ */}
-      <div
-        style={{
-          position: "relative", overflow: "hidden", display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center", textAlign: "center",
-          padding: "90px 40px 70px", minHeight: 680,
-        }}
-      >
-        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-          {STARS.map((s) => (
-            <div
-              key={s.id}
-              className="bmd-star"
-              style={{
-                position: "absolute", left: `${s.x}%`, top: `${s.y}%`,
-                width: s.size, height: s.size, borderRadius: "50%", background: STARLIGHT,
-                "--bmd-tw-min": 0.12, "--bmd-tw-max": s.opacityMax,
-                animation: `bmd-twinkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
-              }}
-            />
-          ))}
+      {/* ══ HERO — the gravity well: scroll descends into a 3D orbital system ══ */}
+      <GravityWell>
+        <div style={{
+          fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22,
+          textShadow: "0 2px 16px rgba(0,0,0,0.9)",
+        }}>
+          Brand intelligence
         </div>
-
-        <div
+        <h1
           style={{
-            position: "absolute", inset: 0, zIndex: 0, opacity: 0.025, mixBlendMode: "overlay",
-            backgroundImage: GRAIN_BG, backgroundRepeat: "repeat", backgroundSize: "120px 120px", pointerEvents: "none",
+            fontWeight: 700, fontSize: "clamp(38px, 6vw, 72px)",
+            lineHeight: 1.06, letterSpacing: "-2px", margin: "0 0 18px",
+            textShadow: "0 4px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.95)",
           }}
-        />
+        >
+          What's the <span style={{ color: ACCENT_BLUE }}>Gravity</span> of your brand?
+        </h1>
+        <p style={{
+          fontSize: 17, color: TITANIUM, maxWidth: 480, margin: "0 auto 34px", lineHeight: 1.6, fontWeight: 400,
+          textShadow: "0 2px 18px rgba(0,0,0,0.9)",
+        }}>
+          Enter your URL below — free, instant, no signup.
+        </p>
 
-        {/* Background layer: the diagnostic reveal, sitting behind the text */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
-          <div
-            className="bmd-scanline"
+        <form onSubmit={submitHeroScan} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 26 }}>
+          <input
+            value={heroUrl}
+            onChange={(e) => setHeroUrl(e.target.value)}
+            placeholder="yourbrand.com"
             style={{
-              position: "absolute", left: 0, right: 0, height: 2,
-              background: `linear-gradient(90deg, transparent, ${ACCENT_BLUE}, transparent)`,
-              boxShadow: "0 0 14px rgba(0,113,227,0.65)",
-              animation: "bmd-scan 8s ease-in-out infinite",
+              flex: "1 1 300px", maxWidth: 400, padding: "14px 22px", borderRadius: 100,
+              border: "1px solid rgba(255,255,255,0.18)", background: "rgba(0,0,0,0.45)",
+              backdropFilter: "blur(8px)", color: STARLIGHT, fontSize: 16, fontFamily: SANS, outline: "none",
             }}
           />
-          {FRAGMENTS.map((f) => (
-            <div
-              key={f.id}
-              className="bmd-fragment"
-              style={{
-                position: "absolute",
-                left: `${f.xf}%`, top: `${f.yf}%`,
-                width: f.type === "dot" ? 10 : 30,
-                height: f.type === "dot" ? 10 : 18,
-                marginLeft: f.type === "dot" ? -5 : -15,
-                marginTop: f.type === "dot" ? -5 : -9,
-                borderRadius: f.type === "dot" ? "50%" : 4,
-                background: f.type === "dot" ? ACCENT_BLUE : "rgba(255,255,255,0.05)",
-                border: f.type === "dot" ? "none" : "1px solid rgba(245,245,247,0.4)",
-                "--bmd-x0": `${f.x0}%`, "--bmd-y0": `${f.y0}%`,
-                "--bmd-xf": `${f.xf}%`, "--bmd-yf": `${f.yf}%`,
-                "--bmd-r0": `${f.r0}deg`,
-                animation: `bmd-settle 8s ease-in-out infinite`,
-                animationDelay: `${f.delay}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Foreground layer: the text, always legible over the motion below it */}
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 760 }}>
-          <div style={{
-            fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22,
-            textShadow: "0 2px 16px rgba(0,0,0,0.9)",
-          }}>
-            Brand intelligence
-          </div>
-          <h1
+          <button
+            type="submit"
+            className="bmd-cta"
             style={{
-              fontWeight: 700, fontSize: "clamp(38px, 6vw, 72px)",
-              lineHeight: 1.06, letterSpacing: "-2px", margin: "0 0 18px",
-              textShadow: "0 4px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.95)",
+              padding: "14px 30px", borderRadius: 100, border: "none", cursor: "pointer",
+              background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, fontFamily: SANS,
             }}
           >
-            What's the <span style={{ color: ACCENT_BLUE }}>Gravity</span> of your brand?
-          </h1>
-          <p style={{
-            fontSize: 17, color: TITANIUM, maxWidth: 480, margin: "0 auto 34px", lineHeight: 1.6, fontWeight: 400,
-            textShadow: "0 2px 18px rgba(0,0,0,0.9)",
-          }}>
-            Enter your URL below — free, instant, no signup.
-          </p>
+            Get My Score
+          </button>
+        </form>
 
-          <form onSubmit={submitHeroScan} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 26 }}>
-            <input
-              value={heroUrl}
-              onChange={(e) => setHeroUrl(e.target.value)}
-              placeholder="yourbrand.com"
-              style={{
-                flex: "1 1 300px", maxWidth: 400, padding: "14px 22px", borderRadius: 100,
-                border: "1px solid rgba(255,255,255,0.18)", background: "rgba(0,0,0,0.4)",
-                backdropFilter: "blur(8px)", color: STARLIGHT, fontSize: 16, fontFamily: SANS, outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              className="bmd-cta"
-              style={{
-                padding: "14px 30px", borderRadius: 100, border: "none", cursor: "pointer",
-                background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, fontFamily: SANS,
-              }}
-            >
-              Get My Score
-            </button>
-          </form>
-
-          <div style={{ fontSize: 14, color: TITANIUM, marginBottom: 18, textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
-            No website yet?{" "}
-            <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
-              Start from your idea →
-            </Link>
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <TrustBand totalBrands={totalBrands} />
-          </div>
-          <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2 }}>
-            {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp; 31 sections &nbsp;&middot;&nbsp; free to explore
-          </div>
+        <div style={{ fontSize: 14, color: TITANIUM, marginBottom: 20, textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
+          No website yet?{" "}
+          <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+            Start from your idea →
+          </Link>
         </div>
-      </div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: TITANIUM, letterSpacing: 1.4, textTransform: "uppercase", textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
+          The marks in orbit ran this exact scan
+        </div>
+        <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2, marginTop: 8 }}>
+          {totalBrands || brands.length || 15} brands decoded &nbsp;&middot;&nbsp;{" "}
+          <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the index</Link>
+        </div>
+      </GravityWell>
 
       {/* ══ FIND — search the index; Fortune 500 scrolls quietly behind it ══ */}
       <div style={{ padding: "80px 40px 100px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>

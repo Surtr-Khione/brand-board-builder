@@ -11,7 +11,7 @@ style.textContent = `
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-  input:focus, textarea:focus { border-color: rgba(233,69,96,0.4) !important; }
+  input:focus, textarea:focus { border-color: rgba(0,113,227,0.55) !important; }
 `;
 document.head.appendChild(style);
 
