@@ -8,16 +8,16 @@ and a public library of the world's iconic brands with full brand identity data.
 All brand data is available as structured JSON — no authentication required.
 
 ### List all brands
-GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands
+GET https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/search-brands
 
 ### Search brands
-GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?q={query}
+GET https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/search-brands?q={query}
 
 ### Filter by archetype
-GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?archetype=The+Hero
+GET https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/search-brands?archetype=The+Hero
 
 ### Get single brand (full data + evolution history)
-GET https://xpbnglcrnnyfdzkswmsm.supabase.co/functions/v1/search-brands?slug={slug}
+GET https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/search-brands?slug={slug}
 
 ## Data Schema
 
