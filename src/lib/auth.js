@@ -1,4 +1,7 @@
-// Tier system — localStorage-backed for now, ready to swap for real auth
+// Tier gating is cosmetic and stays client-side; CREDITS are real money and
+// live server-side (bmd_anon_credits via the `credits` edge fn). localStorage
+// holds a cache of the server balance plus the credit token that authorizes
+// spending — editing the cache changes nothing the server will honor.
 export const TIERS = { free: 0, registered: 1, pro: 2 };
 export const TIER_NAMES = { free: "Free", registered: "Registered", pro: "Pro" };
 
@@ -8,16 +11,47 @@ export const getCredits  = ()  => parseInt(localStorage.getItem("brandmd_credits
 export const setCredits  = (n) => localStorage.setItem("brandmd_credits", String(Math.max(0, n)));
 export const getEmail    = ()  => localStorage.getItem("brandmd_email") || "";
 export const setEmail    = (e) => localStorage.setItem("brandmd_email", e);
+export const getCreditToken = () => localStorage.getItem("brandmd_credit_token") || "";
 
 export const isUnlocked  = (sectionTier) => TIERS[getTier()] >= TIERS[sectionTier || "free"];
 
-export function register(email) {
+async function creditsApi(body) {
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!base) return null;
+  try {
+    const r = await fetch(`${base}/functions/v1/credits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    return r.ok ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function register(email) {
   setEmail(email);
   setTier("registered");
-  if (getCredits() === 0) setCredits(3);
-  // Credit the referrer (send ref code to edge fn in real impl; for now just store locally)
   const refBy = new URLSearchParams(window.location.search).get("ref");
   if (refBy) localStorage.setItem("brandmd_ref_by", refBy);
+  const res = await creditsApi({ action: "register", email });
+  if (res?.token) {
+    localStorage.setItem("brandmd_credit_token", res.token);
+    setCredits(res.credits);
+  }
+  return res;
+}
+
+// Refresh the cached balance from the server (call after any spend/earn)
+export async function syncCredits() {
+  const token = getCreditToken();
+  if (!token) return getCredits();
+  const res = await creditsApi({ action: "balance", token });
+  if (res && typeof res.credits === "number") setCredits(res.credits);
+  return getCredits();
 }
 
 // Called when someone visits via a referral link — stores the code
@@ -62,11 +96,21 @@ export function hasEarnedAction(action) {
   return localStorage.getItem(`brandmd_earned_${action}`) === "1";
 }
 
+// Client earn keys → server ledger keys
+const EARN_KEY_MAP = { share_fb: "share_facebook", share_li: "share_linkedin", share_x: "share_x", share_link: "share_link" };
+
 export function claimEarnAction(action) {
   if (hasEarnedAction(action)) return false;
   if (!EARN_ACTIONS.includes(action)) return false;
   localStorage.setItem(`brandmd_earned_${action}`, "1");
-  setCredits(getCredits() + 1);
+  setCredits(getCredits() + 1); // optimistic — server response corrects the cache
+  const serverKey = EARN_KEY_MAP[action];
+  const token = getCreditToken();
+  if (serverKey && token) {
+    creditsApi({ action: "earn", token, earnAction: serverKey }).then((res) => {
+      if (res && typeof res.credits === "number") setCredits(res.credits);
+    });
+  }
   return true;
 }
 
@@ -82,7 +126,13 @@ export function importContacts(emails = []) {
   const addable = Math.max(0, Math.min(valid.length, cap - prev));
   if (addable > 0) {
     localStorage.setItem("brandmd_contacts", String(prev + addable));
-    setCredits(getCredits() + addable);
+    setCredits(getCredits() + addable); // optimistic — server response corrects the cache
+    const token = getCreditToken();
+    if (token) {
+      creditsApi({ action: "import", token, count: addable }).then((res) => {
+        if (res && typeof res.credits === "number") setCredits(res.credits);
+      });
+    }
   }
   return { added: addable, total: prev + addable };
 }

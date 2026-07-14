@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
 import { scanSocial, analyzePDF, synthesizeBrand } from "../lib/ai";
+import { mapSynthesisToBoard } from "../lib/synthesisMap";
 
 const PLATFORMS = [
   // Social
-  { type: "website",       label: "Website",        icon: "🌐", group: "social", placeholder: "yourbrand.com",                          color: "#e94560", hint: "Colors, fonts, meta, CSS vars" },
+  { type: "website",       label: "Website",        icon: "🌐", group: "social", placeholder: "yourbrand.com",                          color: "#0071E3", hint: "Colors, fonts, meta, CSS vars" },
   { type: "linkedin",      label: "LinkedIn",       icon: "💼", group: "social", placeholder: "linkedin.com/company/yourbrand",          color: "#0077b5", hint: "Mission, industry, specialties, B2B voice" },
   { type: "instagram",     label: "Instagram",      icon: "📸", group: "social", placeholder: "instagram.com/yourbrand",                 color: "#e1306c", hint: "Visual style, content topics, caption voice" },
   { type: "youtube",       label: "YouTube",        icon: "▶",  group: "social", placeholder: "youtube.com/@yourbrand",                  color: "#ff0000", hint: "Channel description, content pillars, video style" },
@@ -19,7 +20,7 @@ const PLATFORMS = [
   { type: "iheartradio",   label: "iHeartRadio",    icon: "📻", group: "audio",  placeholder: "iheart.com/podcast/...",                  color: "#C6002B", hint: "Podcast topics, radio voice" },
   { type: "podcastrss",    label: "Podcast RSS",    icon: "⊡",  group: "audio",  placeholder: "feeds.yourbrand.com/podcast.rss",         color: "#F26522", hint: "Full episode catalog, topics, audience" },
   // Documents
-  { type: "pdf",           label: "Brand PDF",      icon: "📄", group: "doc",    placeholder: null,                                      color: "#9b59b6", hint: "Brand guide, style guide, pitch deck — extracts everything" },
+  { type: "pdf",           label: "Brand PDF",      icon: "📄", group: "doc",    placeholder: null,                                      color: "#0071E3", hint: "Brand guide, style guide, pitch deck — extracts everything" },
 ];
 
 const GROUP_LABELS = {
@@ -45,8 +46,8 @@ function SourceRow({ platform, status, url, onUrlChange, onScan, onRemove }) {
     <div style={{
       display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
       borderRadius: 10, marginBottom: 8,
-      border: `1px solid ${isDone ? "rgba(46,204,113,0.2)" : isError ? "rgba(233,69,96,0.15)" : "rgba(255,255,255,0.06)"}`,
-      background: isDone ? "rgba(46,204,113,0.03)" : "rgba(255,255,255,0.015)",
+      border: `1px solid ${isDone ? "rgba(50,215,75,0.2)" : isError ? "rgba(255,69,58,0.2)" : "rgba(255,255,255,0.06)"}`,
+      background: isDone ? "rgba(50,215,75,0.03)" : "rgba(255,255,255,0.015)",
       transition: "all 0.2s",
     }}>
       {/* Platform icon */}
@@ -62,15 +63,15 @@ function SourceRow({ platform, status, url, onUrlChange, onScan, onRemove }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 10, color: "#444", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 3 }}>
           {platform.label}
-          {isDone && <span style={{ color: "#2ecc71", marginLeft: 6 }}>✓</span>}
-          {isError && <span style={{ color: "#e94560", marginLeft: 6 }}>✗ failed</span>}
+          {isDone && <span style={{ color: "#32D74B", marginLeft: 6 }}>✓</span>}
+          {isError && <span style={{ color: "#FF453A", marginLeft: 6 }}>✗ failed</span>}
         </div>
         {isPDF ? (
           <>
             <input type="file" ref={fileRef} accept=".pdf" style={{ display: "none" }} onChange={handleFileChange} />
             <button
               onClick={() => fileRef.current?.click()}
-              style={{ fontSize: 12, color: isDone ? "#2ecc71" : "#555", background: "transparent", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit" }}
+              style={{ fontSize: 12, color: isDone ? "#32D74B" : "#555", background: "transparent", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit" }}
             >
               {isDone ? url || "PDF uploaded" : "Click to upload a PDF →"}
             </button>
@@ -97,8 +98,8 @@ function SourceRow({ platform, status, url, onUrlChange, onScan, onRemove }) {
           disabled={isScanning}
           style={{
             padding: "5px 12px", borderRadius: 6, border: "none", cursor: isScanning ? "wait" : "pointer",
-            background: isDone ? "rgba(46,204,113,0.12)" : `rgba(${hexToRgb(platform.color)},0.15)`,
-            color: isDone ? "#2ecc71" : platform.color,
+            background: isDone ? "rgba(50,215,75,0.12)" : `rgba(${hexToRgb(platform.color)},0.15)`,
+            color: isDone ? "#32D74B" : platform.color,
             fontSize: 11, fontWeight: 700, fontFamily: "inherit", flexShrink: 0,
           }}
         >
@@ -163,58 +164,17 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
         .map(([type, data]) => ({ type, url: urls[type] || "", data }));
       const result = await synthesizeBrand(sources, {});
       if (result?.synthesis) {
-        const s = result.synthesis;
-        const updates = {};
-        // Core fields
-        for (const k of ["brandName","tagline","industry","elevator","mission","vision","brandPromise","whyDifferent","archetype","socialPersonality","photoStyle","photoMood","audioMood","competitivePositioning"]) {
-          if (s[k]) updates[k] = s[k];
+        const updates = mapSynthesisToBoard(result.synthesis);
+        // Scanned sources keep authority over colors — synthesis colors are
+        // inferred, a scan's are observed. mapSynthesisToBoard includes them
+        // for the from-zero founder path; here we drop them unless no scan
+        // found colors at all.
+        const scannedColors = Object.values(sourceData).some((d) => d?.colors?.length);
+        if (scannedColors) {
+          delete updates.primaryColor;
+          delete updates.secondaryColor;
+          delete updates.accentColor;
         }
-        // Arrays
-        if (s.coreValues?.some(Boolean)) updates.coreValues = s.coreValues;
-        if (s.toneAttributes?.some(Boolean)) updates.toneAttributes = s.toneAttributes;
-        if (s.brandPersonality?.some(Boolean)) updates.brandPersonality = s.brandPersonality;
-        if (s.messagingDos?.some(Boolean)) updates.messagingDos = s.messagingDos;
-        if (s.messagingDonts?.some(Boolean)) updates.messagingDonts = s.messagingDonts;
-        if (s.wordsAlways?.some(Boolean)) updates.wordsAlways = s.wordsAlways;
-        if (s.wordsNever?.some(Boolean)) updates.wordsNever = s.wordsNever;
-        if (s.differentiators?.some(Boolean)) updates.differentiators = s.differentiators;
-        if (s.moodboardKeywords?.some(Boolean)) updates.moodboardKeywords = s.moodboardKeywords;
-        // Platform voices
-        for (const k of ["voiceInstagram","voiceLinkedIn","voiceYouTube","voiceTikTok","voiceFacebook","voiceTwitter"]) {
-          if (s[k]) updates[k] = s[k];
-        }
-        // Audience
-        for (const k of ["audienceAge","audienceRole","audiencePains","audienceGoals"]) {
-          if (s[k]) updates[k] = s[k];
-        }
-        // Content pillars (structured)
-        if (s.contentPillars?.length) {
-          updates.contentPillars = s.contentPillars.map(p =>
-            typeof p === "string"
-              ? { name: p, description: "", topics: ["", ""], audience: "" }
-              : { name: p.name || "", description: p.description || "", topics: Array.isArray(p.topics) ? p.topics : ["", ""], audience: p.rationale || "" }
-          );
-        }
-        // ICPs — top 3 customer profiles
-        if (s.icps?.length) {
-          updates.icps = s.icps.slice(0, 3).map((icp, i) => ({
-            id: String(i + 1),
-            title: icp.title || "",
-            segment: icp.segment || "",
-            demographics: icp.demographics || "",
-            psychographics: icp.psychographics || "",
-            painPoints: icp.painPoints || ["", ""],
-            goals: icp.goals || ["", ""],
-            buyingTriggers: icp.buyingTriggers || ["", ""],
-            channels: icp.channels || "",
-            messageAngle: icp.messageAngle || "",
-            ltv: icp.ltv || "",
-            acquisition: icp.acquisition || "",
-          }));
-        }
-        // Color rationale stored in notes if present
-        if (s.primaryFont) updates.primaryFont = s.primaryFont;
-        if (s.bodyFont) updates.bodyFont = s.bodyFont;
         // Sources map
         updates.sources = urls;
         onApply(updates);
@@ -240,7 +200,7 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ fontSize: 18 }}>🧠</div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#f0ece3" }}>Brand Intelligence</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F5F7" }}>Brand Intelligence</div>
             <div style={{ fontSize: 11, color: "#444" }}>
               Connect your URLs · Scan all sources · AI synthesizes everything
             </div>
@@ -248,7 +208,7 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {doneSources > 0 && (
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#2ecc71", background: "rgba(46,204,113,0.1)", border: "1px solid rgba(46,204,113,0.2)", borderRadius: 20, padding: "3px 10px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#32D74B", background: "rgba(50,215,75,0.1)", border: "1px solid rgba(50,215,75,0.2)", borderRadius: 20, padding: "3px 10px" }}>
               {doneSources} source{doneSources > 1 ? "s" : ""} scanned
             </div>
           )}
@@ -263,9 +223,9 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
 
           {/* Discovered URLs from website scan */}
           {newDiscovered.length > 0 && !dismissedDiscovered && (
-            <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(46,204,113,0.18)", background: "rgba(46,204,113,0.04)" }}>
+            <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(50,215,75,0.18)", background: "rgba(50,215,75,0.04)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#2ecc71", letterSpacing: 0.5 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#32D74B", letterSpacing: 0.5 }}>
                   ✦ {newDiscovered.length} profile{newDiscovered.length > 1 ? "s" : ""} discovered from your website scan
                 </div>
                 <button onClick={() => setDismissedDiscovered(true)} style={{ background: "transparent", border: "none", color: "#333", cursor: "pointer", fontSize: 12 }}>×</button>
@@ -302,7 +262,7 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
                     newDiscovered.forEach(([type, url]) => setUrl(type, url));
                     setDismissedDiscovered(true);
                   }}
-                  style={{ padding: "5px 10px", borderRadius: 7, border: "1px solid rgba(46,204,113,0.25)", background: "rgba(46,204,113,0.08)", color: "#2ecc71", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                  style={{ padding: "5px 10px", borderRadius: 7, border: "1px solid rgba(50,215,75,0.25)", background: "rgba(50,215,75,0.08)", color: "#32D74B", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
                 >
                   Fill all →
                 </button>
@@ -334,18 +294,18 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
 
           {/* Synthesize CTA */}
           {doneSources >= 1 && !synthDone && (
-            <div style={{ marginTop: 16, padding: 16, borderRadius: 10, border: "1px solid rgba(155,89,182,0.2)", background: "rgba(155,89,182,0.04)" }}>
+            <div style={{ marginTop: 16, padding: 16, borderRadius: 10, border: "1px solid rgba(0,113,227,0.2)", background: "rgba(0,113,227,0.04)" }}>
               <div style={{ fontSize: 13, color: "#ccc", marginBottom: 12 }}>
-                <strong style={{ color: "#9b59b6" }}>{doneSources} source{doneSources > 1 ? "s" : ""} ready.</strong>
+                <strong style={{ color: "#0071E3" }}>{doneSources} source{doneSources > 1 ? "s" : ""} ready.</strong>
                 {" "}AI will synthesize all of them into a complete brand profile — voice, audience, pillars, vocabulary, and positioning.
               </div>
-              {error && <div style={{ fontSize: 12, color: "#e94560", marginBottom: 10 }}>{error}</div>}
+              {error && <div style={{ fontSize: 12, color: "#FF453A", marginBottom: 10 }}>{error}</div>}
               <button
                 onClick={handleSynthesize}
                 disabled={synthesizing}
                 style={{
                   padding: "10px 24px", borderRadius: 8, border: "none", cursor: synthesizing ? "wait" : "pointer",
-                  background: synthesizing ? "rgba(155,89,182,0.3)" : "linear-gradient(135deg,#9b59b6,#6c3483)",
+                  background: synthesizing ? "rgba(0,113,227,0.3)" : "linear-gradient(135deg,#0071E3,#6c3483)",
                   color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "inherit",
                 }}
               >
@@ -355,8 +315,8 @@ export default function BrandIntelligence({ onApply, discoveredUrls = {} }) {
           )}
 
           {synthDone && (
-            <div style={{ marginTop: 16, padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(46,204,113,0.2)", background: "rgba(46,204,113,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 13, color: "#2ecc71", fontWeight: 600 }}>✓ Brand intelligence applied — all sections updated</span>
+            <div style={{ marginTop: 16, padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(50,215,75,0.2)", background: "rgba(50,215,75,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: "#32D74B", fontWeight: 600 }}>✓ Brand intelligence applied — all sections updated</span>
               <button onClick={() => setSynthDone(false)} style={{ fontSize: 11, color: "#555", background: "transparent", border: "none", cursor: "pointer" }}>Re-synthesize</button>
             </div>
           )}

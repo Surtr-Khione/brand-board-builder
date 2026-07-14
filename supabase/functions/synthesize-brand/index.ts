@@ -1,4 +1,5 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.27.3";
+import { makeDb, rateLimited, RATE_LIMIT_MSG } from "../_shared/gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,6 +7,7 @@ const corsHeaders = {
 };
 
 const client = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
+const db = makeDb();
 
 const SYSTEM_PROMPT = `You are a senior brand intelligence analyst — part McKinsey strategist, part behavioral economist, part investigative journalist. You synthesize brand signals across multiple sources into board-level strategic intelligence.
 
@@ -143,11 +145,32 @@ const OUTPUT_SCHEMA = {
   },
 };
 
+const PROFILE_SCHEMA = {
+  type: "object",
+  required: ["brandName", "tagline", "industry", "mission", "vision", "elevator", "archetype",
+    "secondaryArchetype", "enemy", "toneAttributes", "brandPersonality",
+    "primaryColor", "secondaryColor", "accentColor", "coreValues", "whyDifferent",
+    "brandPromise", "messagingDos", "messagingDonts", "wordsAlways", "wordsNever",
+    "competitivePositioning", "differentiators", "photoStyle", "photoMood",
+    "socialPersonality", "colorRationale"],
+  properties: {
+    ...OUTPUT_SCHEMA.properties,
+    secondaryArchetype: { type: "string" },
+    enemy: { type: "string", description: "The named enemy the brand fights — a broken status quo, not a competitor company" },
+  },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { sources = [], existingBrand = {} } = await req.json();
+    const { sources = [], existingBrand = {}, mode } = await req.json();
+    // mode "profile": trimmed output (no ICPs/platform voices/pillars) —
+    // faster, fits the edge wall clock; used by the library seeder.
+    const profileMode = mode === "profile";
+    if (await rateLimited(db, req, "synthesize-brand", 5)) {
+      return new Response(JSON.stringify({ error: RATE_LIMIT_MSG }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Build detailed source summaries for analysis
     const sourceSummaries = sources
@@ -226,13 +249,13 @@ For ICPs specifically: each must be meaningfully different from the others in bu
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: profileMode ? 3500 : 8000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],
       tools: [{
         name: "output_brand_synthesis",
         description: "Output the complete brand intelligence synthesis",
-        input_schema: OUTPUT_SCHEMA,
+        input_schema: profileMode ? PROFILE_SCHEMA : OUTPUT_SCHEMA,
       }],
       tool_choice: { type: "tool", name: "output_brand_synthesis" },
     });

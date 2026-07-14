@@ -110,7 +110,7 @@ export default function ImageMoodboard({ onApply }) {
       <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 18 }}>🖼</span>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#f0ece3" }}>Visual Moodboard Analysis</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F5F7" }}>Visual Moodboard Analysis</div>
           <div style={{ fontSize: 11, color: "#444" }}>Add brand images or product shots — Claude reads your visual DNA</div>
         </div>
         {images.length > 0 && (
@@ -139,7 +139,7 @@ export default function ImageMoodboard({ onApply }) {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={images.length >= 8}
-            style={{ padding: "9px 16px", borderRadius: 8, border: "1px solid rgba(155,89,182,0.25)", background: "rgba(155,89,182,0.06)", color: "#9b59b6", cursor: images.length >= 8 ? "not-allowed" : "pointer", fontSize: 13, fontFamily: "inherit", whiteSpace: "nowrap" }}
+            style={{ padding: "9px 16px", borderRadius: 8, border: "1px solid rgba(0,113,227,0.25)", background: "rgba(0,113,227,0.06)", color: "#0071E3", cursor: images.length >= 8 ? "not-allowed" : "pointer", fontSize: 13, fontFamily: "inherit", whiteSpace: "nowrap" }}
           >
             Upload
           </button>
@@ -192,12 +192,12 @@ export default function ImageMoodboard({ onApply }) {
           <button
             onClick={handleAnalyze}
             disabled={analyzing}
-            style={{ width: "100%", padding: "11px 0", borderRadius: 8, border: "none", cursor: analyzing ? "wait" : "pointer", background: analyzing ? "rgba(233,69,96,0.25)" : "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "inherit" }}
+            style={{ width: "100%", padding: "11px 0", borderRadius: 8, border: "none", cursor: analyzing ? "wait" : "pointer", background: analyzing ? "rgba(0,113,227,0.25)" : "linear-gradient(135deg,#0071E3,#005BB8)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "inherit" }}
           >
             {analyzing ? `Analyzing ${images.length} image${images.length > 1 ? "s" : ""}…` : `✦ Analyze Visual Brand (${images.length} image${images.length > 1 ? "s" : ""})`}
           </button>
         )}
-        {error && <div style={{ fontSize: 12, color: "#e94560", marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ fontSize: 12, color: "#FF453A", marginTop: 8 }}>{error}</div>}
 
         {/* Results */}
         {result && (
@@ -270,13 +270,13 @@ export default function ImageMoodboard({ onApply }) {
             </div>
 
             {applied ? (
-              <div style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid rgba(46,204,113,0.2)", background: "rgba(46,204,113,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 13, color: "#2ecc71", fontWeight: 600 }}>✓ Visual identity applied to your brand board</span>
+              <div style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid rgba(50,215,75,0.2)", background: "rgba(50,215,75,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: "#32D74B", fontWeight: 600 }}>✓ Visual identity applied to your brand board</span>
                 <button onClick={() => setApplied(false)} style={{ fontSize: 11, color: "#555", background: "transparent", border: "none", cursor: "pointer" }}>Undo</button>
               </div>
             ) : (
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={handleApply} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#e94560,#c62a42)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "inherit" }}>
+                <button onClick={handleApply} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#0071E3,#005BB8)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "inherit" }}>
                   Apply Visual Identity to Board
                 </button>
                 <button onClick={() => { setResult(null); setImages([]); }} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#555", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>

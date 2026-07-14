@@ -23,7 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Never commit the real env (only *.local was ignored before)
+# Env — never commit (anon key is public but service keys must never land here)
 .env
 .env.*
 !.env.example
+
+# Supabase CLI local state (discloses project ref, org, pooler host)
+supabase/.temp/

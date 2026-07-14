@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { computeGravityScore } from "../lib/gravityScore";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -41,6 +42,7 @@ export default function BrandCard({ brand, compact = false }) {
   const iconWrap = compact ? 76 : 96;
   const headerH = compact ? 130 : 160;
   const nameSize = compact ? 18 : 21;
+  const { score: gravityScore } = computeGravityScore(brand);
 
   return (
     <Link to={`/brands/${brand.slug}`} style={{ textDecoration: "none", display: "block" }}>
@@ -88,6 +90,15 @@ export default function BrandCard({ brand, compact = false }) {
             }}>★</div>
           )}
 
+          {/* Gravity Score badge */}
+          <div style={{
+            position: "absolute", top: 10, left: 12,
+            padding: "3px 9px", borderRadius: 6, background: "rgba(0,0,0,0.35)",
+            fontSize: 10, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.3,
+          }}>
+            {gravityScore}
+          </div>
+
           {/* Logo container — app-icon style */}
           <div style={{
             width: iconWrap, height: iconWrap,
@@ -125,7 +136,7 @@ export default function BrandCard({ brand, compact = false }) {
         {/* ── BRAND INFO ───────────────────────────────────────── */}
         <div style={{ padding: compact ? "14px 16px 0" : "18px 20px 0" }}>
           {/* Name row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 2 }}>
             <div style={{ fontSize: nameSize, fontWeight: 800, color: "#f0ece3", letterSpacing: "-0.4px", lineHeight: 1.15 }}>
               {brand.brand_name}
             </div>
@@ -140,6 +151,10 @@ export default function BrandCard({ brand, compact = false }) {
                 {brand.archetype.replace("The ", "")}
               </span>
             )}
+          </div>
+
+          <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, color: brand.is_verified ? "#2ecc71" : "#3a3a3a" }}>
+            {brand.is_verified ? "✓ Verified" : "Community"}
           </div>
 
           {/* Tagline */}
