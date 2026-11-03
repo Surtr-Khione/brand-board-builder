@@ -17,6 +17,9 @@ Deployed 2026-07-10: `scan-website`, `ai-suggest` (pre-existing) + `synthesize-b
 ## 🚀 LIVE IN PRODUCTION (deployed 2026-07-11, user-approved)
 brandmd.space serves the founder-release build (bundle `index-DHe5iMhW`) via direct Pages upload — **main is now BEHIND production**; merging PR #3 → #4 is required git hygiene, not a launch step. Board security shipped WITHOUT the column-privilege migration: boards save `is_public=false` (anon REST returns permission denied), reads go through the `get-board` fn (safe fields only), `brand-md` uses path-style routes (`/brand-md/board/:id`) because Pages `_redirects` won't substitute placeholders into query strings. Cloudflare creds: 1Password vault "Infrastructure" → CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID (account "RT Cloudflare").
 
+## Schema record (2026-11-03)
+`supabase/migrations/` now holds all 10 BrandMD migrations exactly as applied to the shared project (MD5-verified; see its README). New schema changes go there and are applied with `supabase db push` / MCP `apply_migration`, never by hand. The hand-written `accounts-schema.sql` on the tabled `worktree-fix-signup-accounts-payments` branch is a summary, not the record.
+
 ## Optional hardening migration (no longer launch-blocking)
 `supabase/migrations/20260710_hide_edit_token_and_email_from_reads.sql` — column-privilege REVOKE/GRANT so anon readers of public boards can't see `edit_token` (the write credential) or `email` (PII). Blocked from automated apply by permissions; apply via SQL editor or MCP. Frontend already selects explicit columns and won't break.
 
