@@ -93,7 +93,7 @@ export async function buyCredits(packId, { returnTo, beforeRedirect } = {}) {
     });
     const data = await r.json();
     if (!r.ok || !data.url) return { error: data.error || "Couldn't start checkout." };
-    if (beforeRedirect) { try { beforeRedirect(); } catch {} }   // e.g. stash unsaved work
+    if (beforeRedirect) { try { beforeRedirect(); } catch { /* stashing is best effort */ } }
     window.location.assign(data.url);
     return { redirecting: true };
   } catch {

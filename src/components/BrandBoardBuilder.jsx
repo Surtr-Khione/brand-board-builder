@@ -5,7 +5,7 @@ import { sendLeadToGHL } from "../lib/ghl";
 import { track } from "../lib/track";
 import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
-import { getTier, isUnlocked, register as _register, verifyRegistration as _verifyRegistration, buyCredits as _buyCredits, handleCheckoutReturn, getCreditToken, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
+import { isUnlocked, register as _register, verifyRegistration as _verifyRegistration, buyCredits as _buyCredits, handleCheckoutReturn, getCreditToken, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
@@ -1909,15 +1909,30 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
     }
   }, [initialBoardId]);
 
-  // Back from Stripe: restore the board stashed before the redirect, then pull the
-  // paid balance and tier down (the webhook sets tier=pro server-side).
+  // Back from Stripe: restore the board stashed before the redirect (content AND its
+  // saved identity, so the next save updates the same board), then pull the paid
+  // balance and tier down (the webhook sets tier=pro server-side) and re-render so
+  // isUnlocked() reads the new tier.
+  const [, setTierTick] = useState(0);
   useEffect(() => {
-    const stashed = sessionStorage.getItem("brand-before-checkout");
-    if (stashed) {
+    let stash = null;
+    const raw = sessionStorage.getItem("brand-before-checkout");
+    if (raw) {
       sessionStorage.removeItem("brand-before-checkout");
-      try { setBrand(JSON.parse(stashed)); } catch {}
+      try { stash = JSON.parse(raw); } catch { stash = null; }
     }
-    handleCheckoutReturn(track).then((r) => { if (r) setTierState(getTier()); });
+    // Restore after the return handler settles, so the board and the paid tier land together.
+    handleCheckoutReturn(track).then((r) => {
+      if (stash && stash.brand) {
+        setBrand(stash.brand);
+        if (stash.boardId) setBoardId(stash.boardId);
+        if (stash.email) setEmail(stash.email);
+        if (stash.shareUrl) { setShareUrl(stash.shareUrl); setSaved(true); }
+      } else if (stash) {
+        setBrand(stash);
+      }
+      if (r || stash) setTierTick((n) => n + 1);
+    });
   }, []);
 
   useEffect(() => {
@@ -2270,7 +2285,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
         {/* SECTION GATE MODAL */}
         {gateTarget && (
           <SectionGateModal
-            onBeforeCheckout={() => sessionStorage.setItem("brand-before-checkout", JSON.stringify(brand))}
+            onBeforeCheckout={() => sessionStorage.setItem("brand-before-checkout", JSON.stringify({ brand, boardId, email, shareUrl }))}
             section={gateTarget}
             onClose={() => setGateTarget(null)}
             onUnlocked={() => { setGateTarget(null); window.location.reload(); }}
