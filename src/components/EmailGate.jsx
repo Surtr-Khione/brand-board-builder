@@ -23,8 +23,8 @@ export default function EmailGate({
     setError('');
     try {
       await onSubmit({ email, firstName });
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err?.message || 'Something went wrong. Please try again.');
     }
     setLoading(false);
   };

@@ -7,7 +7,7 @@ import {
   buildUserPrompt, buildBrandCtx, buildIcpCtx, DEFAULT_SYSTEM_PROMPT, FORMATS, suggestTopics, FIELD_HINTS,
 } from "../lib/promptBuilder";
 import {
-  getTier, getCredits, getEmail, register, upgradePro, setCredits, syncCredits, CREDIT_PACKS, TIERS, isUnlocked,
+  getTier, getCredits, getEmail, register, verifyRegistration, buyCredits, handleCheckoutReturn, setCredits, syncCredits, CREDIT_PACKS, TIERS, isUnlocked,
 } from "../lib/auth";
 
 // ─── Content types ────────────────────────────────────────────────────────────
@@ -59,11 +59,19 @@ function hexRgb(hex = "") {
 function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
   const [email, setEmail] = useState(getEmail());
   const [done, setDone] = useState(false);
-  const submit = () => {
-    if (!email.includes("@")) return;
-    register(email);
-    setDone(true);
-    setTimeout(onClose, 1200);
+  const [pending, setPending] = useState(false);   // a code was sent to an already-registered email
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const finish = () => { setDone(true); setTimeout(onClose, 1200); };
+  const submit = async () => {
+    if (!email.includes("@") || busy) return;
+    setBusy(true); setErr("");
+    const res = pending ? await verifyRegistration(email, code) : await register(email);
+    setBusy(false);
+    if (res?.token) return finish();
+    if (res?.pending) { setPending(true); return; }
+    setErr(res?.error || "Couldn't register right now.");
   };
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
@@ -81,14 +89,22 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
               Register free to unlock Content Studio and get <strong style={{color:"#32D74B"}}>3 free credits</strong> to generate content.
             </div>
             <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              type="email" value={email} onChange={e => setEmail(e.target.value)} disabled={pending}
               onKeyDown={e => e.key === "Enter" && submit()}
               placeholder="your@email.com"
               style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
             />
+            {pending && (
+              <input
+                type="text" inputMode="numeric" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onKeyDown={e => e.key === "Enter" && submit()} placeholder="6-digit code from your email" autoFocus
+                style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(0,113,227,0.4)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12,letterSpacing:"0.2em" }}
+              />
+            )}
+            {err && <div style={{ fontSize:12,color:"#FF453A",marginBottom:10 }}>{err}</div>}
             <div style={{ display:"flex",gap:10 }}>
-              <button onClick={submit} style={{ flex:1,padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-                Get 3 Free Credits →
+              <button onClick={submit} disabled={busy} style={{ flex:1,padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:busy?"default":"pointer",opacity:busy?0.7:1,fontFamily:"inherit" }}>
+                {pending ? "Confirm code →" : "Get 3 Free Credits →"}
               </button>
               <button onClick={onClose} style={{ padding:"12px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
                 Later
@@ -104,7 +120,14 @@ function RegisterModal({ onClose, reason = "Unlock Content Studio" }) {
 // ─── Credits / Upgrade Modal ───────────────────────────────────────────────────
 function CreditsModal({ onClose }) {
   const [selected, setSelected] = useState("creator");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
   const pack = CREDIT_PACKS.find(p => p.id === selected);
+  const buy = async () => {
+    setBusy(true); setErr("");
+    const res = await buyCredits(pack.id);
+    if (res?.error) { setErr(res.error); setBusy(false); }
+  };
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
       <div style={{ maxWidth:460,width:"100%",background:"#0e0e14",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",padding:"32px 32px 28px" }}>
@@ -121,10 +144,11 @@ function CreditsModal({ onClose }) {
             </button>
           ))}
         </div>
+        {err && <div style={{ fontSize:12,color:"#ff6b6f",marginBottom:10 }}>{err}</div>}
         {pack && (
           <div style={{ display:"flex",gap:10 }}>
-            <button onClick={() => { upgradePro(pack.credits); onClose(); }} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#0071E3,#005BB8)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-              Buy {pack.credits} Credits for {pack.price}
+            <button onClick={buy} disabled={busy} style={{ flex:1,padding:"13px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#0071E3,#005BB8)",color:"#fff",fontSize:14,fontWeight:700,cursor:busy?"default":"pointer",opacity:busy?0.7:1,fontFamily:"inherit" }}>
+              {busy ? "Opening checkout…" : `Buy ${pack.credits} Credits for ${pack.price}`}
             </button>
             <button onClick={onClose} style={{ padding:"13px 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",background:"transparent",color:"#555",fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
               Cancel
@@ -300,6 +324,9 @@ export default function ContentStudio() {
   const [customSystemPrompt, setCustomSystemPrompt] = useState(null);
   const [customUserPrompt, setCustomUserPrompt]     = useState(null);
   const [usingCustomPrompt, setUsingCustomPrompt]   = useState(false);
+
+  // Back from Stripe: the webhook has credited the server balance; pull it down.
+  useEffect(() => { handleCheckoutReturn(track).then((r) => { if (r) refreshAuth(); }); }, []);
 
   useEffect(() => {
     async function load() {

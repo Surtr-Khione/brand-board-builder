@@ -1,0 +1,16 @@
+# Supabase CLI config for the shared project (bukgitgwwmzdjibekmzb).
+# Every BrandMD function runs with verify_jwt = false: the browser's CORS preflight
+# can't carry auth, and each function does its own checks (credit token, Stripe
+# signature, rate limit). Pinning it here means a plain `supabase functions deploy`
+# can't silently re-enable JWT verification on create-checkout (which was deployed
+# with it on, and would then reject every real purchase at the gateway).
+project_id = "bukgitgwwmzdjibekmzb"
+
+[functions.credits]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
