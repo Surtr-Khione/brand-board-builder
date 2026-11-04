@@ -5,7 +5,7 @@ import { sendLeadToGHL } from "../lib/ghl";
 import { track } from "../lib/track";
 import { suggestField, isAIAvailable } from "../lib/ai";
 import { publishBrand } from "../lib/brands";
-import { getTier, isUnlocked, register as _register, upgradePro as _upgradePro, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
+import { isUnlocked, register as _register, verifyRegistration as _verifyRegistration, buyCredits as _buyCredits, handleCheckoutReturn, getCreditToken, getReferralUrl, claimEarnAction, hasEarnedAction, importContacts, getCredits as _getCredits, CREDIT_PACKS } from "../lib/auth";
 import EmailGate from "./EmailGate";
 import WebScanner from "./WebScanner";
 import BrandIntelligence from "./BrandIntelligence";
@@ -1696,7 +1696,7 @@ function ExportSection({ brand, onSave, email, boardId }) {
 // ═══════════════════════════════════════════════
 // SECTION GATE MODAL
 // ═══════════════════════════════════════════════
-function SectionGateModal({ section, onClose, onUnlocked }) {
+function SectionGateModal({ section, onClose, onUnlocked, onBeforeCheckout }) {
   const isRegGate  = section.tier === "registered";
   const [email, setEmail]   = useState("");
   const [phase, setPhase]   = useState("main"); // main | email | credits | earn
@@ -1705,10 +1705,15 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
 
   const refUrl = getReferralUrl();
 
-  const doRegister = () => {
+  const [regErr, setRegErr] = useState("");
+  const [regCode, setRegCode] = useState("");
+  const doRegister = async () => {
     if (!email.includes("@")) return;
-    _register(email);
-    setPhase("done");
+    setRegErr("");
+    const res = phase === "code" ? await _verifyRegistration(email, regCode) : await _register(email);
+    if (res?.token) { setPhase("done"); return; }
+    if (res?.pending) { setPhase("code"); return; }
+    setRegErr(res?.error || "Couldn't register right now.");
   };
 
   const doShare = (action, url) => {
@@ -1758,25 +1763,60 @@ function SectionGateModal({ section, onClose, onUnlocked }) {
                 ))}
               </div>
 
-              {phase === "main" && isRegGate && (
+              {(phase === "main" || phase === "code") && isRegGate && (
                 <div>
-                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Register free and get <strong style={{color:"#32D74B"}}>3 content credits</strong> — no credit card required.</div>
-                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()}
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>
+                    {phase === "code" ? "This email already has credits. Enter the 6-digit code we sent to confirm it's you." : <>Register free and get <strong style={{color:"#32D74B"}}>3 content credits</strong> — no credit card required.</>}
+                  </div>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()} disabled={phase === "code"}
                     placeholder="your@email.com"
                     style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
                   />
+                  {phase === "code" && (
+                    <input type="text" inputMode="numeric" value={regCode} onChange={e=>setRegCode(e.target.value.replace(/\D/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&doRegister()} autoFocus
+                      placeholder="6-digit code"
+                      style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(0,113,227,0.4)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12,letterSpacing:"0.2em" }}
+                    />
+                  )}
+                  {regErr && <div style={{ fontSize:12,color:"#FF453A",marginBottom:10 }}>{regErr}</div>}
                   <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-                    Register Free — Get 3 Credits →
+                    {phase === "code" ? "Confirm code →" : "Register Free — Get 3 Credits →"}
                   </button>
                 </div>
               )}
 
-              {phase === "main" && !isRegGate && (
+              {(phase === "main" || phase === "code") && !isRegGate && !getCreditToken() && (
+                <div>
+                  <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>
+                    {phase === "code" ? "This email already has credits. Enter the 6-digit code we sent to confirm it's you." : "Register free first (3 credits, no card), then unlock Pro sections with a credit pack."}
+                  </div>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doRegister()} disabled={phase === "code"}
+                    placeholder="your@email.com"
+                    style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}
+                  />
+                  {phase === "code" && (
+                    <input type="text" inputMode="numeric" value={regCode} onChange={e=>setRegCode(e.target.value.replace(/\D/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&doRegister()} autoFocus
+                      placeholder="6-digit code"
+                      style={{ width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(0,113,227,0.4)",background:"rgba(255,255,255,0.04)",color:"#e0e0e0",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12,letterSpacing:"0.2em" }}
+                    />
+                  )}
+                  {regErr && <div style={{ fontSize:12,color:"#FF453A",marginBottom:10 }}>{regErr}</div>}
+                  <button onClick={doRegister} style={{ width:"100%",padding:"12px 0",borderRadius:8,border:"none",background:"linear-gradient(135deg,#32D74B,#28B446)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                    {phase === "code" ? "Confirm code →" : "Register Free — Get 3 Credits →"}
+                  </button>
+                </div>
+              )}
+
+              {phase === "main" && !isRegGate && !!getCreditToken() && (
                 <div>
                   <div style={{ fontSize:13,color:"#555",marginBottom:16 }}>Pro sections include advanced intelligence: ICPs, offer architecture, brand stories, content calendar, sensory physics, and more.</div>
+                  {regErr && <div style={{ fontSize:12,color:"#FF453A",marginBottom:10 }}>{regErr}</div>}
                   <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14 }}>
                     {CREDIT_PACKS.map(p => (
-                      <button key={p.id} onClick={() => { _upgradePro(p.credits); onUnlocked(); }}
+                      <button key={p.id} onClick={async () => {
+                        const r = await _buyCredits(p.id, { returnTo: "/builder", beforeRedirect: onBeforeCheckout });
+                        if (r?.error) setRegErr(r.error);
+                      }}
                         style={{ padding:"12px 10px",borderRadius:9,cursor:"pointer",fontFamily:"inherit",border:"1px solid rgba(255,255,255,0.07)",background:"rgba(255,255,255,0.02)",textAlign:"left" }}>
                         <div style={{ fontSize:12,fontWeight:700,color:"#ccc" }}>{p.label}</div>
                         <div style={{ fontSize:18,fontWeight:800,color:"#fff" }}>{p.credits} <span style={{ fontSize:10,color:"#444" }}>credits</span></div>
@@ -1868,6 +1908,32 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
       }).catch(() => setLoading(false));
     }
   }, [initialBoardId]);
+
+  // Back from Stripe: restore the board stashed before the redirect (content AND its
+  // saved identity, so the next save updates the same board), then pull the paid
+  // balance and tier down (the webhook sets tier=pro server-side) and re-render so
+  // isUnlocked() reads the new tier.
+  const [, setTierTick] = useState(0);
+  useEffect(() => {
+    let stash = null;
+    const raw = sessionStorage.getItem("brand-before-checkout");
+    if (raw) {
+      sessionStorage.removeItem("brand-before-checkout");
+      try { stash = JSON.parse(raw); } catch { stash = null; }
+    }
+    // Restore after the return handler settles, so the board and the paid tier land together.
+    handleCheckoutReturn(track).then((r) => {
+      if (stash && stash.brand) {
+        setBrand(stash.brand);
+        if (stash.boardId) setBoardId(stash.boardId);
+        if (stash.email) setEmail(stash.email);
+        if (stash.shareUrl) { setShareUrl(stash.shareUrl); setSaved(true); }
+      } else if (stash) {
+        setBrand(stash);
+      }
+      if (r || stash) setTierTick((n) => n + 1);
+    });
+  }, []);
 
   useEffect(() => {
     const clone = sessionStorage.getItem("brand-clone");
@@ -2219,6 +2285,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
         {/* SECTION GATE MODAL */}
         {gateTarget && (
           <SectionGateModal
+            onBeforeCheckout={() => sessionStorage.setItem("brand-before-checkout", JSON.stringify({ brand, boardId, email, shareUrl }))}
             section={gateTarget}
             onClose={() => setGateTarget(null)}
             onUnlocked={() => { setGateTarget(null); window.location.reload(); }}

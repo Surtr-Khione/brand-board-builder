@@ -32,17 +32,73 @@ async function creditsApi(body) {
   }
 }
 
+async function creditsApiRaw(body) {
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!base) return { ok: false, status: 0, data: null };
+  try {
+    const r = await fetch(`${base}/functions/v1/credits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+    });
+    return { ok: r.ok, status: r.status, data: await r.json().catch(() => null) };
+  } catch {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// Returns {token,...} on success, {pending:true} when a code was sent to an
+// already-registered email, or {taken:true, error} when that email belongs to
+// another device and no code could be sent. Only a token unlocks credits.
 export async function register(email) {
-  setEmail(email);
-  setTier("registered");
   const refBy = new URLSearchParams(window.location.search).get("ref");
   if (refBy) localStorage.setItem("brandmd_ref_by", refBy);
-  const res = await creditsApi({ action: "register", email });
-  if (res?.token) {
-    localStorage.setItem("brandmd_credit_token", res.token);
-    setCredits(res.credits);
+  const { ok, data } = await creditsApiRaw({ action: "register", email });
+  if (ok && data?.token) {
+    setEmail(email);
+    setTier("registered");
+    localStorage.setItem("brandmd_credit_token", data.token);
+    setCredits(data.credits);
+    return data;
   }
-  return res;
+  if (ok && data?.pending) return { pending: true, message: data.message };
+  return { taken: !!data?.taken, error: data?.error || "Couldn't register right now. Try again." };
+}
+
+// Second step of re-registration: the 6-digit code proves the email is yours.
+export async function verifyRegistration(email, code) {
+  const { ok, data } = await creditsApiRaw({ action: "verify", email, code });
+  if (ok && data?.token) {
+    setEmail(email);
+    setTier(data.tier || "registered");
+    localStorage.setItem("brandmd_credit_token", data.token);
+    setCredits(data.credits);
+    return data;
+  }
+  return { error: data?.error || "That code didn't work." };
+}
+
+// Real purchase: Stripe Checkout, fulfilled server-side by the webhook.
+export async function buyCredits(packId, { returnTo, beforeRedirect } = {}) {
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const creditToken = getCreditToken();
+  if (!creditToken) return { error: "Register free first, then buy credits." };
+  try {
+    const r = await fetch(`${base}/functions/v1/create-checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ packId, creditToken, returnTo: returnTo || window.location.pathname }),
+    });
+    const data = await r.json();
+    if (!r.ok || !data.url) return { error: data.error || "Couldn't start checkout." };
+    if (beforeRedirect) { try { beforeRedirect(); } catch { /* stashing is best effort */ } }
+    window.location.assign(data.url);
+    return { redirecting: true };
+  } catch {
+    return { error: "Couldn't reach checkout. Try again." };
+  }
 }
 
 // Refresh the cached balance from the server (call after any spend/earn)
@@ -51,7 +107,29 @@ export async function syncCredits() {
   if (!token) return getCredits();
   const res = await creditsApi({ action: "balance", token });
   if (res && typeof res.credits === "number") setCredits(res.credits);
+  if (res && typeof res.tier === "string") setTier(res.tier);       // "pro" is set by the webhook after a purchase
   return getCredits();
+}
+
+// Back from Stripe (?checkout=success|cancelled): pull the server balance and tier
+// down, retrying briefly because the webhook can land a few seconds after the
+// redirect. Call from any page a purchase can return to. Returns the result or null.
+export async function handleCheckoutReturn(track) {
+  const q = new URLSearchParams(window.location.search);
+  const result = q.get("checkout");
+  if (!result) return null;
+  q.delete("checkout");
+  window.history.replaceState(null, "", `${window.location.pathname}${q.toString() ? "?" + q : ""}`);
+  if (track) track("purchase_return", { result });
+  if (result === "success") {
+    const before = getCredits();
+    for (let i = 0; i < 6; i++) {
+      const after = await syncCredits();
+      if (after > before) break;
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+  return result;
 }
 
 // Called when someone visits via a referral link — stores the code
@@ -62,9 +140,10 @@ export function captureReferral() {
   }
 }
 
-export function upgradePro(creditPack = 0) {
+// Kept for compatibility; tier and credits now come from the server after a
+// real purchase (see buyCredits + syncCredits). Does nothing to the balance.
+export function upgradePro() {
   setTier("pro");
-  setCredits(getCredits() + creditPack);
 }
 
 export function spendCredit() {

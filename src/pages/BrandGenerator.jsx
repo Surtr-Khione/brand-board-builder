@@ -288,7 +288,10 @@ export default function BrandGenerator() {
   };
 
   const handleGate = async ({ email, firstName }) => {
-    await register(email);
+    const reg = await register(email);
+    if (!reg?.token) throw new Error(reg?.error || (reg?.pending
+      ? "This email already has credits. Open Content Studio and enter the code we sent to confirm it's you."
+      : "Couldn't register right now."));
     setShowGate(false);
     sendLeadToGHL({ email, firstName, boardId: "", boardUrl: `${window.location.origin}/generate` });
     const text = pendingRef.current;
