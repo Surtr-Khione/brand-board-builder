@@ -26,7 +26,7 @@ export default function VersusHub() {
         <p className="vs-intro">
           {loading ? "Pairs" : `${pairs.length} pairs`} of brands in the same category, each set side by side
           from their records in the BrandMD index{total ? ` of ${total} brands` : ""}: archetype, enemy, promise,
-          tagline, values, voice, colours, fonts and Gravity Score. Each pair carries one line on why it is
+          tagline, values, voice, colors, fonts and Gravity Score. Each pair carries one line on why it is
           paired, and nothing else is claimed about how the two compete.
         </p>
       </header>
@@ -41,13 +41,13 @@ export default function VersusHub() {
                 <div className="vs-card-names">
                   <div className="vs-card-side">
                     <div className="vs-card-name">{p.A.name}</div>
-                    <Swatches colours={p.A.colours} />
+                    <Swatches colors={p.A.colors} />
                     {p.A.archetype && <div className="vs-card-arch">{p.A.archetype.name}</div>}
                   </div>
                   <div className="vs-card-vs">vs</div>
                   <div className="vs-card-side vs-right">
                     <div className="vs-card-name">{p.B.name}</div>
-                    <Swatches colours={p.B.colours} />
+                    <Swatches colors={p.B.colors} />
                     {p.B.archetype && <div className="vs-card-arch">{p.B.archetype.name}</div>}
                   </div>
                 </div>

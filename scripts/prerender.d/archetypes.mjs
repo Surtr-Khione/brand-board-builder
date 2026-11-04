@@ -76,11 +76,11 @@ function hubBody(s, taxonomy, esc) {
       out.push(`</section>`);
     }
 
-    out.push(`<section><h2>Most common colour families</h2>`);
-    if (s.colourFamilies.length) {
-      out.push(`<p>How many of the ${plural(s.withColours, "brand")} with stored colours use each family in their primary, secondary or accent colour. Families are grouped from the hex codes by hue and lightness.</p>`);
-      out.push(`<ul>${s.colourFamilies.map((f) => `<li>${esc(f.name)}: ${f.count} of ${s.withColours} (${f.hexes.slice(0, 8).map((h) => `<code>${esc(h)}</code>`).join(", ")})</li>`).join("")}</ul>`);
-    } else out.push(`<p>No colours are stored for these brands.</p>`);
+    out.push(`<section><h2>Most common color families</h2>`);
+    if (s.colorFamilies.length) {
+      out.push(`<p>How many of the ${plural(s.withColors, "brand")} with stored colors use each family in their primary, secondary or accent color. Families are grouped from the hex codes by hue and lightness.</p>`);
+      out.push(`<ul>${s.colorFamilies.map((f) => `<li>${esc(f.name)}: ${f.count} of ${s.withColors} (${f.hexes.slice(0, 8).map((h) => `<code>${esc(h)}</code>`).join(", ")})</li>`).join("")}</ul>`);
+    } else out.push(`<p>No colors are stored for these brands.</p>`);
     out.push(`</section>`);
 
     out.push(`<section><h2>Fonts on record</h2>`);

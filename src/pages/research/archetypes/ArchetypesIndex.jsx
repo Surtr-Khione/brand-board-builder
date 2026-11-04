@@ -26,9 +26,14 @@ export default function ArchetypesIndex() {
           <>
             <div className="arx-dist" aria-label="Share of the index by primary archetype">
               {groups.filter((g) => g.primary.length).map((g) => (
-                <Link key={g.slug} to={`/archetypes/${g.slug}`} title={`${g.name}: ${g.primary.length}`} style={{ flex: g.primary.length }} />
+                <Link key={g.slug} to={`/archetypes/${g.slug}`} title={`${g.name}: ${g.primary.length}`} aria-label={`${g.name}: ${g.primary.length} brands`} style={{ flex: g.primary.length }} />
               ))}
             </div>
+            <ul className="arx-dist-legend">
+              {[...groups].filter((g) => g.primary.length).sort((a, b) => b.primary.length - a.primary.length).map((g) => (
+                <li key={g.slug}><Link to={`/archetypes/${g.slug}`}>{g.name.replace(/^The /, "")} <b>{g.primary.length}</b></Link></li>
+              ))}
+            </ul>
             <div className="arx-dist-note">Each segment is one archetype, sized by how many of the {total} brands hold it as their primary archetype.</div>
           </>
         )}

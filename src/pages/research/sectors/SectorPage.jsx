@@ -88,7 +88,7 @@ export default function SectorPage() {
                 {d.rows.map((r) => (
                   <div className="sx-row" key={r.slug}>
                     <div className="sx-dot" aria-hidden="true">
-                      {(r.colours.length ? r.colours : [{ hex: "#1a1a1a" }]).map((c, i) => <span key={i} style={{ background: c.hex }} />)}
+                      {(r.colors.length ? r.colors : [{ hex: "#1a1a1a" }]).map((c, i) => <span key={i} style={{ background: c.hex }} />)}
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <Link to={`/brands/${r.slug}`} className="sx-row-name">{r.name}</Link>
@@ -129,24 +129,24 @@ export default function SectorPage() {
               </div>
             </section>
 
-            {/* Colour */}
-            <section className="sx-section" aria-labelledby="sx-colour">
-              <div className="sx-label">Colour patterns</div>
-              <h2 className="sx-h2" id="sx-colour">The palettes, side by side</h2>
-              <p className="sx-note">Primary, secondary and accent colours exactly as recorded. Colour families are computed from each hex value's hue and lightness, not from what the brand calls the colour.</p>
+            {/* Color */}
+            <section className="sx-section" aria-labelledby="sx-color">
+              <div className="sx-label">Color patterns</div>
+              <h2 className="sx-h2" id="sx-color">The palettes, side by side</h2>
+              <p className="sx-note">Primary, secondary and accent colors exactly as recorded. Color families are computed from each hex value's hue and lightness, not from what the brand calls the color.</p>
               <div className="sx-swatches" style={{ marginBottom: 24 }}>
-                {d.rows.filter((r) => r.colours.length).map((r) => (
+                {d.rows.filter((r) => r.colors.length).map((r) => (
                   <Link key={r.slug} to={`/brands/${r.slug}`} className="sx-sw">
-                    <div className="sx-sw-strip" aria-hidden="true">{r.colours.map((c, i) => <span key={i} style={{ background: c.hex }} />)}</div>
+                    <div className="sx-sw-strip" aria-hidden="true">{r.colors.map((c, i) => <span key={i} style={{ background: c.hex }} />)}</div>
                     <div className="sx-sw-name">{r.name}</div>
-                    <div className="sx-sw-hex">{r.colours.map((c) => c.hex).join(" ")}</div>
+                    <div className="sx-sw-hex">{r.colors.map((c) => c.hex).join(" ")}</div>
                   </Link>
                 ))}
               </div>
               <div className="sx-two">
                 <div className="sx-panel">
-                  <h3>Primary colour families</h3>
-                  <p>Across the {d.withPrimaryCount} brands in this sector with a recorded primary colour.</p>
+                  <h3>Primary color families</h3>
+                  <p>Across the {d.withPrimaryCount} brands in this sector with a recorded primary color.</p>
                   {d.primaryFamilies.map((f) => (
                     <div key={f.key} className="sx-fam">
                       <i style={{ background: f.swatch }} />
@@ -157,13 +157,13 @@ export default function SectorPage() {
                   ))}
                 </div>
                 <div className="sx-panel">
-                  <h3>Every recorded colour</h3>
-                  <p>All {d.colourTotal} primary, secondary and accent values in the sector, by family.</p>
+                  <h3>Every recorded color</h3>
+                  <p>All {d.colorTotal} primary, secondary and accent values in the sector, by family.</p>
                   {d.paletteFamilies.map((f) => (
                     <div key={f.key} className="sx-fam">
                       <i style={{ background: f.swatch }} />
                       <div>{f.name}</div>
-                      <span>{f.count} of {d.colourTotal}</span>
+                      <span>{f.count} of {d.colorTotal}</span>
                     </div>
                   ))}
                   {d.sharedHexes.length > 0 && (
@@ -224,7 +224,7 @@ export default function SectorPage() {
                   {quoted.map((r) => (
                     <figure key={r.slug} className="sx-quote">
                       <div className="sx-quote-who">
-                        <i style={{ background: r.colours[0]?.hex || "#8E8E93" }} />
+                        <i style={{ background: r.colors[0]?.hex || "#8E8E93" }} />
                         <Link to={`/brands/${r.slug}`}>{r.name}</Link>
                       </div>
                       <p>{r.positioning}</p>

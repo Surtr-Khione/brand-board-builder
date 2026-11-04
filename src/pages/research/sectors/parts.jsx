@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-// Same archetype colours as the Brand Library chips, so an archetype reads
+// Same archetype colors as the Brand Library chips, so an archetype reads
 // the same everywhere. Used only for data marks, never for app chrome.
 export const ARCHETYPE_COLORS = {
   innocent: "#0097A7", everyman: "#5D4037", hero: "#C62828", outlaw: "#BF360C",
@@ -42,7 +42,7 @@ export function ClosingCta({ heading = "Chart your own brand on the same lens" }
   return (
     <section className="sx-cta">
       <h2>{heading}</h2>
-      <p>Every brand above was decoded into archetype, voice, colours and type. Build that record for your brand, or scan your live site and see where it already stands.</p>
+      <p>Every brand above was decoded into archetype, voice, colors and type. Build that record for your brand, or scan your live site and see where it already stands.</p>
       <div className="sx-cta-btns">
         <Link to="/builder" className="sx-btn sx-btn-primary">Chart your brand</Link>
         <Link to="/analyzer" className="sx-btn sx-btn-ghost">Scan your site</Link>

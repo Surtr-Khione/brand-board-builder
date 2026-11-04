@@ -1,41 +1,41 @@
 // Prerender for /patterns (Patterns of the Greats). Same numbers as the SPA
 // page: both call computePatterns() on the same search-brands rows.
-import { computePatterns, COLOUR_FAMILIES } from "../../src/pages/research/patterns/patternsData.js";
+import { computePatterns, COLOR_FAMILIES } from "../../src/pages/research/patterns/patternsData.js";
 
-export const TITLE = "Patterns of the Greats: Colour, Type & Archetypes | BrandMD";
+export const TITLE = "Patterns of the Greats: Color, Type & Archetypes | BrandMD";
 
 const pct = (k, n) => (n ? Math.round((k / n) * 100) : 0);
 
 export default async function patterns({ brands, esc }) {
   if (!brands || !brands.length) return [];
   const P = computePatterns(brands);
-  const { N, colour, type, archetype, enemy, values, gravity } = P;
+  const { N, color, type, archetype, enemy, values, gravity } = P;
   const across = `across the ${N} brands in the BrandMD index`;
-  const famName = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, f.name]));
+  const famName = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, f.name]));
   const link = (b, extra = "") => `<a href="/brands/${esc(b.slug)}">${esc(b.name)}</a>${extra}`;
   const links = (list, extra) => list.map((b) => link(b, extra ? extra(b) : "")).join(", ");
   const ds = type.displayStyle;
-  const fam = colour.families.filter((f) => f.count);
+  const fam = color.families.filter((f) => f.count);
   const topArch = archetype.list[0];
   const differs = gravity.signalGap.filter((s) => s.topPct !== s.restPct);
 
   const out = [];
   out.push(`<p><a href="/research">Research</a> · Patterns</p>`);
   out.push(`<h1>Patterns of the Greats</h1>`);
-  out.push(`<p>What do the brands in the BrandMD index have in common? This page counts it: the colours they lead with, the typefaces on record, the archetypes they play, the enemies they name, the values they commit to, and what the highest Gravity Scores share. Every number is computed from the brand records, ${esc(across)}, and every brand links to its full system.</p>`);
-  out.push(`<nav><a href="#colour">Colour</a> · <a href="#type">Type</a> · <a href="#archetypes">Archetypes</a> · <a href="#enemies">Enemies</a> · <a href="#values">Values</a> · <a href="#gravity">Gravity</a></nav>`);
+  out.push(`<p>What do the brands in the BrandMD index have in common? This page counts it: the colors they lead with, the typefaces on record, the archetypes they play, the enemies they name, the values they commit to, and what the highest Gravity Scores share. Every number is computed from the brand records, ${esc(across)}, and every brand links to its full system.</p>`);
+  out.push(`<nav><a href="#color">Color</a> · <a href="#type">Type</a> · <a href="#archetypes">Archetypes</a> · <a href="#enemies">Enemies</a> · <a href="#values">Values</a> · <a href="#gravity">Gravity</a></nav>`);
 
-  // Colour
-  out.push(`<section id="colour"><h2>Colour</h2>`);
-  out.push(`<p>Each brand's primary colour, sorted into colour families by hue and lightness, ${esc(across)}. ${colour.darkCount} of ${colour.withPrimary} primary colours are dark (${colour.darkPct}%) and ${colour.lightCount} are light, where dark means a WCAG relative luminance under 0.179 (white text reads better on it than black text).</p>`);
-  out.push(`<h3>Primary colour families</h3><table><thead><tr><th scope="col">Family</th><th scope="col">Brands (primary)</th><th scope="col">Colours in any role</th><th scope="col">Which brands</th></tr></thead><tbody>`);
+  // Color
+  out.push(`<section id="color"><h2>Color</h2>`);
+  out.push(`<p>Each brand's primary color, sorted into color families by hue and lightness, ${esc(across)}. ${color.darkCount} of ${color.withPrimary} primary colors are dark (${color.darkPct}%) and ${color.lightCount} are light, where dark means a WCAG relative luminance under 0.179 (white text reads better on it than black text).</p>`);
+  out.push(`<h3>Primary color families</h3><table><thead><tr><th scope="col">Family</th><th scope="col">Brands (primary)</th><th scope="col">Colors in any role</th><th scope="col">Which brands</th></tr></thead><tbody>`);
   for (const f of fam) {
     out.push(`<tr><th scope="row">${esc(f.name)}</th><td>${f.count}</td><td>${f.allRoles}</td><td>${f.brands.map((b) => `<a href="/brands/${esc(b.slug)}"><span class="swatch" style="background:${esc(b.hex)}"></span>${esc(b.name)}</a> <code>${esc(b.hex)}</code>`).join(", ")}</td></tr>`);
   }
   out.push(`</tbody></table>`);
-  out.push(`<p>"Colours in any role" counts the ${colour.allColourCount} primary, secondary and accent colours on record. Families: ${esc(COLOUR_FAMILIES.map((f) => `${f.name} (${f.rule})`).join("; "))}.</p>`);
-  if (colour.repeatedHexes.length) {
-    out.push(`<h3>The same hex, different brands</h3><ul>${colour.repeatedHexes.map((h) => `<li><span class="swatch" style="background:${esc(h.hex)}"></span><code>${esc(h.hex)}</code>: ${links(h.brands)}</li>`).join("")}</ul>`);
+  out.push(`<p>"Colors in any role" counts the ${color.allColorCount} primary, secondary and accent colors on record. Families: ${esc(COLOR_FAMILIES.map((f) => `${f.name} (${f.rule})`).join("; "))}.</p>`);
+  if (color.repeatedHexes.length) {
+    out.push(`<h3>The same hex, different brands</h3><ul>${color.repeatedHexes.map((h) => `<li><span class="swatch" style="background:${esc(h.hex)}"></span><code>${esc(h.hex)}</code>: ${links(h.brands)}</li>`).join("")}</ul>`);
   }
   out.push(`</section>`);
 
@@ -85,21 +85,21 @@ export default async function patterns({ brands, esc }) {
   out.push(`<h3>Where the top ${gravity.top.length} differ from the other ${gravity.restCount}</h3><ul>${differs.map((s) => `<li>${esc(s.label)}: ${s.topPct}% of the top group, ${s.restPct}% of the rest</li>`).join("")}</ul>`);
   out.push(`</section>`);
 
-  out.push(`<section><h2>Where does your brand sit?</h2><p><a href="/builder">Chart your brand</a> on the same lens, or <a href="/analyzer">scan your site</a> for its colours, type, voice and archetype.</p><p><a href="/research">All research</a> · <a href="/archetypes">Archetypes</a> · <a href="/sectors">Sectors</a> · <a href="/brands">The Brand Index</a></p></section>`);
+  out.push(`<section><h2>Where does your brand sit?</h2><p><a href="/builder">Chart your brand</a> on the same lens, or <a href="/analyzer">scan your site</a> for its colors, type, voice and archetype.</p><p><a href="/research">All research</a> · <a href="/archetypes">Archetypes</a> · <a href="/sectors">Sectors</a> · <a href="/brands">The Brand Index</a></p></section>`);
 
   const secondFam = fam[1] ? ` and ${fam[1].slug}` : "";
-  const description = `What the ${N} brands in the BrandMD index share: ${colour.darkPct}% dark primary colours, ${fam[0].slug}${secondFam} lead, ${topArch ? `${topArch.name.replace(/^The /, "the ")} is the top archetype` : "archetypes"}, plus enemies and values.`;
+  const description = `What the ${N} brands in the BrandMD index share: ${color.darkPct}% dark primary colors, ${fam[0].slug}${secondFam} lead, ${topArch ? `${topArch.name.replace(/^The /, "the ")} is the top archetype` : "archetypes"}, plus enemies and values.`;
 
   return [
     {
       path: "/patterns",
       title: TITLE,
-      description: description.length <= 155 ? description : `Colour, type, archetype, enemy and value patterns ${across}, plus what the highest Gravity Scores share.`,
+      description: description.length <= 155 ? description : `Color, type, archetype, enemy and value patterns ${across}, plus what the highest Gravity Scores share.`,
       jsonld: {
         "@context": "https://schema.org",
         "@type": "Dataset",
         name: "Patterns of the Greats",
-        description: `Colour, typeface, archetype, enemy, value and Gravity Score patterns computed ${across}.`,
+        description: `Color, typeface, archetype, enemy, value and Gravity Score patterns computed ${across}.`,
         url: "https://brandmd.space/patterns",
         creator: { "@type": "Organization", name: "BrandMD", url: "https://brandmd.space" },
         isAccessibleForFree: true,

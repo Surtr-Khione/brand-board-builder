@@ -1,5 +1,5 @@
 /* Versus pages. Titanium system: near-black, titanium #8E8E93, off-white
-   #F5F5F7, system blue #0071E3, Inter only. Brand colours appear only as
+   #F5F5F7, system blue #0071E3, Inter only. Brand colors appear only as
    swatches, never as chrome. Every class is vs- prefixed. */
 .vs-page { background: #000; color: #F5F5F7; font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
 .vs-page a { color: #0071E3; text-decoration: none; }

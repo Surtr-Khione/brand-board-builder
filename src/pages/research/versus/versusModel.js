@@ -81,7 +81,7 @@ export function side(brand) {
     tone: list(b.tone_attributes),
     dos,
     donts,
-    colours: [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]]
+    colors: [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]]
       .filter(([, h]) => hexOk(h))
       .map(([role, h]) => ({ role, hex: normHex(h) })),
     fonts: [["Display", b.primary_font], ["Body", b.body_font], ["Accent", b.accent_font]]
@@ -105,7 +105,7 @@ export const ROWS = [
   { key: "tone", label: "Voice: tone" },
   { key: "dos", label: "Voice: do say" },
   { key: "donts", label: "Voice: don't say" },
-  { key: "colours", label: "Colours" },
+  { key: "colors", label: "Colors" },
   { key: "fonts", label: "Fonts" },
   { key: "gravity", label: "Gravity Score" },
   { key: "founded", label: "Founded" },
@@ -172,15 +172,15 @@ export function compare(A, B) {
     else differ.push(`None of ${A.name}'s ${A.values.length} listed values appears word for word among ${B.name}'s ${B.values.length}.`);
   }
 
-  // Colours (exact hex)
-  if (A.colours.length && B.colours.length) {
-    const bh = new Set(B.colours.map((c) => c.hex));
-    const shared = [...new Set(A.colours.map((c) => c.hex).filter((h) => bh.has(h)))];
+  // Colors (exact hex)
+  if (A.colors.length && B.colors.length) {
+    const bh = new Set(B.colors.map((c) => c.hex));
+    const shared = [...new Set(A.colors.map((c) => c.hex).filter((h) => bh.has(h)))];
     if (shared.length) overlap.push(`Both palettes include ${fmtList(shared)}.`);
-    else differ.push(`No colour hex appears in both palettes.`);
-    const pa = A.colours.find((c) => c.role === "Primary");
-    const pb = B.colours.find((c) => c.role === "Primary");
-    if (pa && pb && pa.hex !== pb.hex) differ.push(`Primary colour: ${pa.hex} for ${A.name}, ${pb.hex} for ${B.name}.`);
+    else differ.push(`No color hex appears in both palettes.`);
+    const pa = A.colors.find((c) => c.role === "Primary");
+    const pb = B.colors.find((c) => c.role === "Primary");
+    if (pa && pb && pa.hex !== pb.hex) differ.push(`Primary color: ${pa.hex} for ${A.name}, ${pb.hex} for ${B.name}.`);
   }
 
   // Fonts (family names)
@@ -217,7 +217,7 @@ export function compare(A, B) {
   }
 
   // Fields only one record carries
-  const labels = { tagline: "a tagline", promise: "a brand promise", enemy: "a named enemy", values: "listed values", tone: "tone attributes", dos: "do-say rules", donts: "don't-say rules", colours: "colours", fonts: "typography", founded: "a founding year", country: "a country" };
+  const labels = { tagline: "a tagline", promise: "a brand promise", enemy: "a named enemy", values: "listed values", tone: "tone attributes", dos: "do-say rules", donts: "don't-say rules", colors: "colors", fonts: "typography", founded: "a founding year", country: "a country" };
   for (const [k, phrase] of Object.entries(labels)) {
     const ha = hasField(A, k), hb = hasField(B, k);
     if (ha && !hb) only.push({ who: A.name, phrase });
@@ -253,8 +253,8 @@ export function pairTitle(A, B) {
 
 export function pairDescription(A, B) {
   const opts = [
-    `${A.name} and ${B.name} side by side: archetype, promise, values, voice, colours, fonts and Gravity Score, from the BrandMD index.`,
-    `${A.name} and ${B.name} side by side: archetype, values, voice, colours and fonts, from the BrandMD index.`,
+    `${A.name} and ${B.name} side by side: archetype, promise, values, voice, colors, fonts and Gravity Score, from the BrandMD index.`,
+    `${A.name} and ${B.name} side by side: archetype, values, voice, colors and fonts, from the BrandMD index.`,
     `${A.name} vs ${B.name}: two brand systems side by side, from the BrandMD index.`,
   ];
   return opts.find((t) => t.length < 155) || opts[opts.length - 1].slice(0, 154);
@@ -262,5 +262,5 @@ export function pairDescription(A, B) {
 
 export const HUB_TITLE = "Brand vs Brand: Head-to-Head Brand Systems | BrandMD";
 export function hubDescription(pairCount, brandCount) {
-  return `${pairCount} head-to-head comparisons of brands in the same category: archetype, voice, colours, fonts and Gravity Score, from ${brandCount} indexed brands.`;
+  return `${pairCount} head-to-head comparisons of brands in the same category: archetype, voice, colors, fonts and Gravity Score, from ${brandCount} indexed brands.`;
 }

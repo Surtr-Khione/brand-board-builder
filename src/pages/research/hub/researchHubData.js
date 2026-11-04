@@ -8,7 +8,7 @@ export function researchDescription(n) {
 }
 
 export function researchIntro(n) {
-  return `Every page here is computed from the brand records in the BrandMD index${n ? ` (${n} brands today)` : ""}: archetypes, sectors, colours, type, voice and Gravity Scores. Each number says what it was counted from, each quote comes from the brand's own record, and every brand links to its full system.`;
+  return `Every page here is computed from the brand records in the BrandMD index${n ? ` (${n} brands today)` : ""}: archetypes, sectors, colors, type, voice and Gravity Scores. Each number says what it was counted from, each quote comes from the brand's own record, and every brand links to its full system.`;
 }
 
 // Fixed order for the hub cards; families not listed here follow alphabetically.
@@ -25,6 +25,6 @@ export function orderHubs(hubs) {
 // The library itself, listed after the research families.
 export const LIBRARY_CARD = {
   title: "The Brand Index",
-  blurb: "Every brand on its own page: archetype, mission, values, voice, colours, type and its brand.md context file.",
+  blurb: "Every brand on its own page: archetype, mission, values, voice, colors, type and its brand.md context file.",
   href: "/brands",
 };

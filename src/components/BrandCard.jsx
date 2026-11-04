@@ -61,7 +61,7 @@ export default function BrandCard({ brand, compact = false }) {
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
   // Ink for brand-tinted text on the card's near-black info panel: the first
-  // brand colour that passes WCAG AA (4.5:1) where it is actually drawn, i.e.
+  // brand color that passes WCAG AA (4.5:1) where it is actually drawn, i.e.
   // as the tagline at 0.85 alpha on #0c0c0c and as chip text on its own 0.12
   // tint; else off-white. A luma cutoff let mid blues, purples and reds
   // (Apple, Stripe, Canva, Red Bull) through at under 4.5:1.

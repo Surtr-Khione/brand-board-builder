@@ -5,7 +5,7 @@ const VersusPair = lazy(() => import("../../pages/research/versus/VersusPair"));
 
 export const hub = {
   title: "Brand vs Brand",
-  blurb: "Two brands from the same category, side by side: archetype, enemy, promise, voice, colours, fonts and Gravity Score, plus where the records differ and overlap.",
+  blurb: "Two brands from the same category, side by side: archetype, enemy, promise, voice, colors, fonts and Gravity Score, plus where the records differ and overlap.",
   href: "/versus",
 };
 

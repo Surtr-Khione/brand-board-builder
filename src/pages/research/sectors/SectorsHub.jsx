@@ -23,8 +23,8 @@ export default function SectorsHub() {
           <h1 className="sx-h1">Brands by <em>sector</em></h1>
           <p className="sx-intro">
             {ready
-              ? `The ${total} brands in the BrandMD index, grouped into ${sectors.length} sectors by the industry each brand's record lists. Open a sector to see which archetypes its brands play, how their Gravity Scores compare, the colours and type they share, and how each one describes what sets it apart, in its own record's words.`
-              : "Every brand in the BrandMD index, grouped by sector: which archetypes each sector's brands play, how their Gravity Scores compare, the colours and type they share, and how each describes what sets it apart."}
+              ? `The ${total} brands in the BrandMD index, grouped into ${sectors.length} sectors by the industry each brand's record lists. Open a sector to see which archetypes its brands play, how their Gravity Scores compare, the colors and type they share, and how each one describes what sets it apart, in its own record's words.`
+              : "Every brand in the BrandMD index, grouped by sector: which archetypes each sector's brands play, how their Gravity Scores compare, the colors and type they share, and how each describes what sets it apart."}
           </p>
         </header>
 
@@ -33,7 +33,7 @@ export default function SectorsHub() {
         {ready && (
           <div className="sx-grid">
             {sectors.map((d) => {
-              const primaries = d.rows.map((r) => r.colours.find((c) => c.role === "Primary")?.hex).filter(Boolean);
+              const primaries = d.rows.map((r) => r.colors.find((c) => c.role === "Primary")?.hex).filter(Boolean);
               return (
                 <Link key={d.sector.slug} to={`/sectors/${d.sector.slug}`} className="sx-card">
                   <div className="sx-card-strip" aria-hidden="true">
@@ -55,7 +55,7 @@ export default function SectorsHub() {
 
         {ready && (
           <p className="sx-foot">
-            Colour strips show each brand's recorded primary colour. Archetype bars count each brand once, under its primary archetype. {GRAVITY_NOTE}{" "}
+            Color strips show each brand's recorded primary color. Archetype bars count each brand once, under its primary archetype. {GRAVITY_NOTE}{" "}
             See also <Link to="/archetypes">brands by archetype</Link>, the full <Link to="/brands">brand index</Link>, or <Link to="/research">all research</Link>.
           </p>
         )}

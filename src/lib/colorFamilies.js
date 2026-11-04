@@ -1,13 +1,13 @@
-// One colour-family rule for every research page (/patterns, /sectors/*,
+// One color-family rule for every research page (/patterns, /sectors/*,
 // /archetypes/*), so the same stored hex always lands in the same family.
 //
 // Plain ESM (no JSX, no import.meta.env): the SPA pages and the prerender
 // scripts import it directly. A family is computed from the hex alone
 // (lightness, saturation, hue angle): it groups stored hex codes and makes no
-// claim about what the brand calls the colour. The `rule` text is what the
+// claim about what the brand calls the color. The `rule` text is what the
 // pages print, and it is written from the same thresholds as familyOf().
 
-export const COLOUR_FAMILIES = [
+export const COLOR_FAMILIES = [
   { slug: "black", name: "Black & near-black", rule: "lightness 12% or less", swatch: "#111111" },
   { slug: "white", name: "White & off-white", rule: "lightness 93% or more", swatch: "#F5F5F7" },
   { slug: "grey", name: "Grey", rule: "saturation under 15%", swatch: "#8E8E93" },
@@ -22,7 +22,7 @@ export const COLOUR_FAMILIES = [
   { slug: "pink", name: "Pink & magenta", rule: "hue 290° to 345°", swatch: "#D81B60" },
 ].map((f) => ({ ...f, key: f.slug }));
 
-export const FAMILY_BY_SLUG = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, f]));
+export const FAMILY_BY_SLUG = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, f]));
 
 const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
 

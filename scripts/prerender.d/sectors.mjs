@@ -8,7 +8,7 @@ const SITE = "https://brandmd.space";
 function cta(esc, heading) {
   return [
     `<section><h2>${esc(heading)}</h2>`,
-    `<p>Every brand above was decoded into archetype, voice, colours and type. <a href="/builder">Chart your own brand</a> on the same lens, or <a href="/analyzer">scan your site</a> and see where it already stands.</p></section>`,
+    `<p>Every brand above was decoded into archetype, voice, colors and type. <a href="/builder">Chart your own brand</a> on the same lens, or <a href="/analyzer">scan your site</a> and see where it already stands.</p></section>`,
   ].join("");
 }
 
@@ -16,7 +16,7 @@ function hubBody(sectors, total, esc) {
   const out = [];
   out.push(`<nav aria-label="Breadcrumb"><a href="/research">Research</a> / Sectors</nav>`);
   out.push(`<h1>Brands by sector</h1>`);
-  out.push(`<p>The ${total} brands in the BrandMD index, grouped into ${sectors.length} sectors by the industry each brand's record lists. Each sector page shows which archetypes its brands play, how their Gravity Scores compare, the colours and type they share, and how each brand describes what sets it apart, quoted from its record.</p>`);
+  out.push(`<p>The ${total} brands in the BrandMD index, grouped into ${sectors.length} sectors by the industry each brand's record lists. Each sector page shows which archetypes its brands play, how their Gravity Scores compare, the colors and type they share, and how each brand describes what sets it apart, quoted from its record.</p>`);
   out.push(`<ul>`);
   for (const d of sectors) {
     const mix = d.archetypeMix.map((a) => `${esc(a.name)} ${a.count}`).join(", ");
@@ -56,12 +56,12 @@ function sectorBody(d, sectors, esc) {
   }
   out.push(`</ul></section>`);
 
-  // Colour
-  out.push(`<section><h2>Colour patterns</h2>`);
-  out.push(`<p>Colour families are computed from each recorded hex value's hue and lightness. Across the ${d.withPrimaryCount} brands here with a recorded primary colour: ${d.primaryFamilies.map((f) => `${esc(f.name.toLowerCase())} ${f.count} (${esc(f.brands.join(", "))})`).join("; ")}.</p>`);
+  // Color
+  out.push(`<section><h2>Color patterns</h2>`);
+  out.push(`<p>Color families are computed from each recorded hex value's hue and lightness. Across the ${d.withPrimaryCount} brands here with a recorded primary color: ${d.primaryFamilies.map((f) => `${esc(f.name.toLowerCase())} ${f.count} (${esc(f.brands.join(", "))})`).join("; ")}.</p>`);
   out.push(`<ul class="palette">`);
-  for (const r of d.rows.filter((x) => x.colours.length)) {
-    out.push(`<li><a href="/brands/${esc(r.slug)}">${esc(r.name)}</a>: ${r.colours.map((c) => `<span class="swatch" style="background:${esc(c.hex)}"></span>${esc(c.role)} <code>${esc(c.hex)}</code>`).join(" ")}</li>`);
+  for (const r of d.rows.filter((x) => x.colors.length)) {
+    out.push(`<li><a href="/brands/${esc(r.slug)}">${esc(r.name)}</a>: ${r.colors.map((c) => `<span class="swatch" style="background:${esc(c.hex)}"></span>${esc(c.role)} <code>${esc(c.hex)}</code>`).join(" ")}</li>`);
   }
   out.push(`</ul>`);
   if (d.sharedHexes.length) out.push(`<p>Exact hex values recorded by more than one brand here (pure white and black left out): ${d.sharedHexes.map((h) => `<code>${esc(h.hex)}</code> ${esc(listJoin(h.brands))}`).join("; ")}.</p>`);

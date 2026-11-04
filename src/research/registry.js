@@ -1,6 +1,6 @@
 // Research route registry.
 //
-// Every research family (archetypes, sectors, rivals, colours, ...) plugs in
+// Every research family (archetypes, sectors, rivals, colors, ...) plugs in
 // by ADDING one file to ./routes/<family>.jsx — nothing here or in App.jsx
 // changes. Each file:
 //   export default [{ path: "/archetypes", element: <ArchetypesHub /> }, ...]

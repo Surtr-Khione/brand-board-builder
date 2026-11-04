@@ -25,7 +25,7 @@ export const ARCHETYPES = [
   { slug: "ruler", name: "The Ruler", motto: "Power isn't everything, it's the only thing", desire: "control and order" },
   { slug: "magician", name: "The Magician", motto: "I make things happen", desire: "transformation" },
   { slug: "lover", name: "The Lover", motto: "You're the only one", desire: "intimacy and pleasure" },
-  { slug: "caregiver", name: "The Caregiver", motto: "Love your neighbour as yourself", desire: "protecting and caring for others" },
+  { slug: "caregiver", name: "The Caregiver", motto: "Love your neighbor as yourself", desire: "protecting and caring for others" },
   { slug: "jester", name: "The Jester", motto: "You only live once", desire: "living in the moment with joy" },
   { slug: "sage", name: "The Sage", motto: "The truth will set you free", desire: "understanding" },
 ];

@@ -20,7 +20,7 @@ function luma(hex = "") {
 }
 
 // Small app-icon face for a brand: its stored logo, else its initial on the
-// brand's first light-safe colour.
+// brand's first light-safe color.
 export function Face({ brand, link = true }) {
   const [broken, setBroken] = useState(false);
   const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find((c) => c && luma(c) < 200) || "#1D1D1F";

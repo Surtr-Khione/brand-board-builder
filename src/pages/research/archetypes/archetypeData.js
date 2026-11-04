@@ -6,7 +6,7 @@
 // every number says what it was computed from. Nothing here is inferred
 // about a brand beyond grouping its stored labels.
 import { ARCHETYPES, brandArchetypes, sectorOf } from "../../../lib/brandTaxonomy.js";
-import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
+import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
 // General brand-strategy definitions of the 12 archetypes. These describe the
 // archetype, never a particular brand.
@@ -40,7 +40,7 @@ export const DEFINITIONS = {
 export const INDEX_TITLE = "The 12 Brand Archetypes, by Real Brands | BrandMD";
 export const INDEX_DESC = "All 12 Jungian brand archetypes and every brand in the BrandMD index that holds each one, primary or secondary, with patterns from the records.";
 export const hubTitle = (name, n) => `${name} Archetype: ${plural(n, "Brand")} Decoded | BrandMD`;
-export const hubDesc = (name, n) => `What ${name.replace(/^The /, "the ")} archetype means, the ${plural(n, "brand")} in the BrandMD index that hold it, and their shared colours, values and voice.`;
+export const hubDesc = (name, n) => `What ${name.replace(/^The /, "the ")} archetype means, the ${plural(n, "brand")} in the BrandMD index that hold it, and their shared colors, values and voice.`;
 
 // ── Small helpers ──────────────────────────────────────────────────────────
 
@@ -58,26 +58,26 @@ export function headOf(text) {
   return cut.length > 140 ? cut.slice(0, 137).replace(/\s+\S*$/, "") + "…" : cut;
 }
 
-// ── Colour families ────────────────────────────────────────────────────────
-// A colour family is computed from the hex alone (lightness, saturation, hue
+// ── Color families ────────────────────────────────────────────────────────
+// A color family is computed from the hex alone (lightness, saturation, hue
 // angle): it is a grouping of stored hex codes, not a claim about intent.
-// Shared with /patterns and /sectors (src/lib/colourFamilies.js), so one hex
+// Shared with /patterns and /sectors (src/lib/colorFamilies.js), so one hex
 // gets one family on every research page.
-export { COLOUR_FAMILIES };
-const FAMILY_BY_SLUG = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, f]));
+export { COLOR_FAMILIES };
+const FAMILY_BY_SLUG = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, f]));
 
-export function colourFamily(hex) {
+export function colorFamily(hex) {
   return hexOk(hex) ? familyOf(str(hex)) : null;
 }
 
-export function brandColours(b) {
+export function brandColors(b) {
   return [
     ["Primary", b?.primary_color],
     ["Secondary", b?.secondary_color],
     ["Accent", b?.accent_color],
   ]
     .filter(([, h]) => hexOk(h))
-    .map(([role, h]) => ({ role, hex: str(h).toUpperCase(), family: colourFamily(h) }));
+    .map(([role, h]) => ({ role, hex: str(h).toUpperCase(), family: colorFamily(h) }));
 }
 
 export function brandFonts(b) {
@@ -165,12 +165,12 @@ export function archetypeStats(brands = [], slug) {
   const total = brands.length;
   const P = group.primary;
 
-  // Colour families: brands with at least one stored colour in the family.
+  // Color families: brands with at least one stored color in the family.
   const famCount = new Map();
-  let withColours = 0;
+  let withColors = 0;
   for (const b of P) {
-    const cols = brandColours(b);
-    if (cols.length) withColours++;
+    const cols = brandColors(b);
+    if (cols.length) withColors++;
     const fams = new Map();
     for (const c of cols) if (c.family) { if (!fams.has(c.family.slug)) fams.set(c.family.slug, []); fams.get(c.family.slug).push(c.hex); }
     for (const [f, hexes] of fams) {
@@ -181,7 +181,7 @@ export function archetypeStats(brands = [], slug) {
       for (const h of hexes) if (!e.hexes.includes(h)) e.hexes.push(h);
     }
   }
-  const colourFamilies = [...famCount.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const colorFamilies = [...famCount.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   // Fonts: brands naming the font in any role.
   const fontCount = new Map();
@@ -241,7 +241,7 @@ export function archetypeStats(brands = [], slug) {
     definition: DEFINITIONS[slug],
     total,
     share: total ? Math.round((P.length / total) * 100) : 0,
-    colourFamilies, withColours,
+    colorFamilies, withColors,
     fonts, withFonts,
     enemies, enemyWords,
     values, valueWords,

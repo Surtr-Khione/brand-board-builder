@@ -29,7 +29,7 @@ function Cell({ s, k }) {
       return <ul className="vs-list">{v.map((x, i) => <li key={i}>{x}</li>)}</ul>;
     case "tone":
       return <span className="vs-chips">{v.map((t, i) => <span key={i} className="vs-chip">{t}</span>)}</span>;
-    case "colours":
+    case "colors":
       return (
         <ul className="vs-palette">
           {v.map((c, i) => (
@@ -54,7 +54,7 @@ function BrandHead({ s }) {
   return (
     <div className="vs-head">
       <Link to={`/brands/${s.slug}`} className="vs-head-name">{s.name}</Link>
-      <Swatches colours={s.colours} size={12} />
+      <Swatches colors={s.colors} size={12} />
       {s.website && <div className="vs-head-site">{s.website}</div>}
     </div>
   );

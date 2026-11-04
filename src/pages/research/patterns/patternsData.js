@@ -7,9 +7,9 @@
 // which describes typefaces, not brands.
 import { ARCHETYPES, brandArchetypes, canonicalArchetype, sectorOf } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
-import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
+import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
-// ── Colour ─────────────────────────────────────────────────────────────────
+// ── Color ─────────────────────────────────────────────────────────────────
 
 const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -28,15 +28,15 @@ export function luminance({ r, g, b }) {
 }
 
 // Below this luminance white text has more contrast than black text, the
-// usual line between a "dark" and a "light" colour.
+// usual line between a "dark" and a "light" color.
 export const DARK_LUMINANCE = 0.179;
 
 // Family table, rules and thresholds are shared with /sectors and
-// /archetypes (src/lib/colourFamilies.js); the rule text printed on /patterns
+// /archetypes (src/lib/colorFamilies.js); the rule text printed on /patterns
 // comes from that same table.
-export { COLOUR_FAMILIES };
+export { COLOR_FAMILIES };
 
-export function colourFamily(rgb) {
+export function colorFamily(rgb) {
   return familyOf(rgb).slug;
 }
 
@@ -127,25 +127,25 @@ export function computePatterns(rows) {
   const brands = (rows || []).filter((b) => b && b.slug && b.brand_name);
   const N = brands.length;
 
-  // Colour: primary colour family, dark vs light, families across all roles.
+  // Color: primary color family, dark vs light, families across all roles.
   const primaries = [];
-  const famPrimary = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, []]));
-  const famAll = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, 0]));
-  let allColourCount = 0;
+  const famPrimary = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, []]));
+  const famAll = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, 0]));
+  let allColorCount = 0;
   for (const b of brands) {
     const p = parseHex(b.primary_color);
     if (p) {
-      const fam = colourFamily(p);
+      const fam = colorFamily(p);
       const lum = luminance(p);
       primaries.push({ ...ref(b), hex: p.hex, family: fam, lum, dark: lum < DARK_LUMINANCE });
       famPrimary[fam].push({ ...ref(b), hex: p.hex, lum });
     }
     for (const c of [b.primary_color, b.secondary_color, b.accent_color]) {
       const x = parseHex(c);
-      if (x) { famAll[colourFamily(x)]++; allColourCount++; }
+      if (x) { famAll[colorFamily(x)]++; allColorCount++; }
     }
   }
-  const primaryFamilies = COLOUR_FAMILIES
+  const primaryFamilies = COLOR_FAMILIES
     .map((f) => ({ ...f, count: famPrimary[f.slug].length, brands: famPrimary[f.slug].sort((a, b) => a.lum - b.lum), allRoles: famAll[f.slug] }))
     .filter((f) => f.count || f.allRoles)
     .sort((a, b) => b.count - a.count || b.allRoles - a.allRoles);
@@ -273,12 +273,12 @@ export function computePatterns(rows) {
 
   return {
     N,
-    colour: {
+    color: {
       withPrimary: primaries.length,
       darkCount,
       lightCount: primaries.length - darkCount,
       darkPct: pct(darkCount, primaries.length),
-      allColourCount,
+      allColorCount,
       families: primaryFamilies,
       repeatedHexes,
       darkest: primaries.filter((p) => p.dark).sort((a, b) => a.lum - b.lum).map(({ slug, name, hex }) => ({ slug, name, hex })),

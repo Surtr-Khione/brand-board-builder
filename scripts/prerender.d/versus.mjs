@@ -24,7 +24,7 @@ export default async function ({ brands, esc }) {
   const hubBody = [
     `<p><a href="/research">Research</a> / Versus</p>`,
     `<h1>Brand vs Brand</h1>`,
-    `<p>${pairs.length} pairs of brands in the same category, each set side by side from their records in the BrandMD index of ${brands.length} brands: archetype, enemy, promise, tagline, values, voice, colours, fonts and Gravity Score. Each pair is listed with the one line that explains why it is paired, and nothing else is claimed about how the two compete.</p>`,
+    `<p>${pairs.length} pairs of brands in the same category, each set side by side from their records in the BrandMD index of ${brands.length} brands: archetype, enemy, promise, tagline, values, voice, colors, fonts and Gravity Score. Each pair is listed with the one line that explains why it is paired, and nothing else is claimed about how the two compete.</p>`,
     `<h2>All matchups</h2><ul>${hubItems.join("")}</ul>`,
     cta,
     `<p><a href="/research">Back to Research</a> · <a href="/brands">All brands in the index</a></p>`,
@@ -63,7 +63,7 @@ export default async function ({ brands, esc }) {
         return `<td><ul>${v.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></td>`;
       case "tone":
         return `<td>${v.map(esc).join(" · ")}</td>`;
-      case "colours":
+      case "colors":
         return `<td><ul class="palette">${v.map((c) => `<li><span class="swatch" style="background:${esc(c.hex)}"></span>${esc(c.role)}: <code>${esc(c.hex)}</code></li>`).join("")}</ul></td>`;
       case "fonts":
         return `<td><ul>${v.map((f) => `<li>${esc(f.role)}: ${esc(f.name)}</li>`).join("")}</ul></td>`;

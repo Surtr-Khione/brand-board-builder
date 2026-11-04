@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import SiteNav from "../../../components/SiteNav";
 import { searchBrands } from "../../../lib/brands";
-import { computePatterns, COLOUR_FAMILIES } from "./patternsData.js";
+import { computePatterns, COLOR_FAMILIES } from "./patternsData.js";
 import "./patterns.css";
 
-export const PATTERNS_TITLE = "Patterns of the Greats: Colour, Type & Archetypes | BrandMD";
+export const PATTERNS_TITLE = "Patterns of the Greats: Color, Type & Archetypes | BrandMD";
 
 // The whole index fits in one page today (search-brands caps limit at 100);
 // keep paging in case it grows.
@@ -94,7 +94,7 @@ function Histogram({ buckets, N, mean }) {
         );
       })}
       {Number.isFinite(mean) && buckets.length > 0 && (() => {
-        // Scores are multiples of 5, so bucket i is centred on score lo + 5i.
+        // Scores are multiples of 5, so bucket i is centered on score lo + 5i.
         const lo = buckets[0].score;
         const xm = padL + ((mean - lo) / 5) * bw + bw * 0.5;
         return (
@@ -132,13 +132,13 @@ export default function Patterns() {
         <div className="pt-eyebrow"><Link to="/research">Research</Link> · Patterns</div>
         <h1 className="pt-h1">Patterns <span>of the Greats</span></h1>
         <p className="pt-intro">
-          What do the brands in the BrandMD index have in common? This page counts it: the colours they
+          What do the brands in the BrandMD index have in common? This page counts it: the colors they
           lead with, the typefaces on record, the archetypes they play, the enemies they name, the values
           they commit to, and what the highest Gravity Scores share. Every number is computed from the
           brand records{N ? `, ${across}` : ""}, and every brand links to its full system.
         </p>
         <nav className="pt-jump" aria-label="Sections">
-          <a href="#colour">Colour</a><a href="#type">Type</a><a href="#archetypes">Archetypes</a>
+          <a href="#color">Color</a><a href="#type">Type</a><a href="#archetypes">Archetypes</a>
           <a href="#enemies">Enemies</a><a href="#values">Values</a><a href="#gravity">Gravity</a>
         </nav>
       </header>
@@ -152,7 +152,7 @@ export default function Patterns() {
 
         <aside className="pt-cta">
           <h2>Where does your brand sit?</h2>
-          <p>Chart your own brand on the same lens these brands are charted on, or scan your live site to see its colours, type, voice and archetype in under a minute.</p>
+          <p>Chart your own brand on the same lens these brands are charted on, or scan your live site to see its colors, type, voice and archetype in under a minute.</p>
           <div className="pt-btns">
             <Link to="/builder" className="pt-btn primary">Chart your brand</Link>
             <Link to="/analyzer" className="pt-btn ghost">Scan your site</Link>
@@ -170,12 +170,12 @@ export default function Patterns() {
 }
 
 function Body({ P, N, across }) {
-  const { colour, type, archetype, enemy, values, gravity } = P;
-  const famMax = Math.max(1, ...colour.families.map((f) => f.count));
+  const { color, type, archetype, enemy, values, gravity } = P;
+  const famMax = Math.max(1, ...color.families.map((f) => f.count));
   const archMax = Math.max(1, ...archetype.list.map((a) => Math.max(a.count, a.secondaryCount)));
   const enemyMax = Math.max(1, ...enemy.themes.map((t) => t.count));
   const valueMax = Math.max(1, ...values.themes.map((t) => t.count));
-  const famName = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, f.name]));
+  const famName = Object.fromEntries(COLOR_FAMILIES.map((f) => [f.slug, f.name]));
   const topArch = archetype.list[0];
   const differs = gravity.signalGap.filter((s) => s.topPct !== s.restPct);
   const universal = gravity.signalGap.filter((s) => s.topPct === 100 && s.restPct === 100);
@@ -184,46 +184,46 @@ function Body({ P, N, across }) {
 
   return (
     <>
-      {/* ── COLOUR ── */}
-      <section id="colour" className="pt-section" aria-labelledby="h-colour">
-        <div className="pt-label">01 · Colour</div>
-        <h2 id="h-colour" className="pt-h2">{colour.families[1] ? `${famName[colour.families[0].slug].split(" ")[0]} and ${colour.families[1].slug} lead` : "Primary colours"}</h2>
+      {/* ── COLOR ── */}
+      <section id="color" className="pt-section" aria-labelledby="h-color">
+        <div className="pt-label">01 · Color</div>
+        <h2 id="h-color" className="pt-h2">{color.families[1] ? `${famName[color.families[0].slug].split(" ")[0]} and ${color.families[1].slug} lead` : "Primary colors"}</h2>
         <p className="pt-lede">
-          Each brand's primary colour, sorted into colour families by hue and lightness, {across}.
-          {colour.families[0] && <> {famName[colour.families[0].slug]} is the most common family ({colour.families[0].count} of {colour.withPrimary} primaries), then {famName[colour.families[1]?.slug]} ({colour.families[1]?.count}).</>}
+          Each brand's primary color, sorted into color families by hue and lightness, {across}.
+          {color.families[0] && <> {famName[color.families[0].slug]} is the most common family ({color.families[0].count} of {color.withPrimary} primaries), then {famName[color.families[1]?.slug]} ({color.families[1]?.count}).</>}
         </p>
 
         <div className="pt-stats">
-          <div className="pt-stat"><b>{colour.darkPct}%</b><span>of primary colours are dark ({colour.darkCount} of {colour.withPrimary})</span></div>
-          <div className="pt-stat"><b>{colour.lightCount}</b><span>brands lead with a light primary colour</span></div>
-          <div className="pt-stat"><b>{colour.families.filter((f) => f.count).length}</b><span>of {COLOUR_FAMILIES.length} colour families used as a primary</span></div>
-          <div className="pt-stat"><b>{colour.repeatedHexes.length}</b><span>exact hex values shared by two or more brands</span></div>
+          <div className="pt-stat"><b>{color.darkPct}%</b><span>of primary colors are dark ({color.darkCount} of {color.withPrimary})</span></div>
+          <div className="pt-stat"><b>{color.lightCount}</b><span>brands lead with a light primary color</span></div>
+          <div className="pt-stat"><b>{color.families.filter((f) => f.count).length}</b><span>of {COLOR_FAMILIES.length} color families used as a primary</span></div>
+          <div className="pt-stat"><b>{color.repeatedHexes.length}</b><span>exact hex values shared by two or more brands</span></div>
         </div>
 
-        <h3 className="pt-h3">Dark vs light primary colours</h3>
+        <h3 className="pt-h3">Dark vs light primary colors</h3>
         <Split
-          label={`${colour.darkCount} dark and ${colour.lightCount} light primary colours ${across}`}
+          label={`${color.darkCount} dark and ${color.lightCount} light primary colors ${across}`}
           parts={[
-            { name: "Dark", value: colour.darkCount, bg: "#1c1c1e", fg: "#F5F5F7" },
-            { name: "Light", value: colour.lightCount, bg: "#E5E5EA", fg: "#1c1c1e" },
+            { name: "Dark", value: color.darkCount, bg: "#1c1c1e", fg: "#F5F5F7" },
+            { name: "Light", value: color.lightCount, bg: "#E5E5EA", fg: "#1c1c1e" },
           ]}
         />
-        <p className="pt-note">"Dark" means a WCAG relative luminance under 0.179, the point where white text reads better on the colour than black text does. Saturated reds and blues often count as dark by this measure.</p>
+        <p className="pt-note">"Dark" means a WCAG relative luminance under 0.179, the point where white text reads better on the color than black text does. Saturated reds and blues often count as dark by this measure.</p>
 
-        <h3 className="pt-h3">Primary colour families</h3>
+        <h3 className="pt-h3">Primary color families</h3>
         <div className="pt-card">
           <div className="pt-rows">
-            {colour.families.filter((f) => f.count).map((f) => (
+            {color.families.filter((f) => f.count).map((f) => (
               <Row
                 key={f.slug}
                 name={f.name}
-                sub={`${f.allRoles} of ${colour.allColourCount} colours in any role`}
+                sub={`${f.allRoles} of ${color.allColorCount} colors in any role`}
                 count={f.count}
                 max={famMax}
                 detail={
                   <div className="pt-swatches">
                     {f.brands.map((b) => (
-                      <Link key={b.slug} to={`/brands/${b.slug}`} className="pt-sw" style={{ background: b.hex }} title={`${b.name} ${b.hex}`} aria-label={`${b.name}, primary colour ${b.hex}`} />
+                      <Link key={b.slug} to={`/brands/${b.slug}`} className="pt-sw" style={{ background: b.hex }} title={`${b.name} ${b.hex}`} aria-label={`${b.name}, primary color ${b.hex}`} />
                     ))}
                   </div>
                 }
@@ -232,14 +232,14 @@ function Body({ P, N, across }) {
           </div>
         </div>
         <p className="pt-note">
-          Families: {COLOUR_FAMILIES.map((f) => `${f.name} (${f.rule})`).join("; ")}. "Any role" counts the primary, secondary and accent colours on record ({colour.allColourCount} in all){colour.families.find((f) => f.slug === "white" && f.allRoles) ? `; white and off-white appears ${colour.families.find((f) => f.slug === "white").allRoles} times, never as a primary` : ""}. Hover or focus a swatch for the brand and hex.
+          Families: {COLOR_FAMILIES.map((f) => `${f.name} (${f.rule})`).join("; ")}. "Any role" counts the primary, secondary and accent colors on record ({color.allColorCount} in all){color.families.find((f) => f.slug === "white" && f.allRoles) ? `; white and off-white appears ${color.families.find((f) => f.slug === "white").allRoles} times, never as a primary` : ""}. Hover or focus a swatch for the brand and hex.
         </p>
 
-        {colour.repeatedHexes.length > 0 && (
+        {color.repeatedHexes.length > 0 && (
           <>
             <h3 className="pt-h3">The same hex, different brands</h3>
             <div className="pt-card">
-              {colour.repeatedHexes.map((h) => (
+              {color.repeatedHexes.map((h) => (
                 <div key={h.hex} className="pt-hexrow">
                   <span className="pt-sw" style={{ background: h.hex }} aria-hidden="true" />
                   <span className="pt-hex">{h.hex}</span>

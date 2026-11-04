@@ -56,7 +56,7 @@ export default function ArchetypeHub() {
 
   const counts = Object.fromEntries(groupByArchetype(brands).map((g) => [g.slug, g.primary.length]));
   const P = s?.primary || [];
-  const maxFam = Math.max(1, ...(s?.colourFamilies || []).map((f) => f.count));
+  const maxFam = Math.max(1, ...(s?.colorFamilies || []).map((f) => f.count));
   const sharedFonts = (s?.fonts || []).filter((f) => f.count >= 2);
 
   return (
@@ -154,24 +154,24 @@ export default function ArchetypeHub() {
                 )}
 
                 <Section
-                  label="Colour"
-                  title="Most common colour families"
-                  sub={`How many of the ${plural(s.withColours, "brand")} with stored colours use each family in their primary, secondary or accent colour. Families are grouped from the hex codes by hue and lightness.`}
+                  label="Color"
+                  title="Most common color families"
+                  sub={`How many of the ${plural(s.withColors, "brand")} with stored colors use each family in their primary, secondary or accent color. Families are grouped from the hex codes by hue and lightness.`}
                 >
-                  {s.colourFamilies.length ? (
+                  {s.colorFamilies.length ? (
                     <div className="arx-rows">
-                      {s.colourFamilies.map((f) => (
+                      {s.colorFamilies.map((f) => (
                         <div key={f.slug}>
                           <div className="arx-row">
                             <div className="arx-row-name"><span className="arx-dot" style={{ background: f.swatch }} />{f.name}</div>
                             <div className="arx-row-track"><i style={{ width: `${(f.count / maxFam) * 100}%`, background: f.swatch }} /></div>
-                            <div className="arx-row-n">{f.count} of {s.withColours}</div>
+                            <div className="arx-row-n">{f.count} of {s.withColors}</div>
                           </div>
                           <div className="arx-hexes">{f.hexes.slice(0, 18).map((h) => <span key={h} title={h} style={{ background: h }} />)}</div>
                         </div>
                       ))}
                     </div>
-                  ) : <p className="arx-empty">No colours are stored for these brands.</p>}
+                  ) : <p className="arx-empty">No colors are stored for these brands.</p>}
                 </Section>
 
                 <Section

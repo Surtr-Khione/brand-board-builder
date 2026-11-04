@@ -39,11 +39,11 @@ export function useMeta(title, description) {
   }, [title, description]);
 }
 
-export function Swatches({ colours, size = 14 }) {
-  if (!colours?.length) return null;
+export function Swatches({ colors, size = 14 }) {
+  if (!colors?.length) return null;
   return (
     <span className="vs-swatches">
-      {colours.map((c, i) => (
+      {colors.map((c, i) => (
         <span key={i} className="vs-swatch" title={`${c.role} ${c.hex}`} style={{ background: c.hex, width: size, height: size }} />
       ))}
     </span>
@@ -56,7 +56,7 @@ export function ClosingCta() {
       <h2>Chart your own brand</h2>
       <p>
         Every comparison here is built from a documented brand system: archetype, enemy, promise,
-        values, voice, colours and type. Put yours on record and see where it lands.
+        values, voice, colors and type. Put yours on record and see where it lands.
       </p>
       <div className="vs-cta-row">
         <Link to="/builder" className="vs-btn vs-btn-primary">Chart your brand</Link>

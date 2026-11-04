@@ -7,7 +7,7 @@
 // record's own text, and computed figures carry the base they were computed on.
 import { SECTORS, sectorOf, brandArchetypes, ARCHETYPES, rivalsOf, rivalPairSlug } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
-import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
+import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
 const present = (v) => v !== null && v !== undefined && String(v).trim() !== "";
 const hexOk = (h) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(h || "").trim());
@@ -18,14 +18,14 @@ function normHex(h) {
   return `#${s.toUpperCase()}`;
 }
 
-// ── Colour families ───────────────────────────────────────────────────────
-// A colour family is computed from the hue, saturation and lightness of the
+// ── Color families ───────────────────────────────────────────────────────
+// A color family is computed from the hue, saturation and lightness of the
 // recorded hex value. It describes the hex, not the brand's intent.
 // The family table and rule are shared with /patterns and /archetypes
-// (src/lib/colourFamilies.js), so one hex gets one family everywhere.
-export { COLOUR_FAMILIES };
+// (src/lib/colorFamilies.js), so one hex gets one family everywhere.
+export { COLOR_FAMILIES };
 
-export function colourFamily(hex) {
+export function colorFamily(hex) {
   return hexOk(hex) ? familyOf(normHex(hex)) : null;
 }
 
@@ -79,7 +79,7 @@ export function brandRow(b) {
   const { primary, secondary } = brandArchetypes(b);
   let gravity = null;
   try { gravity = computeGravityScore(b).score; } catch { gravity = null; }
-  const colours = [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]]
+  const colors = [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]]
     .filter(([, h]) => hexOk(h))
     .map(([role, h]) => ({ role, hex: normHex(h) }));
   const fonts = [["Display", b.primary_font], ["Body", b.body_font], ["Accent", b.accent_font]]
@@ -94,7 +94,7 @@ export function brandRow(b) {
     archetype: primary ? { slug: primary.slug, name: primary.name } : null,
     secondary: secondary ? { slug: secondary.slug, name: secondary.name } : null,
     gravity: Number.isFinite(gravity) ? gravity : null,
-    colours,
+    colors,
     fonts,
     tone: asList(b.tone_attributes).length ? asList(b.tone_attributes) : asList(bd.toneAttributes),
     positioning: cleanPositioning(bd.competitivePositioning, b.brand_name),
@@ -135,29 +135,29 @@ export function sectorDetail(sector, sectorBrands, allBrands) {
   const minGravity = scored.length ? Math.min(...scored.map((r) => r.gravity)) : null;
   const maxGravity = scored.length ? Math.max(...scored.map((r) => r.gravity)) : null;
 
-  // Colour families of the recorded primary colour.
-  const withPrimary = rows.filter((r) => r.colours.some((c) => c.role === "Primary"));
+  // Color families of the recorded primary color.
+  const withPrimary = rows.filter((r) => r.colors.some((c) => c.role === "Primary"));
   const famCount = {};
   const famBrands = {};
   for (const r of withPrimary) {
-    const f = colourFamily(r.colours.find((c) => c.role === "Primary").hex);
+    const f = colorFamily(r.colors.find((c) => c.role === "Primary").hex);
     if (!f) continue;
     famCount[f.key] = (famCount[f.key] || 0) + 1;
     (famBrands[f.key] ||= []).push(r.name);
   }
-  const primaryFamilies = COLOUR_FAMILIES.filter((f) => famCount[f.key])
+  const primaryFamilies = COLOR_FAMILIES.filter((f) => famCount[f.key])
     .map((f) => ({ ...f, count: famCount[f.key], brands: famBrands[f.key] }))
     .sort((a, b) => b.count - a.count);
 
-  // Every recorded colour (all roles) by family, for the palette-wide view.
+  // Every recorded color (all roles) by family, for the palette-wide view.
   const allFam = {};
-  let colourTotal = 0;
-  for (const r of rows) for (const c of r.colours) { const f = colourFamily(c.hex); if (f) { allFam[f.key] = (allFam[f.key] || 0) + 1; colourTotal++; } }
-  const paletteFamilies = COLOUR_FAMILIES.filter((f) => allFam[f.key]).map((f) => ({ ...f, count: allFam[f.key] })).sort((a, b) => b.count - a.count);
+  let colorTotal = 0;
+  for (const r of rows) for (const c of r.colors) { const f = colorFamily(c.hex); if (f) { allFam[f.key] = (allFam[f.key] || 0) + 1; colorTotal++; } }
+  const paletteFamilies = COLOR_FAMILIES.filter((f) => allFam[f.key]).map((f) => ({ ...f, count: allFam[f.key] })).sort((a, b) => b.count - a.count);
 
   // Exact hex values recorded by two or more brands in the sector.
   const hexBrands = {};
-  for (const r of rows) for (const h of new Set(r.colours.map((c) => c.hex))) (hexBrands[h] ||= []).push(r.name);
+  for (const r of rows) for (const h of new Set(r.colors.map((c) => c.hex))) (hexBrands[h] ||= []).push(r.name);
   // Pure white and pure black are left out: they are page defaults, not a choice of hue.
   const sharedHexes = Object.entries(hexBrands).filter(([h, v]) => v.length > 1 && h !== "#FFFFFF" && h !== "#000000").map(([hex, brands]) => ({ hex, brands })).sort((a, b) => b.brands.length - a.brands.length);
 
@@ -201,7 +201,7 @@ export function sectorDetail(sector, sectorBrands, allBrands) {
   return {
     sector, rows, n, total, share: pct(n, total),
     archetypeMix, avgGravity, minGravity, maxGravity,
-    withPrimaryCount: withPrimary.length, primaryFamilies, paletteFamilies, colourTotal, sharedHexes,
+    withPrimaryCount: withPrimary.length, primaryFamilies, paletteFamilies, colorTotal, sharedHexes,
     withFontsCount: withFonts.length, sharedFonts, sharedTone,
     industries, rivals,
   };
@@ -229,7 +229,7 @@ export function sectorIntro(d) {
     ? ` The most common primary archetypes are ${listJoin(tied.map((a) => a.name))}, with ${top.count} brand${top.count === 1 ? "" : "s"} each.`
     : ` The most common primary archetype is ${top.name} (${top.count} of ${d.n}).`;
   const grav = d.avgGravity !== null ? ` Their average Gravity Score is ${d.avgGravity} of 100, ranging from ${d.minGravity} to ${d.maxGravity}.` : "";
-  return `${d.n} of the ${d.total} brands in the BrandMD index fall in ${d.sector.name}, grouped from the industry each brand's record lists.${archBit}${grav} Below: each brand's archetype and score, the shared colour and type patterns, and a positioning line for each brand from its BrandMD record.`;
+  return `${d.n} of the ${d.total} brands in the BrandMD index fall in ${d.sector.name}, grouped from the industry each brand's record lists.${archBit}${grav} Below: each brand's archetype and score, the shared color and type patterns, and a positioning line for each brand from its BrandMD record.`;
 }
 
 export function listJoin(items) {
@@ -251,7 +251,7 @@ export function hubMeta(total, sectorCount) {
   return {
     title: fit(["Brand Sectors: Archetypes & Palettes by Industry | BrandMD", "Brand Sectors | BrandMD"], 60),
     description: fit([
-      `${total} brands in the BrandMD index grouped into ${sectorCount} sectors: archetype mix, Gravity Scores, colour and type patterns for each.`,
+      `${total} brands in the BrandMD index grouped into ${sectorCount} sectors: archetype mix, Gravity Scores, color and type patterns for each.`,
       `${total} brands grouped into ${sectorCount} sectors by archetype, Gravity Score and palette.`,
     ], 154),
   };
@@ -268,10 +268,10 @@ export function sectorMeta(d) {
     ], 59),
     description: fit([
       d.n > 3
-        ? `${d.n} ${name} brands in the BrandMD index, ${listJoin(names)} among them: archetype mix, Gravity Scores, colours, type and positioning.`
-        : `${name} in the BrandMD index: ${listJoin(d.rows.map((r) => r.name))}. Archetypes, Gravity Scores, colours, type and positioning.`,
-      `${d.n} ${name} brands in the BrandMD index: archetype mix, Gravity Scores, colours, type and how each positions itself.`,
-      `${d.n} ${name} brands: archetypes, Gravity Scores, colours and positioning.`,
+        ? `${d.n} ${name} brands in the BrandMD index, ${listJoin(names)} among them: archetype mix, Gravity Scores, colors, type and positioning.`
+        : `${name} in the BrandMD index: ${listJoin(d.rows.map((r) => r.name))}. Archetypes, Gravity Scores, colors, type and positioning.`,
+      `${d.n} ${name} brands in the BrandMD index: archetype mix, Gravity Scores, colors, type and how each positions itself.`,
+      `${d.n} ${name} brands: archetypes, Gravity Scores, colors and positioning.`,
     ], 154),
   };
 }

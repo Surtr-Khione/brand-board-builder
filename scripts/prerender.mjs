@@ -88,9 +88,9 @@ export function brandHtml(brand, { headingLevel = 1, compact = false } = {}) {
     section("Voice", v);
   }
 
-  const colours = [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]].filter(([, h]) => hexOk(h));
-  if (colours.length) {
-    section("Colours", `<ul class="palette">${colours
+  const colors = [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]].filter(([, h]) => hexOk(h));
+  if (colors.length) {
+    section("Colors", `<ul class="palette">${colors
       .map(([role, h]) => `<li><span class="swatch" style="background:${esc(h)}"></span>${esc(role)}: <code>${esc(String(h).toUpperCase())}</code></li>`)
       .join("")}</ul>`);
   }
@@ -175,7 +175,7 @@ function brandsIndexBody(brands) {
   });
   return [
     `<h1>The Brand Index</h1>`,
-    `<p>${brands.length} brands decoded on the same lens: archetype, mission, values, voice, colours and type. Every brand links to its full brand system and its brand.md context file.</p>`,
+    `<p>${brands.length} brands decoded on the same lens: archetype, mission, values, voice, colors and type. Every brand links to its full brand system and its brand.md context file.</p>`,
     `<ul class="bmd-brand-list">${items.join("\n")}</ul>`,
   ].join("\n");
 }
