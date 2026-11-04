@@ -11,8 +11,14 @@ const NAV_LINKS = [
   { to: "/builder", label: "Builder" },
   { to: "/check", label: "Check" },
   { to: "/brands", label: "Library" },
+  { to: "/research", label: "Research", also: ["/archetypes", "/sectors", "/versus", "/patterns"] },
   { to: "/blog", label: "Blog" },
 ];
+
+// A link is active on its own path and below it, plus any `also` sections it
+// stands for (the research families all sit under "Research").
+const under = (pathname, to) => pathname === to || pathname.startsWith(to + "/");
+const isActive = (link, pathname) => [link.to, ...(link.also || [])].some((to) => under(pathname, to));
 
 export function OrbitMark({ size = 26 }) {
   return (
@@ -90,7 +96,7 @@ export default function SiteNav({ transparent = false }) {
           <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               {NAV_LINKS.map((link) => {
-                const active = pathname === link.to || pathname.startsWith(link.to + "/");
+                const active = isActive(link, pathname);
                 return (
                   <Link
                     key={link.to}
@@ -133,7 +139,7 @@ export default function SiteNav({ transparent = false }) {
           }}
         >
           {NAV_LINKS.map((link, i) => {
-            const active = pathname === link.to || pathname.startsWith(link.to + "/");
+            const active = isActive(link, pathname);
             return (
               <Link
                 key={link.to}
