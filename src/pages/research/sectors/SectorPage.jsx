@@ -52,7 +52,7 @@ export default function SectorPage() {
   }
 
   const others = sectors.filter((s) => s.sector.slug !== slug);
-  const quoted = d ? d.rows.filter((r) => r.positioning || r.competitorDiff.length) : [];
+  const quoted = d ? d.rows.filter((r) => r.positioning) : [];
 
   return (
     <div className="sx-page">
@@ -218,8 +218,8 @@ export default function SectorPage() {
             {quoted.length > 0 && (
               <section className="sx-section" aria-labelledby="sx-differ">
                 <div className="sx-label">How they differ</div>
-                <h2 className="sx-h2" id="sx-differ">In their own records' words</h2>
-                <p className="sx-note">Each brand's stated competitive position, quoted from its BrandMD record (first sentence), plus any head-to-head comparisons the record lists. These are the records' claims, not BrandMD's verdict.</p>
+                <h2 className="sx-h2" id="sx-differ">From their BrandMD records</h2>
+                <p className="sx-note">One positioning line per brand from its BrandMD record. These lines are BrandMD's own research summaries, not statements by the brands, and sentences carrying figures or naming other brands are left out.</p>
                 <div className="sx-quotes">
                   {quoted.map((r) => (
                     <figure key={r.slug} className="sx-quote">
@@ -227,13 +227,8 @@ export default function SectorPage() {
                         <i style={{ background: r.colours[0]?.hex || "#8E8E93" }} />
                         <Link to={`/brands/${r.slug}`}>{r.name}</Link>
                       </div>
-                      {r.positioning && <blockquote>&ldquo;{r.positioning}&rdquo;</blockquote>}
-                      {r.competitorDiff.length > 0 && (
-                        <ul>{r.competitorDiff.map((line, i) => <li key={i}>{line}</li>)}</ul>
-                      )}
-                      <figcaption>
-                        From {r.name}'s record: {[r.positioning && "competitive positioning", r.competitorDiff.length && "competitor comparisons"].filter(Boolean).join(" and ")}
-                      </figcaption>
+                      <p>{r.positioning}</p>
+                      <figcaption>From {r.name}'s BrandMD record (competitive positioning)</figcaption>
                     </figure>
                   ))}
                 </div>
@@ -253,7 +248,7 @@ export default function SectorPage() {
                       <span>and</span>
                       <Link to={`/brands/${p.b.slug}`}>{p.b.name}</Link>
                       <span>· {p.basis}</span>
-                      <Link to={p.versus} style={{ marginLeft: "auto", fontSize: 12, color: "#0071E3" }}>Side by side →</Link>
+                      <Link to={p.versus} style={{ marginLeft: "auto", fontSize: 12, fontWeight: 600, color: "#F5F5F7", textDecoration: "underline", textDecorationColor: "#0071E3", textUnderlineOffset: 3 }}>Side by side →</Link>
                     </div>
                   ))}
                 </div>

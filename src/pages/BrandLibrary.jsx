@@ -123,21 +123,21 @@ export default function BrandLibrary() {
             padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
             border: !archetype ? "1px solid #0071E3" : "1px solid #222",
             background: !archetype ? "rgba(0,113,227,0.12)" : "#0c0c0c",
-            color: !archetype ? "#0071E3" : "#555", transition: "all 0.18s",
+            color: !archetype ? "#0071E3" : "#8E8E93", transition: "all 0.18s",
           }}>All {(debounced || verifiedOnly) ? brands.length : (totalBrands || brands.length || 15)}</button>
           {archetypeChips.map(({ slug, name, count }) => (
             <button key={slug} onClick={() => setArchetype(slug === archetype ? "" : slug)} style={{
               padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
               border: archetype === slug ? `1px solid ${ARCHETYPE_COLORS[name] || "#666"}` : "1px solid #222",
               background: archetype === slug ? `rgba(${rgb(ARCHETYPE_COLORS[name] || "#666")},0.12)` : "#0c0c0c",
-              color: archetype === slug ? (ARCHETYPE_COLORS[name] || "#f0ece3") : "#555", transition: "all 0.18s",
-            }}>{name.replace("The ", "")} <span style={{ opacity: 0.6, fontWeight: 500 }}>{count}</span></button>
+              color: archetype === slug ? (ARCHETYPE_COLORS[name] || "#f0ece3") : "#8E8E93", transition: "all 0.18s",
+            }}>{name.replace("The ", "")} <span style={{ fontWeight: 500 }}>{count}</span></button>
           ))}
           <button onClick={() => setVerifiedOnly(v => !v)} style={{
             padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
             border: verifiedOnly ? "1px solid #2ecc71" : "1px solid #222",
             background: verifiedOnly ? "rgba(46,204,113,0.12)" : "#0c0c0c",
-            color: verifiedOnly ? "#2ecc71" : "#555", transition: "all 0.18s",
+            color: verifiedOnly ? "#2ecc71" : "#8E8E93", transition: "all 0.18s",
           }}>✓ Verified only</button>
           {isFiltered && (
             <button onClick={() => { setQ(""); setArchetype(""); setVerifiedOnly(false); }} style={{ padding: "6px 12px", borderRadius: 20, fontSize: 11, color: "#555", background: "none", border: "1px solid #222", cursor: "pointer" }}>

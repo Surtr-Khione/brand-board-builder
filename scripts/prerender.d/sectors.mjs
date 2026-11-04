@@ -80,14 +80,13 @@ function sectorBody(d, sectors, esc) {
   }
 
   // How they differ
-  const quoted = d.rows.filter((r) => r.positioning || r.competitorDiff.length);
+  const quoted = d.rows.filter((r) => r.positioning);
   if (quoted.length) {
-    out.push(`<section><h2>How they differ, in their own records' words</h2>`);
-    out.push(`<p>Each brand's stated competitive position, quoted from its BrandMD record (first sentence), plus any head-to-head comparisons the record lists. These are the records' claims, not BrandMD's verdict.</p>`);
+    out.push(`<section><h2>How they differ, from their BrandMD records</h2>`);
+    out.push(`<p>One positioning line per brand from its BrandMD record. These lines are BrandMD's own research summaries, not statements by the brands, and sentences carrying figures or naming other brands are left out.</p>`);
     for (const r of quoted) {
       out.push(`<figure><figcaption><h3><a href="/brands/${esc(r.slug)}">${esc(r.name)}</a></h3></figcaption>`);
-      if (r.positioning) out.push(`<blockquote cite="${SITE}/brands/${esc(r.slug)}">${esc(r.positioning)}</blockquote>`);
-      if (r.competitorDiff.length) out.push(`<ul>${r.competitorDiff.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`);
+      out.push(`<p>${esc(r.positioning)}</p>`);
       out.push(`</figure>`);
     }
     out.push(`</section>`);

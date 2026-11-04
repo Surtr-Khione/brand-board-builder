@@ -77,7 +77,7 @@ function Histogram({ buckets, N, mean }) {
         return (
           <g key={f}>
             <line x1={padL} x2={W - 6} y1={y} y2={y} stroke="rgba(255,255,255,0.06)" />
-            <text x={padL - 8} y={y + 4} fontSize="10" fill="#6e6e73" textAnchor="end">{Math.round(maxC * f)}</text>
+            <text x={padL - 8} y={y + 4} fontSize="10" fill="#8E8E93" textAnchor="end">{Math.round(maxC * f)}</text>
           </g>
         );
       })}
@@ -347,10 +347,10 @@ function Body({ P, N, across }) {
                 <div key={`${p.primary}-${p.secondary}`} className="pt-card">
                   <div style={{ fontSize: 15, fontWeight: 700 }}>
                     <Link to={`/archetypes/${p.primary}`} style={{ textDecoration: "none" }}>{p.primaryName}</Link>
-                    <span style={{ color: "#6e6e73", fontWeight: 500 }}> + </span>
+                    <span style={{ color: "#8E8E93", fontWeight: 500 }}> + </span>
                     <Link to={`/archetypes/${p.secondary}`} style={{ textDecoration: "none", color: "#8E8E93" }}>{p.secondaryName}</Link>
                   </div>
-                  <div style={{ fontSize: 12, color: "#6e6e73", marginTop: 2 }}>{plural(p.brands.length, "brand", "brands")}</div>
+                  <div style={{ fontSize: 12, color: "#8E8E93", marginTop: 2 }}>{plural(p.brands.length, "brand", "brands")}</div>
                   <BrandChips brands={p.brands} />
                 </div>
               ))}

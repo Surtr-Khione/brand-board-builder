@@ -6,6 +6,7 @@
 // every number says what it was computed from. Nothing here is inferred
 // about a brand beyond grouping its stored labels.
 import { ARCHETYPES, brandArchetypes, sectorOf } from "../../../lib/brandTaxonomy.js";
+import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
 
 // General brand-strategy definitions of the 12 archetypes. These describe the
 // archetype, never a particular brand.
@@ -60,50 +61,13 @@ export function headOf(text) {
 // ── Colour families ────────────────────────────────────────────────────────
 // A colour family is computed from the hex alone (lightness, saturation, hue
 // angle): it is a grouping of stored hex codes, not a claim about intent.
-export const COLOUR_FAMILIES = [
-  { slug: "black", name: "Black", swatch: "#111111" },
-  { slug: "white", name: "White", swatch: "#F5F5F7" },
-  { slug: "grey", name: "Grey", swatch: "#8E8E93" },
-  { slug: "red", name: "Red", swatch: "#D32F2F" },
-  { slug: "orange", name: "Orange", swatch: "#F57C00" },
-  { slug: "brown", name: "Brown", swatch: "#795548" },
-  { slug: "yellow", name: "Yellow", swatch: "#FBC02D" },
-  { slug: "green", name: "Green", swatch: "#388E3C" },
-  { slug: "teal", name: "Teal", swatch: "#00897B" },
-  { slug: "blue", name: "Blue", swatch: "#1E6FD9" },
-  { slug: "purple", name: "Purple", swatch: "#7B1FA2" },
-  { slug: "pink", name: "Pink", swatch: "#D81B60" },
-];
+// Shared with /patterns and /sectors (src/lib/colourFamilies.js), so one hex
+// gets one family on every research page.
+export { COLOUR_FAMILIES };
 const FAMILY_BY_SLUG = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.slug, f]));
 
 export function colourFamily(hex) {
-  if (!hexOk(hex)) return null;
-  let h = str(hex).slice(1);
-  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-  const r = parseInt(h.slice(0, 2), 16) / 255;
-  const g = parseInt(h.slice(2, 4), 16) / 255;
-  const b = parseInt(h.slice(4, 6), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  const d = max - min;
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-  if (l < 0.1) return FAMILY_BY_SLUG.black;
-  if (l > 0.93) return FAMILY_BY_SLUG.white;
-  if (s < 0.14 || d < 0.06) return l < 0.18 ? FAMILY_BY_SLUG.black : FAMILY_BY_SLUG.grey;
-  let hue;
-  if (max === r) hue = ((g - b) / d) % 6;
-  else if (max === g) hue = (b - r) / d + 2;
-  else hue = (r - g) / d + 4;
-  hue = (hue * 60 + 360) % 360;
-  if (hue < 15 || hue >= 345) return FAMILY_BY_SLUG.red;
-  if (hue < 42) return l < 0.38 ? FAMILY_BY_SLUG.brown : FAMILY_BY_SLUG.orange;
-  if (hue < 68) return l < 0.32 ? FAMILY_BY_SLUG.brown : FAMILY_BY_SLUG.yellow;
-  if (hue < 160) return FAMILY_BY_SLUG.green;
-  if (hue < 195) return FAMILY_BY_SLUG.teal;
-  if (hue < 255) return FAMILY_BY_SLUG.blue;
-  if (hue < 290) return FAMILY_BY_SLUG.purple;
-  return FAMILY_BY_SLUG.pink;
+  return hexOk(hex) ? familyOf(str(hex)) : null;
 }
 
 export function brandColours(b) {

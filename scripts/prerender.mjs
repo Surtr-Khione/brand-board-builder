@@ -129,11 +129,12 @@ function page({ path, title, description, image = "/og/default.png", jsonld = nu
   if (!path || !path.startsWith("/")) { console.warn(`Skipped page with bad path: ${path}`); return; }
   if (written.has(path)) { console.warn(`Skipped duplicate prerender path: ${path}`); return; }
   let html = template;
-  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
-  html = html.replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${esc(description)}" />`);
-  html = html.replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
-  html = html.replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${esc(description)}" />`);
-  html = html.replace(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${SITE}${path}" />`);
+  // Function replacers: a `$&`, `$'` or `$$` in brand text must stay literal.
+  html = html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${esc(title)}</title>`);
+  html = html.replace(/<meta name="description"[^>]*>/, () => `<meta name="description" content="${esc(description)}" />`);
+  html = html.replace(/<meta property="og:title"[^>]*>/, () => `<meta property="og:title" content="${esc(title)}" />`);
+  html = html.replace(/<meta property="og:description"[^>]*>/, () => `<meta property="og:description" content="${esc(description)}" />`);
+  html = html.replace(/<meta property="og:url"[^>]*>/, () => `<meta property="og:url" content="${SITE}${path}" />`);
   const ld = Array.isArray(jsonld) ? jsonld : jsonld ? [jsonld] : [];
   const extra = [
     `<meta property="og:image" content="${SITE}${image}" />`,
@@ -144,8 +145,8 @@ function page({ path, title, description, image = "/og/default.png", jsonld = nu
     ...ld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`),
     body ? STATIC_CSS : "",
   ].filter(Boolean).join("\n    ");
-  html = html.replace("</head>", `    ${extra}\n  </head>`);
-  if (body) html = html.replace(/<div id="root"><\/div>/, `<div id="root"><main class="bmd-static">\n${body}\n</main></div>`);
+  html = html.replace("</head>", () => `    ${extra}\n  </head>`);
+  if (body) html = html.replace(/<div id="root"><\/div>/, () => `<div id="root"><main class="bmd-static">\n${body}\n</main></div>`);
   const dir = path === "/" ? "dist" : `dist${path}`;
   mkdirSync(dir, { recursive: true });
   writeFileSync(`${dir}/index.html`, html);

@@ -109,16 +109,16 @@ export function canonicalArchetype(raw) {
 }
 
 // The archetype pair for a library row: primary from `archetype`; secondary
-// from a hybrid label if it carried one, else from `secondary_archetype`
-// (dropped when it canonicalizes to the primary).
+// from the record's own `secondary_archetype` field when it names a canonical
+// archetype other than the primary, and only otherwise from the second part
+// of a hybrid label (e.g. "Caregiver × Creator hybrid").
 export function brandArchetypes(brand) {
   const primary = canonicalArchetype(brand?.archetype);
   if (!primary) return { primary: null, secondary: null };
-  let secondary = primary.secondary;
-  if (!secondary) {
-    const s = canonicalArchetype(brand?.secondary_archetype);
-    if (s && s.slug !== primary.slug) secondary = { slug: s.slug, name: s.name };
-  }
+  let secondary = null;
+  const s = canonicalArchetype(brand?.secondary_archetype);
+  if (s && s.slug !== primary.slug) secondary = { slug: s.slug, name: s.name };
+  else if (primary.secondary) secondary = primary.secondary;
   return { primary, secondary };
 }
 
@@ -232,7 +232,7 @@ export const RIVALS = [
   ["delta-air-lines", "united-airlines", "both are commercial airlines"],
   ["exxonmobil", "chevron", "both are energy companies"],
   ["bmw", "mercedes-benz", "both are luxury automakers"],
-  ["ferrari", "porsche-united-states", "both make ultra-premium sports cars"],
+  ["ferrari", "porsche-united-states", "both are in ultra-luxury and ultra-premium automotive"],
   ["apple", "samsung", "both make consumer electronics"],
   ["openai", "anthropic", "both build artificial intelligence"],
   ["headspace", "calm", "both make consumer mental wellness apps"],
@@ -241,7 +241,7 @@ export const RIVALS = [
   ["chipotle-mexican-grill", "sweetgreen", "both are fast-casual restaurant chains"],
   ["hubspot", "salesforce", "both sell CRM software"],
   ["netflix", "disney", "both are in entertainment"],
-  ["walmart", "amazon", "both sell general merchandise to consumers"],
+  ["walmart", "amazon", "both are in retail and e-commerce"],
   ["slack", "zoom", "both sell workplace collaboration software"],
   ["figma", "canva", "both sell design software"],
   ["unitedhealth-group", "cvs-health", "both are healthcare companies"],

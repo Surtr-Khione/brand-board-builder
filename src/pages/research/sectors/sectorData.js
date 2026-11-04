@@ -7,6 +7,7 @@
 // record's own text, and computed figures carry the base they were computed on.
 import { SECTORS, sectorOf, brandArchetypes, ARCHETYPES, rivalsOf, rivalPairSlug } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
+import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
 
 const present = (v) => v !== null && v !== undefined && String(v).trim() !== "";
 const hexOk = (h) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(h || "").trim());
@@ -20,50 +21,12 @@ function normHex(h) {
 // ── Colour families ───────────────────────────────────────────────────────
 // A colour family is computed from the hue, saturation and lightness of the
 // recorded hex value. It describes the hex, not the brand's intent.
-export const COLOUR_FAMILIES = [
-  { key: "black", name: "Black / near-black", swatch: "#111111" },
-  { key: "grey", name: "Grey", swatch: "#8E8E93" },
-  { key: "white", name: "White / near-white", swatch: "#F5F5F7" },
-  { key: "red", name: "Red", swatch: "#D7263D" },
-  { key: "orange", name: "Orange", swatch: "#F28C28" },
-  { key: "yellow", name: "Yellow", swatch: "#F2C230" },
-  { key: "green", name: "Green", swatch: "#2E9E5B" },
-  { key: "teal", name: "Teal / cyan", swatch: "#14A3A8" },
-  { key: "blue", name: "Blue", swatch: "#2A6DD6" },
-  { key: "purple", name: "Purple", swatch: "#7B4FD0" },
-  { key: "pink", name: "Pink / magenta", swatch: "#D6409F" },
-];
-const FAMILY_BY_KEY = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.key, f]));
+// The family table and rule are shared with /patterns and /archetypes
+// (src/lib/colourFamilies.js), so one hex gets one family everywhere.
+export { COLOUR_FAMILIES };
 
 export function colourFamily(hex) {
-  if (!hexOk(hex)) return null;
-  const h = normHex(hex);
-  const r = parseInt(h.slice(1, 3), 16) / 255;
-  const g = parseInt(h.slice(3, 5), 16) / 255;
-  const b = parseInt(h.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  const d = max - min;
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-  let hue = 0;
-  if (d !== 0) {
-    if (max === r) hue = 60 * (((g - b) / d) % 6);
-    else if (max === g) hue = 60 * ((b - r) / d + 2);
-    else hue = 60 * ((r - g) / d + 4);
-  }
-  if (hue < 0) hue += 360;
-  if (l < 0.13) return FAMILY_BY_KEY.black;
-  if (l > 0.93) return FAMILY_BY_KEY.white;
-  if (s < 0.15) return l < 0.3 ? FAMILY_BY_KEY.black : l > 0.85 ? FAMILY_BY_KEY.white : FAMILY_BY_KEY.grey;
-  if (hue < 15 || hue >= 345) return FAMILY_BY_KEY.red;
-  if (hue < 45) return FAMILY_BY_KEY.orange;
-  if (hue < 70) return FAMILY_BY_KEY.yellow;
-  if (hue < 165) return FAMILY_BY_KEY.green;
-  if (hue < 195) return FAMILY_BY_KEY.teal;
-  if (hue < 260) return FAMILY_BY_KEY.blue;
-  if (hue < 295) return FAMILY_BY_KEY.purple;
-  return FAMILY_BY_KEY.pink;
+  return hexOk(hex) ? familyOf(normHex(hex)) : null;
 }
 
 export function luma(hex) {
@@ -74,12 +37,36 @@ export function luma(hex) {
 
 // ── Per-brand row ─────────────────────────────────────────────────────────
 
-function firstSentence(text) {
+// The positioning line shown on sector pages is BrandMD's own synthesized
+// text (brand_data.competitivePositioning, written by the enrichment script),
+// not a brand statement. Only the first sentence that carries no figures
+// (digits, %, $), no comparison ("vs", "than", "against") and no proper name
+// other than the brand's own is shown, so the page republishes no unverified
+// market-share numbers and names no rivals. A sentence that leans on the one
+// before it ("This…", "None…") is skipped too. No passing sentence: no line.
+const ACRONYMS = new Set(["AI", "UX", "OS", "SMB", "DIY", "DTC", "US", "U.S.", "UHNW", "ARPU", "API", "AND"]);
+// Ordinary words that may open a sentence with a capital letter.
+const STARTERS = new Set(["Its", "The", "A", "An", "No", "Key", "Every", "At", "As", "Where", "With", "For", "Our"]);
+
+function cleanPositioning(text, ownName) {
   const t = String(text || "").trim();
   if (!t) return "";
-  // A sentence ends at . ! or ? followed by a space and a capital letter or quote.
-  const m = t.match(/^[\s\S]{40,}?[.!?](?=\s+["“A-Z0-9])/);
-  return (m ? m[0] : t).trim();
+  const own = new Set(String(ownName || "").toLowerCase().split(/[\s/]+/).flatMap((w) => [w, ...w.split(/[-'’.]/)]).map((w) => w.replace(/[^\p{L}&-]/gu, "")).filter(Boolean));
+  const properNoun = (x) =>
+    x.split(/[\s/]+/).some((raw, i) => {
+      const w = raw.replace(/^["“'‘(]+|[)"”'’,;:.!?—–]+$/g, "").replace(/['’]s$/, "");
+      if (own.has(w.toLowerCase())) return false;
+      if (i === 0) return !STARTERS.has(w);
+      if (!/^\p{Lu}/u.test(w)) return false;
+      return !ACRONYMS.has(w);
+    });
+  const ok = (x) =>
+    x.length >= 40 &&
+    !/[\d%$€£]/.test(x) &&
+    !/\b(vs\.?|versus|than|against|all three|this)\b/i.test(x) &&
+    !properNoun(x);
+  const sentences = t.split(/(?<=[.!?])\s+(?=["“\p{Lu}])/u);
+  return (sentences.find(ok) || "").trim();
 }
 
 function asList(v) {
@@ -110,8 +97,7 @@ export function brandRow(b) {
     colours,
     fonts,
     tone: asList(b.tone_attributes).length ? asList(b.tone_attributes) : asList(bd.toneAttributes),
-    competitorDiff: asList(b.competitor_diff),
-    positioning: firstSentence(bd.competitivePositioning),
+    positioning: cleanPositioning(bd.competitivePositioning, b.brand_name),
   };
 }
 
@@ -243,7 +229,7 @@ export function sectorIntro(d) {
     ? ` The most common primary archetypes are ${listJoin(tied.map((a) => a.name))}, with ${top.count} brand${top.count === 1 ? "" : "s"} each.`
     : ` The most common primary archetype is ${top.name} (${top.count} of ${d.n}).`;
   const grav = d.avgGravity !== null ? ` Their average Gravity Score is ${d.avgGravity} of 100, ranging from ${d.minGravity} to ${d.maxGravity}.` : "";
-  return `${d.n} of the ${d.total} brands in the BrandMD index fall in ${d.sector.name}, grouped from the industry each brand's record lists.${archBit}${grav} Below: each brand's archetype and score, the shared colour and type patterns, and how the brands describe their own differences, quoted from their records.`;
+  return `${d.n} of the ${d.total} brands in the BrandMD index fall in ${d.sector.name}, grouped from the industry each brand's record lists.${archBit}${grav} Below: each brand's archetype and score, the shared colour and type patterns, and a positioning line for each brand from its BrandMD record.`;
 }
 
 export function listJoin(items) {

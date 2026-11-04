@@ -121,6 +121,9 @@ export function hasField(s, key) {
 
 const fmtList = (xs) => (xs.length <= 1 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1]);
 const quoteList = (xs) => fmtList(xs.map((x) => `"${x}"`));
+// Short head of a tone attribute: the text before its dash or colon gloss
+// ("Minimalist and precise — every word…" → "Minimalist and precise").
+const toneHead = (t) => String(t).split(/\s+[—–-]\s+|:\s+/)[0].trim();
 
 // Computed comparison: plain statements, each derived from the two records.
 export function compare(A, B) {
@@ -152,11 +155,11 @@ export function compare(A, B) {
     const onlyA = A.tone.filter((t) => !bl.has(t.toLowerCase()));
     const onlyB = B.tone.filter((t) => !al.has(t.toLowerCase()));
     if (shared.length) overlap.push(`Both list ${quoteList(shared)} as ${shared.length === 1 ? "a tone attribute" : "tone attributes"}.`);
-    if (!shared.length) differ.push(`No tone attribute appears in both records (${A.name}: ${A.tone.join(", ")}; ${B.name}: ${B.tone.join(", ")}).`);
+    if (!shared.length) differ.push(`No tone attribute appears in both records (${A.name}: ${A.tone.map(toneHead).join(" · ")}; ${B.name}: ${B.tone.map(toneHead).join(" · ")}).`);
     else if (onlyA.length || onlyB.length) {
       const parts = [];
-      if (onlyA.length) parts.push(`only ${A.name} lists ${quoteList(onlyA)}`);
-      if (onlyB.length) parts.push(`only ${B.name} lists ${quoteList(onlyB)}`);
+      if (onlyA.length) parts.push(`only ${A.name} lists ${quoteList(onlyA.map(toneHead))}`);
+      if (onlyB.length) parts.push(`only ${B.name} lists ${quoteList(onlyB.map(toneHead))}`);
       differ.push(`Tone: ${parts.join("; ")}.`);
     }
   }

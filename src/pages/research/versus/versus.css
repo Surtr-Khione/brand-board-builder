@@ -11,7 +11,7 @@
 .vs-hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 700; letter-spacing: -1.6px; line-height: 1.05; margin: 0 0 14px; }
 .vs-h1-sm { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; margin: 0 0 10px; }
 .vs-intro { font-size: 15px; color: #8E8E93; max-width: 620px; margin: 0 auto; line-height: 1.65; }
-.vs-crumbs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; font-size: 12px; color: #5a5a5e; margin-bottom: 22px; letter-spacing: 0.2px; }
+.vs-crumbs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; font-size: 12px; color: #8E8E93; margin-bottom: 22px; letter-spacing: 0.2px; }
 .vs-page .vs-crumbs a { color: #8E8E93; }
 .vs-basis { display: inline-flex; flex-direction: column; gap: 4px; margin: 4px auto 18px; padding: 12px 18px; border: 1px solid #1c1c1e; border-radius: 12px; background: #0c0c0c; font-size: 15px; color: #F5F5F7; max-width: 560px; }
 .vs-basis span { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; color: #8E8E93; }
@@ -44,9 +44,9 @@
 .vs-who { display: none; }
 .vs-head { display: flex; flex-direction: column; gap: 6px; }
 .vs-page a.vs-head-name { font-size: 18px; font-weight: 700; color: #F5F5F7; letter-spacing: -0.4px; }
-.vs-head-site { font-size: 11px; color: #5a5a5e; }
-.vs-none { color: #48484a; font-style: italic; font-size: 13px; }
-.vs-raw { display: block; font-size: 12px; color: #6e6e73; margin-top: 3px; }
+.vs-head-site { font-size: 11px; color: #8E8E93; }
+.vs-none { color: #8E8E93; font-style: italic; font-size: 13px; }
+.vs-raw { display: block; font-size: 12px; color: #8E8E93; margin-top: 3px; }
 .vs-tagline { color: #F5F5F7; font-style: italic; }
 .vs-list { margin: 0; padding-left: 18px; }
 .vs-list li { margin: 0 0 6px; }
@@ -55,11 +55,11 @@
 .vs-chip { padding: 3px 10px; border-radius: 20px; border: 1px solid #2c2c2e; font-size: 12px; color: #F5F5F7; background: #0c0c0c; }
 .vs-palette { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .vs-palette li { display: flex; align-items: center; gap: 10px; }
-.vs-role { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #6e6e73; min-width: 64px; }
+.vs-role { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8E8E93; min-width: 64px; }
 .vs-palette code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 13px; color: #F5F5F7; }
 .vs-gravity { font-size: 26px; font-weight: 700; color: #F5F5F7; letter-spacing: -0.6px; }
-.vs-gravity span { font-size: 13px; font-weight: 500; color: #6e6e73; letter-spacing: 0; }
-.vs-note { font-size: 12.5px; color: #6e6e73; line-height: 1.6; margin: 12px 4px 0; }
+.vs-gravity span { font-size: 13px; font-weight: 500; color: #8E8E93; letter-spacing: 0; }
+.vs-note { font-size: 12.5px; color: #8E8E93; line-height: 1.6; margin: 12px 4px 0; }
 
 /* Differ / overlap */
 .vs-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
@@ -84,7 +84,7 @@
 .vs-page a.vs-btn:hover { text-decoration: none; border-color: #48484a; }
 .vs-page a.vs-btn-primary { background: #0071E3; border-color: #0071E3; color: #fff; }
 .vs-page a.vs-btn-primary:hover { background: #0077ED; }
-.vs-foot-links { margin-top: 28px; font-size: 13px; color: #6e6e73; text-align: center; }
+.vs-foot-links { margin-top: 28px; font-size: 13px; color: #8E8E93; text-align: center; }
 
 .vs-loading { display: flex; justify-content: center; padding: 100px 0; }
 .vs-spin { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.12); border-top-color: #0071E3; animation: vs-spin .8s linear infinite; }

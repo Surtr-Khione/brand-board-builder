@@ -252,7 +252,7 @@ export default function ArchetypeHub() {
               </>
             )}
 
-            <Section label="The wheel" title="The other eleven">
+            <Section label="The wheel" title="All twelve archetypes">
               <nav className="arx-wheel">
                 {ARCHETYPES.map((a) => (
                   <Link key={a.slug} to={`/archetypes/${a.slug}`} className={a.slug === slug ? "on" : ""}>

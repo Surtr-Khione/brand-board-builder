@@ -7,6 +7,7 @@
 // which describes typefaces, not brands.
 import { ARCHETYPES, brandArchetypes, canonicalArchetype, sectorOf } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
+import { COLOUR_FAMILIES, familyOf } from "../../../lib/colourFamilies.js";
 
 // ── Colour ─────────────────────────────────────────────────────────────────
 
@@ -20,20 +21,6 @@ export function parseHex(raw) {
   return { hex: `#${h.toUpperCase()}`, r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
 }
 
-function hsl({ r, g, b }) {
-  const R = r / 255, G = g / 255, B = b / 255;
-  const max = Math.max(R, G, B), min = Math.min(R, G, B);
-  const l = (max + min) / 2;
-  if (max === min) return { h: 0, s: 0, l };
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h;
-  if (max === R) h = ((G - B) / d + (G < B ? 6 : 0)) * 60;
-  else if (max === G) h = ((B - R) / d + 2) * 60;
-  else h = ((R - G) / d + 4) * 60;
-  return { h, s, l };
-}
-
 // WCAG 2 relative luminance.
 export function luminance({ r, g, b }) {
   const ch = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
@@ -44,34 +31,13 @@ export function luminance({ r, g, b }) {
 // usual line between a "dark" and a "light" colour.
 export const DARK_LUMINANCE = 0.179;
 
-export const COLOUR_FAMILIES = [
-  { slug: "black", name: "Black & near-black", rule: "lightness 12% or less" },
-  { slug: "white", name: "White & off-white", rule: "lightness 93% or more" },
-  { slug: "grey", name: "Grey", rule: "saturation under 15%" },
-  { slug: "red", name: "Red", rule: "hue 345° to 15°" },
-  { slug: "orange", name: "Orange", rule: "hue 15° to 40°, lightness over 35%" },
-  { slug: "brown", name: "Brown", rule: "hue 15° to 40°, lightness 35% or less" },
-  { slug: "yellow", name: "Yellow", rule: "hue 40° to 65°" },
-  { slug: "green", name: "Green", rule: "hue 65° to 165°" },
-  { slug: "teal", name: "Teal & cyan", rule: "hue 165° to 195°" },
-  { slug: "blue", name: "Blue", rule: "hue 195° to 255°" },
-  { slug: "purple", name: "Purple", rule: "hue 255° to 290°" },
-  { slug: "pink", name: "Pink & magenta", rule: "hue 290° to 345°" },
-];
+// Family table, rules and thresholds are shared with /sectors and
+// /archetypes (src/lib/colourFamilies.js); the rule text printed on /patterns
+// comes from that same table.
+export { COLOUR_FAMILIES };
 
 export function colourFamily(rgb) {
-  const { h, s, l } = hsl(rgb);
-  if (l <= 0.12) return "black";
-  if (l >= 0.93) return "white";
-  if (s < 0.15) return "grey";
-  if (h >= 345 || h < 15) return "red";
-  if (h < 40) return l <= 0.35 ? "brown" : "orange";
-  if (h < 65) return "yellow";
-  if (h < 165) return "green";
-  if (h < 195) return "teal";
-  if (h < 255) return "blue";
-  if (h < 290) return "purple";
-  return "pink";
+  return familyOf(rgb).slug;
 }
 
 // ── Type ───────────────────────────────────────────────────────────────────

@@ -19,6 +19,28 @@ function luma(hex = "") {
   return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
 }
 
+// WCAG 2 contrast helpers for the ink on the #0c0c0c info panel.
+const PANEL = [12, 12, 12];
+function rgbArr(hex = "") {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const v = [0, 2, 4].map(i => parseInt(full.slice(i, i + 2), 16));
+  return full.length === 6 && v.every(n => !isNaN(n)) ? v : null;
+}
+function mix(fg, bg, a) { return fg.map((c, i) => c * a + bg[i] * (1 - a)); }
+function relLum(c) {
+  const [r, g, b] = c.map(v => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function contrast(a, b) { const [x, y] = [relLum(a), relLum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); }
+function inkReadable(hex) {
+  const c = rgbArr(hex);
+  if (!c) return false;
+  const tagline = contrast(mix(c, PANEL, 0.85), PANEL);
+  const chip = contrast(c, mix(c, PANEL, 0.12));
+  return tagline >= 4.5 && chip >= 4.5;
+}
+
 function logoSources(website) {
   if (!website) return [];
   const domain = website.replace(/^https?:\/\//, "").split("/")[0];
@@ -38,13 +60,12 @@ export default function BrandCard({ brand, compact = false }) {
   const sources = logoSources(brand.website);
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
-  // Ink for brand-tinted text on the card's near-black info panel. Same
-  // luminance guard as BrandProfile's pcInk: the first brand colour bright
-  // enough to read on #0c0c0c, else off-white, so dark palettes (Apple,
-  // Nike) can't paint their own tagline and archetype chip invisible. The bar
-  // is a little higher than pcInk's 70 because card text is 12px, not hero
-  // size (Liquid Death's #C8102E, luma 75, was still muddy here).
-  const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find(c => c && luma(c) > 85) || "#F5F5F7";
+  // Ink for brand-tinted text on the card's near-black info panel: the first
+  // brand colour that passes WCAG AA (4.5:1) where it is actually drawn, i.e.
+  // as the tagline at 0.85 alpha on #0c0c0c and as chip text on its own 0.12
+  // tint; else off-white. A luma cutoff let mid blues, purples and reds
+  // (Apple, Stripe, Canva, Red Bull) through at under 4.5:1.
+  const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find(c => c && inkReadable(c)) || "#F5F5F7";
   const arch = canonicalArchetype(brand.archetype);
 
   const logoSize = compact ? 64 : 80;

@@ -105,7 +105,7 @@
 .sx-quote-who i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .sx-quote-who a { font-weight: 700; font-size: 15px; text-decoration: none; }
 .sx-quote-who a:hover { color: #0071E3; }
-.sx-quote blockquote { margin: 0; font-size: 14px; line-height: 1.65; color: #C7C7CC; }
+.sx-quote blockquote, .sx-quote > p { margin: 0; font-size: 14px; line-height: 1.65; color: #C7C7CC; }
 .sx-quote ul { margin: 12px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #C7C7CC; }
 .sx-quote li { margin-bottom: 6px; }
 .sx-quote figcaption { font-size: 11px; color: #8E8E93; margin-top: 12px; letter-spacing: .3px; }
