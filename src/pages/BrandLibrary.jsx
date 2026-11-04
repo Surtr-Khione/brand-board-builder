@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import BrandCard from "../components/BrandCard";
 import SiteNav from "../components/SiteNav";
+import { ARCHETYPES, canonicalArchetype } from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -35,7 +36,7 @@ function SkeletonCard() {
 const ARCHETYPE_COLORS = {
   "The Hero": "#C62828", "The Creator": "#6A1B9A", "The Sage": "#1565C0",
   "The Explorer": "#2E7D32", "The Magician": "#4A148C", "The Ruler": "#37474F",
-  "The Caregiver": "#00838F", "The Rebel": "#BF360C", "The Jester": "#F9A825",
+  "The Caregiver": "#00838F", "The Outlaw": "#BF360C", "The Jester": "#F9A825",
   "The Innocent": "#0097A7", "The Lover": "#AD1457", "The Everyman": "#5D4037",
 };
 
@@ -43,7 +44,6 @@ export default function BrandLibrary() {
   const [searchParams] = useSearchParams();
   const [brands, setBrands] = useState([]);
   const [totalBrands, setTotalBrands] = useState(null);
-  const [facets, setFacets] = useState({ archetypes: [], industries: [] });
   const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [archetype, setArchetype] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -63,16 +63,33 @@ export default function BrandLibrary() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await searchBrands({ q: debounced, archetype, featured: verifiedOnly || undefined, limit: 48 });
+    // The whole index fits in one page (search-brands caps limit at 100), so
+    // load every match and filter by canonical archetype on the client: the
+    // stored labels are free text ("Caregiver", "The Caretaker", hybrids), and
+    // a server-side exact match would split one archetype into many chips.
+    const data = await searchBrands({ q: debounced, featured: verifiedOnly || undefined, limit: 100 });
     setBrands(data.brands || []);
     if (data.totalBrands) setTotalBrands(data.totalBrands);
-    if (data.facets) setFacets(data.facets);
     setLoading(false);
-  }, [debounced, archetype, verifiedOnly]);
+  }, [debounced, verifiedOnly]);
 
   useEffect(() => { load(); }, [load]);
 
   const isFiltered = !!debounced || !!archetype || verifiedOnly;
+
+  // Canonical archetype per brand (a hybrid counts under its primary), the
+  // chip counts for the current search, and the visible grid.
+  const archOf = useMemo(() => {
+    const m = {};
+    for (const b of brands) m[b.slug] = canonicalArchetype(b.archetype)?.slug || null;
+    return m;
+  }, [brands]);
+  const archetypeChips = useMemo(() => {
+    const counts = {};
+    for (const b of brands) { const a = archOf[b.slug]; if (a) counts[a] = (counts[a] || 0) + 1; }
+    return ARCHETYPES.filter(a => counts[a.slug]).map(a => ({ ...a, count: counts[a.slug] }));
+  }, [brands, archOf]);
+  const visible = archetype ? brands.filter(b => archOf[b.slug] === archetype) : brands;
 
   return (
     <div style={{ background: "#000000", color: "#F5F5F7", fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh" }}>
@@ -107,14 +124,14 @@ export default function BrandLibrary() {
             border: !archetype ? "1px solid #0071E3" : "1px solid #222",
             background: !archetype ? "rgba(0,113,227,0.12)" : "#0c0c0c",
             color: !archetype ? "#0071E3" : "#555", transition: "all 0.18s",
-          }}>All {totalBrands || brands.length || 15}</button>
-          {facets.archetypes.map(a => (
-            <button key={a} onClick={() => setArchetype(a === archetype ? "" : a)} style={{
+          }}>All {(debounced || verifiedOnly) ? brands.length : (totalBrands || brands.length || 15)}</button>
+          {archetypeChips.map(({ slug, name, count }) => (
+            <button key={slug} onClick={() => setArchetype(slug === archetype ? "" : slug)} style={{
               padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
-              border: archetype === a ? `1px solid ${ARCHETYPE_COLORS[a] || "#666"}` : "1px solid #222",
-              background: archetype === a ? `rgba(${rgb(ARCHETYPE_COLORS[a] || "#666")},0.12)` : "#0c0c0c",
-              color: archetype === a ? (ARCHETYPE_COLORS[a] || "#f0ece3") : "#555", transition: "all 0.18s",
-            }}>{a}</button>
+              border: archetype === slug ? `1px solid ${ARCHETYPE_COLORS[name] || "#666"}` : "1px solid #222",
+              background: archetype === slug ? `rgba(${rgb(ARCHETYPE_COLORS[name] || "#666")},0.12)` : "#0c0c0c",
+              color: archetype === slug ? (ARCHETYPE_COLORS[name] || "#f0ece3") : "#555", transition: "all 0.18s",
+            }}>{name.replace("The ", "")} <span style={{ opacity: 0.6, fontWeight: 500 }}>{count}</span></button>
           ))}
           <button onClick={() => setVerifiedOnly(v => !v)} style={{
             padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
@@ -134,7 +151,7 @@ export default function BrandLibrary() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 18 }}>
             {Array.from({ length: 15 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
-        ) : brands.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 40px", color: "#444" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>◌</div>
             <div style={{ fontSize: 15 }}>No brands match</div>
@@ -144,7 +161,7 @@ export default function BrandLibrary() {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 18 }}>
-            {brands.map(b => <BrandCard key={b.slug} brand={b} />)}
+            {visible.map(b => <BrandCard key={b.slug} brand={b} />)}
           </div>
         )}
 

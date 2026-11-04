@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { computeGravityScore } from "../lib/gravityScore";
+import { canonicalArchetype } from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -37,6 +38,14 @@ export default function BrandCard({ brand, compact = false }) {
   const sources = logoSources(brand.website);
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
+  // Ink for brand-tinted text on the card's near-black info panel. Same
+  // luminance guard as BrandProfile's pcInk: the first brand colour bright
+  // enough to read on #0c0c0c, else off-white, so dark palettes (Apple,
+  // Nike) can't paint their own tagline and archetype chip invisible. The bar
+  // is a little higher than pcInk's 70 because card text is 12px, not hero
+  // size (Liquid Death's #C8102E, luma 75, was still muddy here).
+  const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find(c => c && luma(c) > 85) || "#F5F5F7";
+  const arch = canonicalArchetype(brand.archetype);
 
   const logoSize = compact ? 64 : 80;
   const iconWrap = compact ? 76 : 96;
@@ -140,15 +149,15 @@ export default function BrandCard({ brand, compact = false }) {
             <div style={{ fontSize: nameSize, fontWeight: 800, color: "#f0ece3", letterSpacing: "-0.4px", lineHeight: 1.15 }}>
               {brand.brand_name}
             </div>
-            {brand.archetype && (
+            {arch && (
               <span style={{
                 fontSize: 8, fontWeight: 700, flexShrink: 0, marginTop: 3,
-                color: pc, background: `rgba(${rgb(pc)},0.12)`,
-                border: `1px solid rgba(${rgb(pc)},0.28)`,
+                color: ink, background: `rgba(${rgb(ink)},0.12)`,
+                border: `1px solid rgba(${rgb(ink)},0.28)`,
                 borderRadius: 4, padding: "2px 7px", letterSpacing: 0.4,
                 textTransform: "uppercase",
               }}>
-                {brand.archetype.replace("The ", "")}
+                {arch.name.replace("The ", "")}
               </span>
             )}
           </div>
@@ -161,7 +170,7 @@ export default function BrandCard({ brand, compact = false }) {
           {brand.tagline && (
             <div style={{
               fontSize: compact ? 11 : 12,
-              color: `rgba(${rgb(pc)}, ${isDark ? "0.85" : "0.7"})`,
+              color: `rgba(${rgb(ink)}, 0.85)`,
               fontStyle: "italic",
               lineHeight: 1.5,
               marginBottom: 12,
@@ -187,9 +196,9 @@ export default function BrandCard({ brand, compact = false }) {
           <div style={{ flex: 1, background: ac }} />
         </div>
         <div style={{ display: "flex", padding: `3px ${compact ? 16 : 20}px ${compact ? 12 : 14}px` }}>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace" }}>{pc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace" }}>{pc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
         </div>
       </div>
     </Link>
