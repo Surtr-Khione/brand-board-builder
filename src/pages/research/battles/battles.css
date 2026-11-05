@@ -2,9 +2,13 @@
    #F5F5F7, system blue #0071E3, Inter only. Brand colors appear only as
    swatches, never as chrome. Every class is vs- prefixed. */
 .vs-page { background: #000; color: #F5F5F7; font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
-.vs-page a { color: #0071E3; text-decoration: none; }
+/* Blue TEXT on near-black uses the #2997FF tint of system blue (about 6:1 on
+   #0c0c0c, AA at any size); #0071E3 stays for fills, borders, buttons and the
+   large h1 accent (large text, 3:1). */
+.vs-page a { color: #2997FF; text-decoration: none; }
 .vs-page a:hover { text-decoration: underline; }
 .vs-blue { color: #0071E3; }
+.vs-next-names .vs-blue { color: #2997FF; }
 .vs-muted { color: #8E8E93; font-size: 14px; }
 
 .vs-hero { padding: 48px 40px 44px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -27,7 +31,7 @@
 .vs-card-side.vs-right { align-items: flex-end; text-align: right; }
 .vs-card-name { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; overflow-wrap: anywhere; }
 .vs-card-arch { font-size: 11px; color: #8E8E93; }
-.vs-card-vs { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #0071E3; padding-top: 5px; }
+.vs-card-vs { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2997FF; padding-top: 5px; }
 .vs-card-basis { margin-top: 14px; padding-top: 12px; border-top: 1px solid #161616; font-size: 12.5px; color: #8E8E93; line-height: 1.5; }
 
 .vs-swatches { display: inline-flex; gap: 4px; }
@@ -117,7 +121,7 @@
 .bb h2 { margin-bottom: 6px; }
 .bb-intro { font-size: 14px; color: #8E8E93; margin: 0 0 18px; }
 .bb-form { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 14px; align-items: end; }
-.bb-vs { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #0071E3; padding-bottom: 14px; }
+.bb-vs { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2997FF; padding-bottom: 14px; }
 .bb-status { font-size: 12.5px; color: #8E8E93; margin: 12px 0 0; min-height: 1.5em; }
 .bp { min-width: 0; }
 .bp-label { display: block; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 700; color: #8E8E93; margin-bottom: 6px; }
@@ -152,3 +156,6 @@
   .vs-compare-cta { flex-direction: column; align-items: flex-start; }
   .vs-cta { padding: 32px 20px; }
 }
+
+/* In-text links in grey footer copy: underlined, not marked by color alone. */
+.vs-page .vs-foot-links a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(41,151,255,0.55); }

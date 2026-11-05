@@ -1,7 +1,7 @@
 // Business-model research pages: /models and /models/:slug (models with 2+
 // tagged brands). Crawlable static bodies built from the same rollups the SPA
 // renders (src/pages/research/models/modelData.js), so the two never disagree.
-import { buildModels, hubIntro, modelIntro, hubMeta, modelMeta, modelHrefOf, termsNote, inlineName, baseLine, industryParts, listJoin, plural, GRAVITY_NOTE } from "../../src/pages/research/models/modelData.js";
+import { buildModels, hubIntro, modelIntro, hubMeta, modelMeta, modelHrefOf, modelRule, termsNote, inlineName, baseLine, industryParts, listJoin, plural, GRAVITY_NOTE } from "../../src/pages/research/models/modelData.js";
 import { expressionHref, sectorHref, shortArchetypeName } from "../../src/lib/brandTaxonomy.js";
 
 const SITE = "https://brandmd.space";
@@ -36,7 +36,7 @@ function hubBody(b, esc) {
     const mix = d.archetypeMix.map((a) => `${esc(a.name)} ${a.count}`).join(", ");
     out.push(`<li><h2>${head}</h2>`
       + `<p>${esc(d.model.definition)} <small>(BrandMD's definition)</small></p>`
-      + `<p>${plural(d.n, "brand")} of ${d.total}. Tagged when the industry line says ${esc(d.model.terms.map((t) => `"${t}"`).join(", "))}. Archetype families: ${mix}.${d.minGravity !== null ? ` Gravity Scores ${d.minGravity} to ${d.maxGravity}.` : ""}${href ? "" : " One brand so far, so no page of its own yet."}</p>`
+      + `<p>${plural(d.n, "brand")} of ${d.total}. ${esc(modelRule(d.model))} Archetype families: ${mix}.${d.minGravity !== null ? ` Gravity Scores ${d.minGravity} to ${d.maxGravity}.` : ""}${href ? "" : " One brand so far, so no page of its own yet."}</p>`
       + `<p>${d.brands.map((r) => brandA(esc, r)).join(", ")}</p></li>`);
   }
   out.push(`</ul>`);

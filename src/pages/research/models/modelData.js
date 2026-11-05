@@ -10,12 +10,14 @@
 // brand is tagged only when that line literally contains one of the model's
 // terms; the term that matched is kept and shown. Most brands carry no tag,
 // and none is guessed. The model definitions are BrandMD's own wording.
-import { MODELS, modelsOf, archetypeOf, sectorsOf, ARCHETYPES, SECTORS, expressionCounts } from "../../../lib/brandTaxonomy.js";
+import { MODELS, MODEL_PAGE_MIN, modelsOf, archetypeOf, sectorsOf, ARCHETYPES, SECTORS, expressionCounts } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
 import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
-// A model gets its own page only when two or more brands carry its tag.
-export const MODEL_PAGE_MIN = 2;
+// A model gets its own page only when two or more brands carry its tag. The
+// threshold lives in the taxonomy so modelHref (brand and battle pages) and
+// these pages agree on which model pages exist.
+export { MODEL_PAGE_MIN };
 
 const present = (v) => v !== null && v !== undefined && String(v).trim() !== "";
 const hexOk = (h) => /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(h || "").trim());
@@ -104,6 +106,9 @@ export function modelDetail(model, rows, total, indexFamilies) {
   const sorted = [...rows].sort((a, b) => (b.gravity ?? -1) - (a.gravity ?? -1) || a.name.localeCompare(b.name));
   const brands = sorted.map((r) => ({ ...r, term: r.models.find((m) => m.slug === model.slug)?.term || "" }));
   const termsUsed = [...new Set(brands.map((r) => r.term).filter(Boolean))];
+  // Business words that satisfied the model's second condition when they sit
+  // outside the matched term (Zoom: "Enterprise" next to "UCaaS").
+  const buyersUsed = [...new Set(brands.map((r) => r.models.find((m) => m.slug === model.slug)?.buyer).filter(Boolean))];
 
   // Archetype family mix: each brand once, under its main family.
   const famCount = {};
@@ -206,7 +211,7 @@ export function modelDetail(model, rows, total, indexFamilies) {
     .filter((r) => r.others.length);
 
   return {
-    model, n, total, share: pct(n, total), brands, termsUsed, hasPage: n >= MODEL_PAGE_MIN,
+    model, n, total, share: pct(n, total), brands, termsUsed, buyersUsed, hasPage: n >= MODEL_PAGE_MIN,
     archetypeMix, mapped, withArchetype,
     sectorMix, multiSector, noSector,
     avgGravity, minGravity, maxGravity, minBrands, maxBrands, scoredCount: scored.length,
@@ -225,7 +230,7 @@ export function buildModels(allBrands) {
   for (const r of rows) if (r.archetype) indexFamilies[r.archetype.family.slug] = (indexFamilies[r.archetype.family.slug] || 0) + 1;
   const models = MODELS.map((m) => {
     const tagged = rows.filter((r) => r.models.some((x) => x.slug === m.slug));
-    return modelDetail({ slug: m.slug, name: m.name, definition: m.definition, terms: m.terms }, tagged, total, indexFamilies);
+    return modelDetail({ slug: m.slug, name: m.name, definition: m.definition, terms: m.terms, rule: m.rule || null }, tagged, total, indexFamilies);
   });
   const taggedCount = rows.filter((r) => r.models.length).length;
   const multiModel = rows.filter((r) => r.models.length > 1).map((r) => ({ slug: r.slug, name: r.name, models: r.models }));
@@ -240,7 +245,15 @@ export const GRAVITY_NOTE = "Gravity Score: how much of a coherent, documented i
 
 // Which of the model's terms actually occur in these records.
 export function termsNote(d) {
-  return `Words found in these ${d.n} records' industry lines: ${quoteList(d.termsUsed, "and")}. Nothing else about a brand is read to apply the tag, and nothing is guessed.`;
+  const buyers = d.buyersUsed && d.buyersUsed.length ? `, plus ${quoteList(d.buyersUsed, "and")} elsewhere in the same line` : "";
+  return `Words found in these ${d.n} records' industry lines: ${quoteList(d.termsUsed, "and")}${buyers}. Nothing else about a brand is read to apply the tag, and nothing is guessed.`;
+}
+
+// How a model's tag is applied, as one plain statement: the literal terms,
+// plus the model's extra condition when it has one (B2B SaaS needs a business
+// buyer named in the same line and leaves out "B2C SaaS").
+export function modelRule(model) {
+  return `Tagged when the industry line says ${quoteList(model.terms)}.${model.rule ? ` ${model.rule}` : ""}`;
 }
 
 // The model name inside a sentence: "fintech brands", "B2B SaaS brands".
@@ -259,7 +272,7 @@ export function modelIntro(d) {
     ? ` The most common archetype families among them are ${listJoin(tied.map((a) => a.name))}, with ${plural(top.count, "brand")} each.`
     : ` The most common archetype family among them is ${top.name} (${top.count} of ${d.n}).`;
   const grav = d.avgGravity !== null ? ` Their Gravity Scores run from ${d.minGravity} to ${d.maxGravity}, averaging ${d.avgGravity} of 100.` : "";
-  return `${d.n} of the ${d.total} brands in the BrandMD index are tagged ${d.model.name}. The tag comes from each brand's recorded industry line, which has to contain ${quoteList(d.model.terms)}.${archBit}${grav} Below: the brands, the archetype and sector mix, and the colors, type and tone they share, all counted ${baseLine(d)}.`;
+  return `${d.n} of the ${d.total} brands in the BrandMD index are tagged ${d.model.name}. The tag comes from each brand's recorded industry line, which has to contain ${quoteList(d.model.terms)}.${d.model.rule ? ` ${d.model.rule}` : ""}${archBit}${grav} Below: the brands, the archetype and sector mix, and the colors, type and tone they share, all counted ${baseLine(d)}.`;
 }
 
 function titleCase(name) {

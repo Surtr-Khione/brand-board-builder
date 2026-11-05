@@ -445,7 +445,9 @@ export const sectorHref = (slug) => (SECTOR_BY_SLUG[slug] ? `/sectors/${slug}` :
 // ── Business-model tags (second axis: HOW a brand sells, not what) ─────────
 // Tagged only from LITERAL terms in the record's industry string; most brands
 // carry none, and that is correct. `terms` lists every phrase that triggers a
-// tag, so each tag can name its source. Consumer subscription and marketplace
+// tag, so each tag can name its source; `requires` (when set) is a second
+// literal condition on the same line, and `rule` states it in plain words for
+// the pages that explain the tag. Consumer subscription and marketplace
 // are left out: no record in the index uses either word yet.
 export const MODELS = [
   {
@@ -457,9 +459,15 @@ export const MODELS = [
   {
     slug: "b2b-saas", name: "B2B SaaS",
     definition: "Sells software to businesses as a subscription service delivered over the internet.",
-    terms: ["B2B SaaS", "Enterprise B2B SaaS", "SaaS", "UCaaS"],
-    // Any SaaS/UCaaS except one the record itself calls consumer ("B2C SaaS").
-    test: /\bUCaaS\b|(?<!\bB2C\s)\bSaaS\b/i,
+    terms: ["B2B SaaS", "Enterprise B2B SaaS", "SMB-focused SaaS", "SaaS", "UCaaS"],
+    // "SaaS" alone does not say who the buyer is, so the same line must also
+    // name a business buyer. Dropbox ("Cloud Storage & Productivity Software
+    // (SaaS)"), Squarespace and Shopify name none and stay untagged; a line
+    // that calls itself "B2C SaaS" (Headspace) never matches.
+    test: /(?<!\bB2C\s)\b(?:Enterprise\s+)?(?:B2B\s+)?(?:SMB-focused\s+)?(?:SaaS|UCaaS)\b/i,
+    requires: /\b(?:B2B|Enterprise|SMB|Business)\b/i,
+    requiresTerms: ["B2B", "Enterprise", "SMB", "Business"],
+    rule: 'The same line must also name a business buyer ("B2B", "Enterprise", "SMB" or "Business"), and a line that calls itself "B2C SaaS" is left out.',
   },
   {
     slug: "fintech", name: "Fintech",
@@ -479,25 +487,47 @@ const MODEL_BY_SLUG = Object.fromEntries(MODELS.map((m) => [m.slug, m]));
 
 export function modelBySlug(slug) {
   const m = MODEL_BY_SLUG[slug];
-  return m ? { slug: m.slug, name: m.name, definition: m.definition, terms: m.terms } : null;
+  return m ? { slug: m.slug, name: m.name, definition: m.definition, terms: m.terms, rule: m.rule || null } : null;
 }
 
 // modelsOf(klarna) → [{ slug: "fintech", name: "Fintech", term: "BNPL" }]
-// `term` is the exact text in the record that triggered the tag.
+// `term` is the exact text in the record that triggered the tag; `buyer` is
+// the business word that satisfied `requires` when it is not already inside
+// the term (Zoom: term "UCaaS", buyer "Enterprise").
 export function modelsOf(brandOrIndustry) {
   const industry = String((typeof brandOrIndustry === "string" ? brandOrIndustry : brandOrIndustry?.industry) || "");
   const out = [];
   for (const m of MODELS) {
     const hit = industry.match(m.test);
-    if (hit) out.push({ slug: m.slug, name: m.name, term: hit[0] });
+    if (!hit) continue;
+    let buyer = null;
+    if (m.requires) {
+      const r = industry.match(m.requires);
+      if (!r) continue;
+      if (!m.requires.test(hit[0])) buyer = r[0];
+    }
+    out.push({ slug: m.slug, name: m.name, term: hit[0], ...(buyer ? { buyer } : {}) });
   }
   return out;
 }
 
-// Flip when /models/:slug ships, so no page links to a URL that does not
-// exist yet; until then model tags render as plain text.
-export const MODEL_PAGES_LIVE = false;
-export const modelHref = (slug) => (MODEL_PAGES_LIVE && MODEL_BY_SLUG[slug] ? `/models/${slug}` : null);
+// /models/:slug has shipped (prerender.d/models.mjs writes a page for every
+// model with MODEL_PAGE_MIN+ tagged brands). A tag links to its page only when
+// that page exists, so modelHref needs the index-wide counts (modelCounts);
+// without them, or below the minimum, the tag renders as plain text.
+export const MODEL_PAGES_LIVE = true;
+export const MODEL_PAGE_MIN = 2;
+
+export function modelCounts(brands) {
+  const counts = {};
+  for (const b of brands || []) for (const m of modelsOf(b)) counts[m.slug] = (counts[m.slug] || 0) + 1;
+  return counts;
+}
+
+export function modelHref(slug, counts) {
+  if (!MODEL_PAGES_LIVE || !MODEL_BY_SLUG[slug] || !counts) return null;
+  return (counts[slug] || 0) >= MODEL_PAGE_MIN ? `/models/${slug}` : null;
+}
 
 // ── Rivals ─────────────────────────────────────────────────────────────────
 // Curated pairs of brands that are BOTH in the index and in the same sector.

@@ -20,7 +20,7 @@
 .mx-stat-v { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; }
 .mx-stat-v small { font-size: 12px; font-weight: 500; color: #8E8E93; letter-spacing: 0; margin-left: 4px; }
 .mx-stat-v a { text-decoration: none; }
-.mx-stat-v a:hover { color: #0071E3; }
+.mx-stat-v a:hover { color: #2997FF; }
 
 .mx-section { padding: 52px 0 8px; }
 .mx-label { font-size: 9px; letter-spacing: 4px; font-weight: 800; text-transform: uppercase; color: #8E8E93; margin-bottom: 10px; }
@@ -50,11 +50,11 @@
 .mx-dot { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.08); }
 .mx-dot span { flex: 1; }
 .mx-row-name { font-size: 16px; font-weight: 700; text-decoration: none; color: #F5F5F7; }
-.mx-row-name:hover { color: #0071E3; }
+.mx-row-name:hover { color: #2997FF; }
 .mx-row-tag { font-size: 12px; color: #8E8E93; margin-top: 3px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mx-row-arch { font-size: 13px; color: #C7C7CC; }
 .mx-row-arch a { text-decoration: none; }
-.mx-row-arch a:hover { color: #0071E3; }
+.mx-row-arch a:hover { color: #2997FF; }
 .mx-row-arch .mx-sub { display: block; font-size: 11px; color: #8E8E93; margin-top: 2px; }
 .mx-score { display: flex; align-items: center; gap: 10px; }
 .mx-score-track { flex: 1; height: 4px; border-radius: 2px; background: #1a1a1a; overflow: hidden; }
@@ -65,14 +65,14 @@
 .mx-bars { display: grid; gap: 14px; }
 .mx-bar-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-bottom: 6px; }
 .mx-bar-head a { font-weight: 700; text-decoration: none; }
-.mx-bar-head a:hover { color: #0071E3; }
+.mx-bar-head a:hover { color: #2997FF; }
 .mx-bar-head span { color: #8E8E93; font-variant-numeric: tabular-nums; text-align: right; }
 .mx-bar-track { height: 10px; border-radius: 5px; background: #141414; position: relative; overflow: hidden; }
 .mx-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #0071E3; border-radius: 5px; }
 .mx-bar-index { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #8E8E93; }
 .mx-bar-brands { font-size: 12px; color: #8E8E93; margin-top: 6px; }
 .mx-bar-brands a { text-decoration: none; color: #C7C7CC; }
-.mx-bar-brands a:hover { color: #0071E3; }
+.mx-bar-brands a:hover { color: #2997FF; }
 
 /* Palettes */
 .mx-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
@@ -95,7 +95,7 @@
 .mx-fontlist { list-style: none; padding: 0; margin: 0; }
 .mx-fontlist li { display: grid; grid-template-columns: minmax(0, 140px) minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
 .mx-fontlist li a { font-weight: 600; text-decoration: none; }
-.mx-fontlist li a:hover { color: #0071E3; }
+.mx-fontlist li a:hover { color: #2997FF; }
 .mx-fontlist li span { color: #C7C7CC; }
 
 /* Differences */
@@ -104,7 +104,7 @@
 .mx-quote-who { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .mx-quote-who i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .mx-quote-who a { font-weight: 700; font-size: 15px; text-decoration: none; }
-.mx-quote-who a:hover { color: #0071E3; }
+.mx-quote-who a:hover { color: #2997FF; }
 .mx-quote blockquote, .mx-quote > p { margin: 0; font-size: 14px; line-height: 1.65; color: #C7C7CC; }
 .mx-quote ul { margin: 12px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #C7C7CC; }
 .mx-quote li { margin-bottom: 6px; }
@@ -113,12 +113,12 @@
 .mx-pairs { display: grid; gap: 10px; }
 .mx-pair { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; padding: 14px 18px; border-radius: 12px; background: #0c0c0c; border: 1px solid rgba(255,255,255,0.06); font-size: 14px; }
 .mx-pair a { font-weight: 700; text-decoration: none; }
-.mx-pair a:hover { color: #0071E3; }
+.mx-pair a:hover { color: #2997FF; }
 .mx-pair span { color: #8E8E93; font-size: 13px; }
 
 .mx-others { display: flex; flex-wrap: wrap; gap: 8px; }
 .mx-others a { font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 20px; border: 1px solid #222; background: #0c0c0c; color: #C7C7CC; text-decoration: none; }
-.mx-others a:hover { border-color: #0071E3; color: #0071E3; }
+.mx-others a:hover { border-color: #0071E3; color: #2997FF; }
 
 /* Closing CTA */
 .mx-cta { margin: 64px 0 80px; padding: 40px; border-radius: 20px; background: linear-gradient(180deg, #0e0e10, #070707); border: 1px solid rgba(255,255,255,0.08); text-align: center; }
@@ -132,7 +132,9 @@
 .mx-btn-ghost:hover { border-color: #8E8E93; }
 
 .mx-foot { font-size: 12px; color: #8E8E93; line-height: 1.6; margin-top: 28px; }
-.mx-foot a { color: #0071E3; text-decoration: none; }
+/* Small blue text on near-black uses the #2997FF tint (about 6.5:1 on #000);
+   footer links are underlined so color is not the only signal. */
+.mx-foot a { color: #2997FF; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(41,151,255,0.55); }
 .mx-empty { padding: 80px 0; text-align: center; color: #8E8E93; }
 
 /* Skeleton */
@@ -176,7 +178,7 @@
 .mx-mapped { display: block; font-size: 10.5px; color: #8E8E93; margin-top: 3px; }
 .mx-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .mx-tag { font-size: 10.5px; padding: 2px 8px; border-radius: 10px; border: 1px solid #262626; color: #C7C7CC; text-decoration: none; white-space: nowrap; }
-a.mx-tag:hover { border-color: #0071E3; color: #0071E3; }
+a.mx-tag:hover { border-color: #0071E3; color: #2997FF; }
 .mx-count { font-size: 34px; font-weight: 700; letter-spacing: -1px; color: #F5F5F7; line-height: 1; }
 .mx-count small { font-size: 12px; font-weight: 500; color: #8E8E93; letter-spacing: 0; margin-left: 6px; }
 .mx-card-body h2 { margin-top: 14px; }

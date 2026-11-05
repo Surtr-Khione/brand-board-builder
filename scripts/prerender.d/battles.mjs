@@ -17,6 +17,7 @@ export default async function ({ brands, taxonomy, esc }) {
   if (!pairs.length) return [];
   const built = pairs.map((p) => ({ p, v: buildBattle(bySlug[p.a], bySlug[p.b], p.basis) }));
   const counts = taxonomy.expressionCounts(brands);
+  const mcounts = taxonomy.modelCounts(brands);
 
   const cta = `<section><h2>Chart your own brand</h2><p>Every battle here is built from a documented brand system. <a href="/builder">Chart your own brand in the Builder</a>, <a href="/analyzer">scan your site with the Analyzer</a>, or <a href="/compare">scan your site against a competitor's</a>.</p></section>`;
 
@@ -71,7 +72,7 @@ export default async function ({ brands, taxonomy, esc }) {
       case "sectors":
         return `<td>${v.map((t) => chip(taxonomy.sectorHref(t.slug), t.name)).join(", ")}</td>`;
       case "models":
-        return `<td>${v.map((m) => `${chip(taxonomy.modelHref(m.slug), m.name)} <small>(from &ldquo;${esc(m.term)}&rdquo; in the record's industry)</small>`).join(", ")}</td>`;
+        return `<td>${v.map((m) => `${chip(taxonomy.modelHref(m.slug, mcounts), m.name)} <small>(from &ldquo;${esc(m.term)}&rdquo; in the record's industry)</small>`).join(", ")}</td>`;
       case "tagline":
         return `<td>&ldquo;${esc(v)}&rdquo;</td>`;
       case "values": case "dos": case "donts":

@@ -45,7 +45,10 @@ const ARCHETYPE_COLORS = {
 };
 const BLUE = "#0071E3";
 
-// Filter rows: wrap on desktop, one horizontal scroll row each at phone width.
+// Filter rows wrap at every width, so the active chip is always on screen
+// (a filtered link from a sector, model or archetype page lands with its
+// filter visible). The expression sub-row is set in from the family row by
+// an indent and a rule, not by a dimmer label.
 const CSS = `
 .bl-hero { padding: 60px 40px 48px; }
 .bl-body { max-width: 1320px; margin: 0 auto; padding: 36px 40px 80px; }
@@ -57,7 +60,8 @@ const CSS = `
 .bl-chip:hover { color: #F5F5F7; border-color: #3a3a3a; }
 .bl-chip .bl-n { font-weight: 500; margin-left: 4px; font-variant-numeric: tabular-nums; }
 .bl-chip:focus-visible { outline: 2px solid ${BLUE}; outline-offset: 2px; }
-.bl-sub .bl-label { color: #6E6E73; }
+.bl-sub { margin-left: 14px; padding-left: 12px; border-left: 2px solid #222; }
+.bl-sub .bl-label { flex-basis: 90px; }
 .bl-sub .bl-chip { font-size: 10.5px; padding: 5px 11px; }
 .bl-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 4px; font-size: 11px; color: #8E8E93; }
 .bl-meta b { color: #F5F5F7; font-weight: 600; }
@@ -67,9 +71,8 @@ const CSS = `
   .bl-body { padding: 24px 16px 64px; }
   .bl-row { flex-direction: column; align-items: stretch; gap: 6px; }
   .bl-label { flex: none; padding-top: 0; }
-  .bl-chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .bl-chips::-webkit-scrollbar { display: none; }
-  .bl-chip { flex: 0 0 auto; }
+  .bl-sub { margin-left: 4px; }
+  .bl-sub .bl-label { flex: none; }
 }
 `;
 
@@ -306,7 +309,8 @@ export default function BrandLibrary() {
           <div className="bl-meta">
             <span aria-live="polite">{loading ? "Loading…" : <>Showing <b>{visible.length}</b> of {brands.length}</>}</span>
             <Chip active={verifiedOnly} color="#2ecc71" onClick={() => setVerifiedOnly(v => !v)}>✓ Verified only</Chip>
-            {isFiltered && <Chip active={false} onClick={clearAll}>Clear ×</Chip>}
+            {/* An action, not a toggle: a plain button with no aria-pressed. */}
+            {isFiltered && <button type="button" className="bl-chip" onClick={clearAll} aria-label="Clear all filters">Clear ×</button>}
           </div>
           <p className="bl-note">
             A brand appears under every sector its recorded industry names, so sector counts add up to more than the total. Business models are tagged only where the industry text names one.

@@ -18,7 +18,7 @@ export const DEFINITIONS = {
   hero:
     "The Hero archetype is about courage and mastery: proving worth by meeting a hard challenge. Hero brands cast the customer as the one who rises to the occasion and the brand as what helps them do it, in a bold, motivating voice.",
   outlaw:
-    "The Outlaw (also called the Rebel or Liberator) breaks rules that are not working. It defines itself against an establishment, a convention or a status quo, and it speaks with an edge that invites people to join the break.",
+    "The Outlaw archetype breaks rules that are not working. It defines itself against an establishment, a convention or a status quo, and it speaks with an edge that invites people to join the break.",
   explorer:
     "The Explorer archetype is driven by freedom, discovery and authenticity. It values self-reliance and the open road, and it resists conformity, confinement and anything that feels mass-produced.",
   creator:

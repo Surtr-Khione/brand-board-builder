@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import SiteNav from "../../../components/SiteNav";
 import {
-  expressionCounts, expressionHref, sectorHref, modelHref,
+  expressionCounts, expressionHref, sectorHref, modelHref, modelCounts,
 } from "../../../lib/brandTaxonomy.js";
 import {
   resolvePair, buildBattle, battlePairs, suggestBattles, hasField, pairTitle, pairDescription,
@@ -25,7 +25,7 @@ function Expr({ family, e, counts }) {
   return href ? <Link to={href}>{e.name}</Link> : <span>{e.name}</span>;
 }
 
-function Cell({ s, k, counts }) {
+function Cell({ s, k, counts, mcounts }) {
   if (!hasField(s, k)) return <span className="vs-none">Not on record</span>;
   const v = s[k];
   switch (k) {
@@ -57,7 +57,7 @@ function Cell({ s, k, counts }) {
     case "models":
       return (
         <span className="vs-chips">
-          {v.map((m) => <TagChip key={m.slug} href={modelHref(m.slug)} title={`From "${m.term}" in the record's industry`}>{m.name}</TagChip>)}
+          {v.map((m) => <TagChip key={m.slug} href={modelHref(m.slug, mcounts)} title={`From "${m.term}" in the record's industry`}>{m.name}</TagChip>)}
         </span>
       );
     case "tagline":
@@ -119,6 +119,7 @@ export default function BattlePair() {
   // Curated pairs resolve before the index loads; picked pairs need its slugs.
   const found = useMemo(() => resolvePair(param, loading ? null : slugSet), [param, loading, slugSet]);
   const counts = useMemo(() => (brands.length ? expressionCounts(brands) : null), [brands]);
+  const mcounts = useMemo(() => (brands.length ? modelCounts(brands) : null), [brands]);
 
   const v = useMemo(() => {
     if (!found) return null;
@@ -181,8 +182,8 @@ export default function BattlePair() {
           {v.rows.map((r) => (
             <div key={r.key} className="vs-row" role="row">
               <div className="vs-label" role="rowheader">{r.label}</div>
-              <div className="vs-cell" role="cell"><span className="vs-who">{A.name}</span><Cell s={A} k={r.key} counts={counts} /></div>
-              <div className="vs-cell" role="cell"><span className="vs-who">{B.name}</span><Cell s={B} k={r.key} counts={counts} /></div>
+              <div className="vs-cell" role="cell"><span className="vs-who">{A.name}</span><Cell s={A} k={r.key} counts={counts} mcounts={mcounts} /></div>
+              <div className="vs-cell" role="cell"><span className="vs-who">{B.name}</span><Cell s={B} k={r.key} counts={counts} mcounts={mcounts} /></div>
             </div>
           ))}
         </div>

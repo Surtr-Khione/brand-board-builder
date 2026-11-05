@@ -22,7 +22,7 @@ function CardInner({ d }) {
         </div>
         <div style={{ marginTop: 14 }}><MixBar mix={d.archetypeMix} n={d.n} /></div>
         <div className="mx-card-names">{d.brands.map((r) => r.name).join(" · ")}</div>
-        <div className="mx-terms">Tagged when the industry line says: {d.model.terms.map((t, i) => <span key={t}><code>{t}</code>{i < d.model.terms.length - 1 ? ", " : ""}</span>)}</div>
+        <div className="mx-terms">Tagged when the industry line says: {d.model.terms.map((t, i) => <span key={t}><code>{t}</code>{i < d.model.terms.length - 1 ? ", " : ""}</span>)}{d.model.rule && <> {d.model.rule}</>}</div>
         {!d.hasPage && <div className="mx-card-nopage">One brand so far, so no page of its own yet.</div>}
       </div>
     </>

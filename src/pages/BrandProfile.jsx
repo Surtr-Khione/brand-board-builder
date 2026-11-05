@@ -5,7 +5,7 @@ import CertificateShare from "../components/CertificateShare";
 import { computeGravityScore } from "../lib/gravityScore";
 import {
   archetypeOf, shortArchetypeName, expressionCounts, expressionHref, EXPRESSION_PAGES_LIVE,
-  sectorsOf, sectorHref, modelsOf, modelHref,
+  sectorsOf, sectorHref, modelsOf, modelHref, modelCounts, MODEL_PAGES_LIVE,
 } from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
@@ -137,13 +137,14 @@ function ScoreRationale({ brand, ink }) {
   );
 }
 
-// Expression counts across the whole index decide whether an expression has
-// its own page (2+ brands). Only fetched once those pages exist.
-let exprCountsCache = null;
-function useExpressionCounts() {
-  const [counts, setCounts] = useState(exprCountsCache);
+// Expression and model counts across the whole index decide whether an
+// expression or a business model has its own page (2+ brands). Fetched once
+// per session, and only while those pages exist.
+let indexCountsCache = null;
+function useIndexCounts() {
+  const [counts, setCounts] = useState(indexCountsCache);
   useEffect(() => {
-    if (!EXPRESSION_PAGES_LIVE || exprCountsCache) return;
+    if (!(EXPRESSION_PAGES_LIVE || MODEL_PAGES_LIVE) || indexCountsCache) return;
     let live = true;
     (async () => {
       const all = [];
@@ -153,8 +154,8 @@ function useExpressionCounts() {
         all.push(...page);
         if (page.length < 100) break;
       }
-      exprCountsCache = expressionCounts(all);
-      if (live) setCounts(exprCountsCache);
+      indexCountsCache = { expr: expressionCounts(all), model: modelCounts(all) };
+      if (live) setCounts(indexCountsCache);
     })().catch(() => {});
     return () => { live = false; };
   }, []);
@@ -175,7 +176,7 @@ function TaxChip({ href, children }) {
 }
 
 function Classification({ brand }) {
-  const counts = useExpressionCounts();
+  const counts = useIndexCounts();
   const a = archetypeOf(brand);
   const { all: sectors } = sectorsOf(brand);
   const models = modelsOf(brand);
@@ -183,7 +184,7 @@ function Classification({ brand }) {
 
   const famLink = (f) => <Link to={`/archetypes/${f.slug}`} style={TAX_LINK}>{shortArchetypeName(f.name)}</Link>;
   const exprNode = (familySlug, e) => {
-    const href = expressionHref(familySlug, e, counts);
+    const href = expressionHref(familySlug, e, counts?.expr);
     return href ? <Link to={href} style={TAX_LINK}>{e.name}</Link> : <span>{e.name}</span>;
   };
 
@@ -233,7 +234,7 @@ function Classification({ brand }) {
           <>
             <dt style={TAX_LABEL}>Model</dt>
             <dd style={{ margin: 0, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {models.map((m) => <TaxChip key={m.slug} href={modelHref(m.slug)}>{m.name}</TaxChip>)}
+              {models.map((m) => <TaxChip key={m.slug} href={modelHref(m.slug, counts?.model)}>{m.name}</TaxChip>)}
             </dd>
           </>
         )}

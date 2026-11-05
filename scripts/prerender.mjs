@@ -34,8 +34,11 @@ const hexOk = (h) => /^#[0-9a-f]{3,8}$/i.test(String(h || "").trim());
 // Expression counts across the whole index (set in main once brands load):
 // an expression links to its own page only when 2+ brands share it.
 let EXPR_COUNTS = null;
+// Model counts likewise: a model tag links to /models/:slug only when that
+// page exists (MODEL_PAGE_MIN+ tagged brands).
+let MODEL_COUNTS = null;
 
-export function brandHtml(brand, { headingLevel = 1, compact = false, exprCounts = EXPR_COUNTS } = {}) {
+export function brandHtml(brand, { headingLevel = 1, compact = false, exprCounts = EXPR_COUNTS, modelCounts = MODEL_COUNTS } = {}) {
   const b = brand || {};
   const H = `h${headingLevel}`;
   const H2 = `h${Math.min(headingLevel + 1, 6)}`;
@@ -68,7 +71,7 @@ export function brandHtml(brand, { headingLevel = 1, compact = false, exprCounts
   }
   const tag = (name, href) => (href ? `<a class="tag" href="${esc(href)}">${esc(name)}</a>` : `<span class="tag">${esc(name)}</span>`);
   if (sectors.length) facts.push(`<dt>${sectors.length > 1 ? "Sectors" : "Sector"}</dt><dd>${sectors.map((s) => tag(s.name, taxonomy.sectorHref(s.slug))).join(" ")}</dd>`);
-  if (models.length) facts.push(`<dt>Model</dt><dd>${models.map((m) => tag(m.name, taxonomy.modelHref(m.slug))).join(" ")}</dd>`);
+  if (models.length) facts.push(`<dt>Model</dt><dd>${models.map((m) => tag(m.name, taxonomy.modelHref(m.slug, modelCounts))).join(" ")}</dd>`);
   if (present(b.industry)) facts.push(`<dt>Industry</dt><dd>${esc(b.industry)}</dd>`);
   if (present(b.founded_year)) facts.push(`<dt>Founded</dt><dd>${esc(b.founded_year)}</dd>`);
   if (present(b.country)) facts.push(`<dt>Country</dt><dd>${esc(b.country)}</dd>`);
@@ -129,7 +132,7 @@ const STATIC_CSS = `<style>
       .bmd-static h2{font-size:20px;margin:36px 0 10px}
       .bmd-static h3{font-size:15px;margin:18px 0 6px;color:#8E8E93}
       .bmd-static p,.bmd-static li,.bmd-static dd{color:#C7C7CC;font-size:15px}
-      .bmd-static a{color:#0071E3}
+      .bmd-static a{color:#2997FF}
       .bmd-static dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;margin:20px 0}
       .bmd-static dt{color:#8E8E93;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding-top:3px}
       .bmd-static ul{padding-left:20px}
@@ -167,9 +170,13 @@ function page({ path, title, description, image = "/og/default.png", jsonld = nu
   ].filter(Boolean).join("\n    ");
   html = html.replace("</head>", () => `    ${extra}\n  </head>`);
   if (body) html = html.replace(/<div id="root"><\/div>/, () => `<div id="root"><main class="bmd-static">\n${body}\n</main></div>`);
-  const dir = path === "/" ? "dist" : `dist${path}`;
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(`${dir}/index.html`, html);
+  // /x is written as dist/x.html, not dist/x/index.html: Cloudflare Pages
+  // serves /x from x.html with a 200, while a directory index makes it answer
+  // /x with a 308 to /x/, so every canonical, og:url and sitemap URL (all
+  // slash-less) would redirect. The root stays dist/index.html.
+  const file = path === "/" ? "dist/index.html" : `dist${path.replace(/\/+$/, "")}.html`;
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, html);
   written.add(path);
 }
 
@@ -209,6 +216,7 @@ async function main() {
   catch (e) { console.warn(`Brand fetch failed (${e.message}) — brand pages and brand bodies skipped, static routes still written.`); }
   const n = brands.length;
   EXPR_COUNTS = taxonomy.expressionCounts(brands);
+  MODEL_COUNTS = taxonomy.modelCounts(brands);
 
   // ── Static routes ──
   const routes = [
