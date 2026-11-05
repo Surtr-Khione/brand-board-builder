@@ -1,0 +1,155 @@
+/* Archetype research pages. Titanium system: near-black, #8E8E93, #F5F5F7,
+   system blue #0071E3 as the only app accent. Prefix: arx- */
+.arx { background: #000; color: #F5F5F7; font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
+.arx a { color: inherit; }
+.arx-hero { padding: 60px 40px 48px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.arx-crumbs { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #8E8E93; margin-bottom: 18px; }
+.arx-crumbs a { color: #8E8E93; text-decoration: none; }
+.arx-crumbs a:hover { color: #F5F5F7; }
+.arx-h1 { font-size: clamp(34px, 5vw, 58px); font-weight: 700; letter-spacing: -1.8px; line-height: 1.05; margin: 0 0 14px; }
+.arx-h1 span { color: #0071E3; }
+.arx-lede { font-size: 15px; color: #8E8E93; max-width: 620px; margin: 0 auto; line-height: 1.65; }
+.arx-motto { font-size: 18px; font-style: italic; color: #C7C7CC; margin: 0 0 14px; }
+.arx-wrap { max-width: 1180px; margin: 0 auto; padding: 40px 40px 80px; }
+.arx-narrow { max-width: 820px; }
+.arx-label { font-size: 10px; letter-spacing: 3px; font-weight: 800; color: #8E8E93; text-transform: uppercase; margin: 0 0 14px; }
+.arx-h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 6px; }
+.arx-sub { font-size: 13.5px; color: #8E8E93; line-height: 1.6; margin: 0 0 20px; }
+.arx-section { padding: 40px 0; border-top: 1px solid #141414; }
+.arx-section:first-child { border-top: 0; padding-top: 0; }
+.arx-p { font-size: 16px; line-height: 1.75; color: #C7C7CC; margin: 0 0 12px; }
+
+/* Distribution strip on the index */
+.arx-dist { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; margin: 26px auto 10px; max-width: 620px; }
+.arx-dist a { display: block; background: #2a2a2e; transition: background .2s; }
+.arx-dist a:nth-child(even) { background: #48484c; }
+.arx-dist a:hover, .arx-dist a:focus-visible { background: #0071E3; }
+.arx-dist-legend { list-style: none; padding: 0; margin: 0 auto 10px; max-width: 620px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 12px; }
+.arx-dist-legend a { color: #8E8E93; text-decoration: none; }
+.arx-dist-legend a:hover, .arx-dist-legend a:focus-visible { color: #F5F5F7; }
+.arx-dist-legend b { color: #F5F5F7; font-weight: 600; }
+.arx-dist-note { font-size: 11.5px; color: #8E8E93; }
+
+/* Archetype cards on the index */
+.arx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.arx-card { display: block; text-decoration: none; background: #0c0c0c; border: 1px solid #1a1a1a; border-radius: 18px; padding: 22px 22px 20px; transition: border-color .2s, transform .2s; }
+.arx-card:hover { border-color: rgba(0,113,227,0.6); transform: translateY(-3px); }
+.arx-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.arx-card-name { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; color: #F5F5F7; }
+.arx-card-count { font-size: 28px; font-weight: 700; color: #F5F5F7; letter-spacing: -1px; }
+.arx-card-count small { display: block; font-size: 10px; font-weight: 600; color: #8E8E93; letter-spacing: .5px; text-align: right; }
+.arx-card-motto { font-size: 13px; color: #8E8E93; font-style: italic; margin: 6px 0 16px; }
+.arx-card-desire { font-size: 12.5px; color: #C7C7CC; margin: 0 0 16px; line-height: 1.5; }
+.arx-card-desire b { color: #8E8E93; font-weight: 600; }
+.arx-bar { height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+.arx-bar i { display: block; height: 100%; background: #0071E3; border-radius: 2px; }
+.arx-faces { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.arx-face { width: 34px; height: 34px; border-radius: 9px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
+.arx-face img { width: 78%; height: 78%; object-fit: contain; }
+.arx-face span { font-size: 14px; font-weight: 800; }
+.arx-face-more { font-size: 11px; color: #8E8E93; font-weight: 600; }
+.arx-card-sec { font-size: 11.5px; color: #8E8E93; margin-top: 14px; }
+/* The card is a div: its title link stretches over the whole card, and the
+   expression links sit above that layer so each one stays clickable. */
+.arx-card { position: relative; }
+.arx-card:focus-within { border-color: rgba(0,113,227,0.6); }
+.arx-card-link { color: #F5F5F7 !important; text-decoration: none; }
+.arx-card-link::after { content: ""; position: absolute; inset: 0; border-radius: 18px; }
+.arx-card-link:focus-visible { outline: none; }
+.arx-card-exprs { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #1a1a1a; font-size: 12px; }
+.arx-card-exprs-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #8E8E93; margin-right: 2px; }
+.arx-card-exprs a { color: #C7C7CC !important; text-decoration: none; border-bottom: 1px dotted #48484A; }
+.arx-card-exprs a.has-page { color: #F5F5F7 !important; border-bottom: 1px solid #0071E3; }
+.arx-card-exprs a:hover, .arx-card-exprs a:focus-visible { color: #F5F5F7 !important; border-bottom-color: #0071E3; }
+.arx-card-exprs small { color: #8E8E93; font-size: 10.5px; margin-left: 4px; }
+
+/* Expressions on a family hub */
+.arx-exprs { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.arx-expr { background: #0a0a0a; border: 1px solid #161616; border-radius: 14px; padding: 18px 18px 16px; scroll-margin-top: 80px; }
+.arx-expr:target { border-color: #0071E3; }
+.arx-expr-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.arx-expr-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin: 0; color: #F5F5F7; }
+.arx-expr-name a { text-decoration: none; border-bottom: 1px solid #0071E3; }
+.arx-expr-name a:hover { color: #0071E3; }
+.arx-expr-n { font-size: 11.5px; color: #8E8E93; }
+.arx-expr-def { font-size: 13.5px; color: #C7C7CC; line-height: 1.6; margin: 0 0 12px; }
+.arx-expr-more { display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: #F5F5F7 !important; text-decoration: none; }
+.arx-expr-more:hover { color: #0071E3 !important; }
+.arx-mapped { font-size: 11px; color: #8E8E93; margin-top: 6px; padding: 0 4px; line-height: 1.45; }
+.arx-mapped::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; border: 1px solid #8E8E93; margin-right: 6px; vertical-align: 1px; }
+.arx-chips + .arx-mapped { margin-top: 10px; }
+
+/* Stats row */
+.arx-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #1a1a1a; border-radius: 14px; overflow: hidden; margin: 30px auto 0; max-width: 820px; }
+.arx-stat { background: #0a0a0a; padding: 18px 14px; text-align: center; }
+.arx-stat b { display: block; font-size: 28px; font-weight: 700; letter-spacing: -1px; color: #F5F5F7; }
+.arx-stat span { font-size: 11px; color: #8E8E93; line-height: 1.4; display: block; margin-top: 4px; }
+
+/* Brand cards grid on a hub (BrandCard compact) */
+.arx-brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.arx-raw { font-size: 11px; color: #8E8E93; margin-top: 6px; padding: 0 4px; line-height: 1.45; }
+
+/* Chips (secondary holders, pairings, sectors) */
+.arx-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.arx-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 20px; background: #0c0c0c; border: 1px solid #222; font-size: 12.5px; color: #C7C7CC; text-decoration: none; transition: border-color .18s, color .18s; }
+.arx-chip:hover { border-color: #0071E3; color: #F5F5F7; }
+.arx-chip small { color: #8E8E93; font-size: 11px; }
+.arx-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
+
+/* Pattern rows */
+.arx-rows { display: flex; flex-direction: column; gap: 10px; }
+.arx-row { display: grid; grid-template-columns: 120px 1fr 64px; align-items: center; gap: 14px; }
+.arx-row-name { font-size: 13px; color: #F5F5F7; display: flex; align-items: center; gap: 8px; }
+.arx-row-track { height: 8px; background: #141414; border-radius: 4px; overflow: hidden; }
+.arx-row-track i { display: block; height: 100%; border-radius: 4px; }
+.arx-row-n { font-size: 12px; color: #8E8E93; text-align: right; }
+.arx-hexes { display: flex; gap: 3px; flex-wrap: wrap; margin: 4px 0 0 134px; }
+.arx-hexes span { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.12); }
+
+.arx-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.arx-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.arx-list li { font-size: 14px; line-height: 1.6; color: #C7C7CC; padding: 12px 14px; background: #0a0a0a; border: 1px solid #161616; border-radius: 10px; }
+.arx-list li a { color: #F5F5F7; font-weight: 600; text-decoration: none; }
+.arx-list li a:hover { color: #0071E3; }
+.arx-q { font-style: normal; }
+.arx-who { display: block; font-size: 11px; color: #8E8E93; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.arx-who a { color: #8E8E93 !important; font-weight: 700 !important; }
+.arx-do { border-left: 2px solid #0071E3 !important; }
+.arx-dont { border-left: 2px solid #48484A !important; }
+.arx-words { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.arx-word { padding: 6px 12px; border-radius: 8px; background: #111; border: 1px solid #1f1f1f; font-size: 13px; color: #F5F5F7; }
+.arx-word small { color: #8E8E93; margin-left: 6px; }
+.arx-empty { font-size: 13.5px; color: #8E8E93; }
+
+/* Other archetypes nav */
+.arx-wheel { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.arx-wheel a { text-decoration: none; padding: 12px 10px; border-radius: 10px; background: #0a0a0a; border: 1px solid #161616; font-size: 12.5px; color: #C7C7CC; text-align: center; transition: border-color .18s; }
+.arx-wheel a:hover, .arx-wheel a.on { border-color: #0071E3; color: #F5F5F7; }
+.arx-wheel small { display: block; color: #8E8E93; font-size: 11px; margin-top: 2px; }
+
+/* CTA */
+.arx-cta { margin-top: 56px; padding: 40px 32px; border-radius: 20px; background: #0a0a0a; border: 1px solid #1a1a1a; text-align: center; }
+.arx-cta h2 { font-size: 26px; letter-spacing: -0.6px; margin: 0 0 8px; }
+.arx-cta p { font-size: 14px; color: #8E8E93; margin: 0 auto 22px; max-width: 520px; line-height: 1.6; }
+.arx-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.arx-btn { display: inline-block; padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; }
+.arx-btn.primary { background: #0071E3; color: #fff !important; }
+.arx-btn.ghost { border: 1px solid #2c2c2e; color: #F5F5F7 !important; }
+.arx-back { display: inline-block; margin-top: 26px; font-size: 13px; color: #8E8E93 !important; text-decoration: none; }
+.arx-back:hover { color: #F5F5F7 !important; }
+.arx-loading { padding: 120px 20px; text-align: center; font-size: 13px; color: #8E8E93; letter-spacing: 2px; }
+
+@media (max-width: 760px) {
+  .arx-hero { padding: 40px 16px 32px; }
+  .arx-wrap { padding: 28px 16px 64px; }
+  .arx-grid { grid-template-columns: 1fr; }
+  .arx-exprs { grid-template-columns: 1fr; }
+  .arx-chip { white-space: normal; flex-wrap: wrap; row-gap: 2px; }
+  .arx-stats { grid-template-columns: repeat(2, 1fr); }
+  .arx-brands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .arx-cols { grid-template-columns: 1fr; }
+  .arx-row { grid-template-columns: 96px 1fr 52px; gap: 10px; }
+  .arx-hexes { margin-left: 106px; }
+  .arx-wheel { grid-template-columns: repeat(3, 1fr); }
+  .arx-cta { padding: 30px 18px; }
+}

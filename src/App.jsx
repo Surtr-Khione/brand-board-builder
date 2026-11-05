@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import { FloatingFeedback } from './components/FeedbackButton';
 import { captureReferral } from './lib/auth';
 import { track } from './lib/track';
+import { researchRoutes } from './research/registry';
 
 // Route-level code splitting: the homepage ships in the entry chunk for
 // instant first paint; everything else (the 2,000-line Builder especially)
@@ -79,6 +80,10 @@ export default function App() {
           <Route path="/studio/:boardId" element={<ContentStudio />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          {/* Research families: one file per family in src/research/routes/ */}
+          {researchRoutes.map((r) => (
+            <Route key={r.path} path={r.path} element={r.element} />
+          ))}
         </Routes>
       </Suspense>
       <FloatingFeedback />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { computeGravityScore } from "../lib/gravityScore";
+import { archetypeOf, archetypeLabel, sectorsOf } from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -16,6 +17,28 @@ function luma(hex = "") {
   const g = parseInt(h.slice(2, 4), 16);
   const b = parseInt(h.slice(4, 6), 16);
   return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
+}
+
+// WCAG 2 contrast helpers for the ink on the #0c0c0c info panel.
+const PANEL = [12, 12, 12];
+function rgbArr(hex = "") {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const v = [0, 2, 4].map(i => parseInt(full.slice(i, i + 2), 16));
+  return full.length === 6 && v.every(n => !isNaN(n)) ? v : null;
+}
+function mix(fg, bg, a) { return fg.map((c, i) => c * a + bg[i] * (1 - a)); }
+function relLum(c) {
+  const [r, g, b] = c.map(v => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function contrast(a, b) { const [x, y] = [relLum(a), relLum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); }
+function inkReadable(hex) {
+  const c = rgbArr(hex);
+  if (!c) return false;
+  const tagline = contrast(mix(c, PANEL, 0.85), PANEL);
+  const chip = contrast(c, mix(c, PANEL, 0.12));
+  return tagline >= 4.5 && chip >= 4.5;
 }
 
 function logoSources(website) {
@@ -37,6 +60,16 @@ export default function BrandCard({ brand, compact = false }) {
   const sources = logoSources(brand.website);
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
+  // Ink for brand-tinted text on the card's near-black info panel: the first
+  // brand color that passes WCAG AA (4.5:1) where it is actually drawn, i.e.
+  // as the tagline at 0.85 alpha on #0c0c0c and as chip text on its own 0.12
+  // tint; else off-white. A luma cutoff let mid blues, purples and reds
+  // (Apple, Stripe, Canva, Red Bull) through at under 4.5:1.
+  const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find(c => c && inkReadable(c)) || "#F5F5F7";
+  // "Outlaw · Rebel" when the record's label names an expression.
+  const arch = archetypeOf(brand);
+  // Sector tags from the record's industry text, primary first; max 3 shown.
+  const sectorTags = sectorsOf(brand).all;
 
   const logoSize = compact ? 64 : 80;
   const iconWrap = compact ? 76 : 96;
@@ -136,22 +169,38 @@ export default function BrandCard({ brand, compact = false }) {
         {/* ── BRAND INFO ───────────────────────────────────────── */}
         <div style={{ padding: compact ? "14px 16px 0" : "18px 20px 0" }}>
           {/* Name row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 2 }}>
+          {/* Wraps so a long "Family · Expression" chip drops below the name
+              on narrow cards instead of running past the card edge. */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "4px 8px", marginBottom: 2 }}>
             <div style={{ fontSize: nameSize, fontWeight: 800, color: "#f0ece3", letterSpacing: "-0.4px", lineHeight: 1.15 }}>
               {brand.brand_name}
             </div>
-            {brand.archetype && (
+            {arch && (
               <span style={{
                 fontSize: 8, fontWeight: 700, flexShrink: 0, marginTop: 3,
-                color: pc, background: `rgba(${rgb(pc)},0.12)`,
-                border: `1px solid rgba(${rgb(pc)},0.28)`,
+                color: ink, background: `rgba(${rgb(ink)},0.12)`,
+                border: `1px solid rgba(${rgb(ink)},0.28)`,
                 borderRadius: 4, padding: "2px 7px", letterSpacing: 0.4,
                 textTransform: "uppercase",
               }}>
-                {brand.archetype.replace("The ", "")}
+                {archetypeLabel(arch)}
               </span>
             )}
           </div>
+
+          {/* Sector tags (not links: the whole card is one link) */}
+          {sectorTags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "6px 0 8px" }}>
+              {sectorTags.slice(0, 3).map(s => (
+                <span key={s.slug} style={{ fontSize: 9.5, fontWeight: 600, color: "#8E8E93", border: "1px solid #222", borderRadius: 10, padding: "1px 7px", lineHeight: 1.5 }}>
+                  {s.name}
+                </span>
+              ))}
+              {sectorTags.length > 3 && (
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: "#8E8E93", padding: "1px 2px", lineHeight: 1.5 }}>+{sectorTags.length - 3}</span>
+              )}
+            </div>
+          )}
 
           <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, color: brand.is_verified ? "#2ecc71" : "#3a3a3a" }}>
             {brand.is_verified ? "✓ Verified" : "Community"}
@@ -161,7 +210,7 @@ export default function BrandCard({ brand, compact = false }) {
           {brand.tagline && (
             <div style={{
               fontSize: compact ? 11 : 12,
-              color: `rgba(${rgb(pc)}, ${isDark ? "0.85" : "0.7"})`,
+              color: `rgba(${rgb(ink)}, 0.85)`,
               fontStyle: "italic",
               lineHeight: 1.5,
               marginBottom: 12,
@@ -187,9 +236,9 @@ export default function BrandCard({ brand, compact = false }) {
           <div style={{ flex: 1, background: ac }} />
         </div>
         <div style={{ display: "flex", padding: `3px ${compact ? 16 : 20}px ${compact ? 12 : 14}px` }}>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace" }}>{pc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
-          <span style={{ flex: 1, fontSize: 8, color: "#2a2a2a", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace" }}>{pc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace", textAlign: "center" }}>{sc}</span>
+          <span style={{ flex: 1, fontSize: 8, color: "#8E8E93", fontFamily: "monospace", textAlign: "right" }}>{ac}</span>
         </div>
       </div>
     </Link>

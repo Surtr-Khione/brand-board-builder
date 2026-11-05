@@ -1,0 +1,26 @@
+/* /research hub. Titanium system: near-black, #8E8E93, #F5F5F7, system blue
+   #0071E3 as the only accent, Inter only. Every class is rs- prefixed. */
+.rs-page { background: #000; color: #F5F5F7; font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
+.rs-hero { padding: 60px 40px 48px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.rs-hero h1 { font-size: clamp(34px, 5vw, 58px); font-weight: 700; letter-spacing: -1.8px; line-height: 1.05; margin: 0 0 14px; }
+.rs-hero h1 span { color: #0071E3; }
+.rs-hero p { font-size: 15px; color: #8E8E93; max-width: 620px; margin: 0 auto; line-height: 1.65; }
+.rs-wrap { max-width: 1120px; margin: 0 auto; padding: 40px 40px 80px; }
+.rs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.rs-card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: #F5F5F7; background: #0c0c0c; border: 1px solid #161616; border-radius: 18px; padding: 24px 24px 22px; transition: border-color .18s, background .18s; }
+.rs-card:hover { border-color: #2c2c2e; background: #101010; }
+.rs-card-num { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #8E8E93; }
+.rs-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+.rs-card p { font-size: 14px; line-height: 1.6; color: #8E8E93; margin: 0; flex: 1; }
+.rs-card-go { font-size: 12.5px; font-weight: 600; color: #F5F5F7; text-decoration: underline; text-decoration-color: #0071E3; text-underline-offset: 3px; }
+.rs-cta { margin-top: 56px; padding: 40px 24px; text-align: center; border-top: 1px solid #141414; }
+.rs-cta h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.6px; margin: 0 0 10px; }
+.rs-cta p { font-size: 14.5px; color: #8E8E93; max-width: 540px; margin: 0 auto 22px; line-height: 1.6; }
+.rs-cta-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.rs-btn { padding: 11px 22px; border-radius: 100px; font-size: 14px; font-weight: 600; text-decoration: none; color: #F5F5F7; border: 1px solid rgba(255,255,255,0.18); }
+.rs-btn-primary { background: #0071E3; border-color: #0071E3; color: #fff; }
+@media (max-width: 760px) {
+  .rs-hero { padding: 44px 16px 36px; }
+  .rs-wrap { padding: 28px 16px 64px; }
+  .rs-grid { grid-template-columns: 1fr; }
+}
