@@ -9,6 +9,9 @@
 //
 // Plain ESM: no JSX, no import.meta.env. Imported by the SPA and by
 // scripts/prerender.mjs + scripts/prerender.d/*.mjs under node.
+// Archetypes read in three levels (family → expression → blend), sectors as
+// a primary home plus every sector the industry text names, and a second
+// axis of business-model tags from literal terms only.
 // Mapping never changes the stored record: the raw label stays on the row and
 // is returned as `raw` so a page can show it next to the canonical name.
 
@@ -71,55 +74,228 @@ function aliasIn(text) {
   return null;
 }
 
-// canonicalArchetype("The Organizer (Caregiver × Creator hybrid)")
-//   → { slug: "caregiver", name: "The Caregiver", secondary: { slug: "creator", name: "The Creator" }, raw }
-// Reading order: the bracketed qualifier names the real archetype(s) when the
-// label is an invented one ("The Enabler (Magician)"); otherwise the head word.
-// A hybrid's first named archetype is primary, the second is `secondary`.
-export function canonicalArchetype(raw) {
+// ── Archetypes in three levels ─────────────────────────────────────────────
+// From broad to specific:
+//   family      one of the 12 above. Filters, counts and family pages use it.
+//   expression  an open-ended named sub-type that belongs to exactly ONE
+//               family ("Rebel" is a way of being an Outlaw). Built from the
+//               labels the library actually uses; add one to EXPRESSIONS when
+//               a record introduces a new label.
+//   blend       the brand's other archetypes (see archetypeOf).
+//
+// Expression identity: (family, slug). `slug` is unique within its family and
+// is the URL segment (/archetypes/<family>/<slug>); `id` = "<family>-<slug>"
+// is unique across the whole list. So one word can be two expressions:
+// "Enabler" exists under the Everyman and under the Magician, and a record's
+// label picks one by naming the family in brackets ("The Enabler (Magician)").
+// A word that exists in several families with no family in its bracket stays
+// unresolved rather than guessed.
+//
+// `mapped: true` marks a BrandMD judgment call: the record's word is not a
+// standard name for that family, so placing it there is BrandMD's reading and
+// pages show it as "Mapped by BrandMD". Plain synonyms (Rebel, Teacher,
+// Caretaker, ...) are standard names in archetype literature and are not
+// marked. Definitions are general brand-strategy descriptions, never claims
+// about a particular brand.
+export const EXPRESSIONS = [
+  { slug: "rebel", name: "Rebel", family: "outlaw", mapped: false, aliases: ["Revolutionary", "Maverick"],
+    definition: "Challenges the way its category has always worked and invites customers to side with it against the old way." },
+  { slug: "liberator", name: "Liberator", family: "outlaw", mapped: true, aliases: [],
+    definition: "Frees customers from a cost, gatekeeper or constraint that its category has imposed on them." },
+  { slug: "teacher", name: "Teacher", family: "sage", mapped: false, aliases: ["Mentor"],
+    definition: "Shares what it knows openly so its customers become more capable on their own." },
+  { slug: "builder", name: "Builder", family: "creator", mapped: false, aliases: [],
+    definition: "Gives people the tools and structure to make things themselves." },
+  { slug: "caretaker", name: "Caretaker", family: "caregiver", mapped: false, aliases: ["Nurturer"],
+    definition: "Looks after people's comfort and wellbeing with steady, attentive care." },
+  { slug: "organizer", name: "Organizer", family: "caregiver", mapped: true, aliases: [],
+    definition: "Keeps people's work and lives in order so that nothing important gets lost." },
+  { slug: "everyperson", name: "Everyperson", family: "everyman", mapped: false, aliases: ["Everywoman", "Regular Guy", "Regular Person"],
+    definition: "Speaks as one of the people it serves: plain, unpretentious and approachable." },
+  { slug: "enabler", name: "Enabler", family: "everyman", mapped: true, aliases: [],
+    definition: "Removes the friction that keeps ordinary people from doing something themselves." },
+  { slug: "enabler", name: "Enabler", family: "magician", mapped: true, aliases: [],
+    definition: "Makes complex work happen automatically, so customers get the result without the effort." },
+  { slug: "rugged-explorer", name: "Rugged Explorer", family: "explorer", mapped: false, aliases: [],
+    definition: "Equips people for hard use in demanding outdoor conditions, with gear built to last." },
+  { slug: "champion", name: "Champion", family: "hero", mapped: true, aliases: [],
+    definition: "Stands up for its customers and fights to help them win." },
+].map((e) => ({ ...e, id: `${e.family}-${e.slug}` }));
+
+const EXPR_BY_ID = Object.fromEntries(EXPRESSIONS.map((e) => [e.id, e]));
+
+export function expressionBySlug(family, slug) {
+  return EXPR_BY_ID[`${family}-${slug}`] || null;
+}
+
+export function expressionsOf(family) {
+  return EXPRESSIONS.filter((e) => e.family === family);
+}
+
+const norm = (s) => String(s || "").toLowerCase().replace(/^the\s+/, "").replace(/\s+/g, " ").trim();
+
+// Every expression a phrase names (an ambiguous word like "Enabler" returns
+// one per family).
+function expressionsNamed(text) {
+  const t = norm(text);
+  if (!t) return [];
+  return EXPRESSIONS.filter((e) => [e.name, ...e.aliases].some((n) => norm(n) === t));
+}
+
+function familyNamed(text) {
+  const t = norm(text);
+  return ARCH_BY_SLUG[t] ? t : null;
+}
+
+// Read one free-text archetype label.
+//   parseLabel("The Organizer (Caregiver × Creator hybrid)")
+//     → { family: "caregiver", expression: <caregiver-organizer>, others: ["creator"], raw }
+// Head = text before any bracket; bracket = qualifier. Reading order:
+//  1. the head names a family outright ("The Outlaw", "The Regular Guy /
+//     Everyman") → that family, no expression (the pure family);
+//  2. the head names an expression; when the word exists in several families
+//     the family named in the bracket picks one ("Enabler (Magician)");
+//  3. otherwise the first family any head word or bracket part names.
+// A bracket that only describes ("anti-cheap, anti-compromise") adds nothing.
+// `others` = further families named in a hybrid bracket, in order.
+function parseLabel(raw) {
   const label = String(raw || "").trim();
   if (!label) return null;
   const head = label.replace(/\(.*$/, "").trim();
   const paren = (label.match(/\(([^)]*)\)/) || [])[1] || "";
-  const hybridParts = paren ? paren.split(/\s*(?:×|\bx\b|\+|\/|&|\band\b|,)\s*/i).filter(Boolean) : [];
+  const bracketFamilies = paren
+    .split(/\s*(?:×|\bx\b|\+|\/|&|\band\b|,)\s*/i)
+    .map((p) => aliasIn(p.replace(/\bhybrid\b/i, "")))
+    .filter(Boolean);
+  const headParts = head.split(/\s*\/\s*/).filter(Boolean);
 
-  let primary = null;
-  let secondary = null;
-  if (hybridParts.length) {
-    const named = hybridParts.map(aliasIn).filter(Boolean);
-    if (named.length) {
-      primary = named[0];
-      secondary = named.find((s) => s !== primary) || null;
+  let family = null;
+  let expression = null;
+  for (const p of headParts) { const f = familyNamed(p); if (f) { family = f; break; } }
+  if (!family) {
+    for (const p of headParts) {
+      const cands = expressionsNamed(p);
+      if (!cands.length) continue;
+      const pick = cands.length === 1 ? cands[0] : cands.find((e) => bracketFamilies.includes(e.family)) || null;
+      if (pick) { family = pick.family; expression = pick; break; }
     }
   }
-  if (!primary) primary = aliasIn(head);
-  if (!primary) {
-    // Last resort: any alias word anywhere in the label ("Champion (…)").
-    primary = aliasIn(label);
+  if (!family) family = aliasIn(head) || bracketFamilies[0] || null;
+  if (!family) return null;
+  const others = [...new Set(bracketFamilies.filter((f) => f !== family))];
+  return { family, expression, others, raw: label };
+}
+
+const famRef = (slug) => ({ slug, name: ARCH_BY_SLUG[slug].name });
+const exprRef = (e) => (e ? { slug: e.slug, id: e.id, name: e.name, definition: e.definition } : null);
+
+// The full three-level reading of a library row.
+//   archetypeOf(klarna) → {
+//     family: { slug: "outlaw", name: "The Outlaw" },
+//     expression: { slug: "liberator", id: "outlaw-liberator", name: "Liberator", definition },
+//     blend: [{ family: { slug: "magician", name: "The Magician" }, expression: null, source: "record" }],
+//     raw: "The Liberator", mapped: true,
+//     mappedNote: 'Mapped by BrandMD from the record\'s label "The Liberator"',
+//   }
+// Blend order: the record's own secondary_archetype first (source "record",
+// read with the same parser, so bracketed notes drop away), then further
+// archetypes named inside a hybrid label (source "label"). No duplicates and
+// never the primary family. `mapped` is true when any part of the reading
+// rests on a BrandMD judgment call, and mappedNote quotes the exact label(s).
+export function archetypeOf(brand) {
+  const p = parseLabel(brand?.archetype);
+  if (!p) return null;
+  const blend = [];
+  const seen = new Set([p.family]);
+  const mappedLabels = [];
+  if (p.expression && EXPR_BY_ID[p.expression.id].mapped) mappedLabels.push(p.raw);
+  const s = parseLabel(brand?.secondary_archetype);
+  if (s && !seen.has(s.family)) {
+    seen.add(s.family);
+    blend.push({ family: famRef(s.family), expression: exprRef(s.expression), source: "record" });
+    if (s.expression && EXPR_BY_ID[s.expression.id].mapped) mappedLabels.push(s.raw);
   }
-  if (!primary) return null;
-  const a = ARCH_BY_SLUG[primary];
-  const s = secondary ? ARCH_BY_SLUG[secondary] : null;
+  for (const f of p.others) {
+    if (seen.has(f)) continue;
+    seen.add(f);
+    blend.push({ family: famRef(f), expression: null, source: "label" });
+  }
+  const mapped = mappedLabels.length > 0;
   return {
-    slug: a.slug,
-    name: a.name,
-    secondary: s ? { slug: s.slug, name: s.name } : null,
-    raw: label,
+    family: famRef(p.family),
+    expression: exprRef(p.expression),
+    blend,
+    raw: p.raw,
+    mapped,
+    mappedNote: mapped
+      ? `Mapped by BrandMD from the record's label${mappedLabels.length > 1 ? "s" : ""} ${mappedLabels.map((l) => `"${l}"`).join(" and ")}`
+      : null,
   };
 }
 
-// The archetype pair for a library row: primary from `archetype`; secondary
-// from the record's own `secondary_archetype` field when it names a canonical
-// archetype other than the primary, and only otherwise from the second part
-// of a hybrid label (e.g. "Caregiver × Creator hybrid").
+// Short display names: "Outlaw · Rebel", or "Outlaw" for a pure family.
+export const shortArchetypeName = (name) => String(name || "").replace(/^The /, "");
+
+export function archetypeLabel(a) {
+  if (!a) return "";
+  const fam = shortArchetypeName(a.family.name);
+  return a.expression ? `${fam} · ${a.expression.name}` : fam;
+}
+
+// Brands per expression id, counted from each record's primary label and its
+// secondary_archetype label (a brand counts once per expression).
+export function expressionCounts(brands) {
+  const counts = {};
+  for (const b of brands || []) {
+    const a = archetypeOf(b);
+    if (!a) continue;
+    const ids = new Set();
+    if (a.expression) ids.add(a.expression.id);
+    for (const x of a.blend) if (x.expression) ids.add(x.expression.id);
+    for (const id of ids) counts[id] = (counts[id] || 0) + 1;
+  }
+  return counts;
+}
+
+// An expression gets its own page only when 2+ brands share it.
+// EXPRESSION_PAGES_LIVE stays false until /archetypes/:family/:expression
+// ships, so no page links to a URL that does not exist yet; flip it then and
+// every qualifying link turns on at once.
+export const EXPRESSION_PAGES_LIVE = false;
+export const EXPRESSION_PAGE_MIN = 2;
+
+export function expressionHref(familySlug, expression, counts) {
+  if (!EXPRESSION_PAGES_LIVE || !expression || !counts) return null;
+  const id = expression.id || `${familySlug}-${expression.slug}`;
+  return (counts[id] || 0) >= EXPRESSION_PAGE_MIN ? `/archetypes/${familySlug}/${expression.slug}` : null;
+}
+
+// canonicalArchetype("The Organizer (Caregiver × Creator hybrid)")
+//   → { slug: "caregiver", name: "The Caregiver", secondary: { slug: "creator", name: "The Creator" }, raw }
+// Kept for existing callers; built on the same parser as archetypeOf, so a
+// label lands in the same family everywhere. `secondary` = the first other
+// family named inside the label itself.
+export function canonicalArchetype(raw) {
+  const p = parseLabel(raw);
+  if (!p) return null;
+  const a = ARCH_BY_SLUG[p.family];
+  return {
+    slug: a.slug,
+    name: a.name,
+    secondary: p.others.length ? famRef(p.others[0]) : null,
+    raw: p.raw,
+  };
+}
+
+// The archetype pair for a library row (existing callers): primary = the
+// family; secondary = the first blend entry, i.e. the record's own
+// secondary_archetype when it names another family, else the hybrid label's
+// second archetype.
 export function brandArchetypes(brand) {
   const primary = canonicalArchetype(brand?.archetype);
   if (!primary) return { primary: null, secondary: null };
-  let secondary = null;
-  const s = canonicalArchetype(brand?.secondary_archetype);
-  if (s && s.slug !== primary.slug) secondary = { slug: s.slug, name: s.name };
-  else if (primary.secondary) secondary = primary.secondary;
-  return { primary, secondary };
+  const first = archetypeOf(brand).blend[0];
+  return { primary, secondary: first ? { slug: first.family.slug, name: first.family.name } : null };
 }
 
 // ── Sectors ────────────────────────────────────────────────────────────────
@@ -200,9 +376,9 @@ const RULES = [
   [/luxury (fashion|goods|watch|jewel)|watch|jewel|haute/i, "luxury"],
   [/apparel|footwear|sportswear|streetwear|fashion|clothing/i, "apparel"],
   [/saas|software|b2b|crm|cloud platform|developer|productivity|collaboration|work management/i, "software"],
-  [/entertainment|streaming|media|music|gaming|toys|film|publishing/i, "media"],
-  [/retail|e-?commerce|dtc|direct-to-consumer|furnish|beauty|cosmetic|consumer goods|cpg/i, "retail"],
-  [/artificial intelligence|\bai\b|technology|electronics|social|internet|edtech/i, "technology"],
+  [/entertainment|streaming|media|music|gaming|film|publishing/i, "media"],
+  [/retail|e-?commerce|dtc|direct-to-consumer|furnish|beauty|cosmetic|consumer goods|cpg|\btoys?\b/i, "retail"],
+  [/artificial intelligence|\bai\b|technology|electronics|social|internet|edtech|\bcloud\b/i, "technology"],
 ];
 
 // sectorOf("B2B SaaS — Work Management & Workflow Automation") → { slug: "software", name: "Business Software" }
@@ -219,6 +395,110 @@ export function sectorOf(industry) {
 export function sectorSlug(industry) {
   return sectorOf(industry)?.slug || null;
 }
+
+// ── Sector tags (multi-sector) ─────────────────────────────────────────────
+// sectorOf gives a brand ONE home (pages, counts). sectorsOf adds every other
+// sector the record's own industry string names: the string is split into
+// parts ("E-commerce & Cloud" → "E-commerce", "Cloud") and each part is read
+// with the same keyword RULES. Conservative by design:
+//  - a part that only names a business model or channel (B2B, B2C, SaaS,
+//    UCaaS, DTC, Direct-to-Consumer, Enterprise, SMB-focused) adds nothing;
+//  - a bare "Retail" inside brackets is a sales channel ("DTC + Retail, B2C"),
+//    not a sector, and adds nothing;
+//  - a part no rule matches adds nothing. Nothing is inferred beyond the text.
+// The primary (sectorOf) is always first in `all`.
+const MODEL_ONLY = /\b(?:b2b|b2c|dtc|saas|ucaas|enterprise|smb-focused)\b|direct-to-consumer/gi;
+const PART_SPLIT = /\s*(?:&|\/|,|\band\b|—|\+)\s*/i;
+
+function partsOf(industry) {
+  const raw = String(industry || "");
+  const inside = [...raw.matchAll(/\(([^)]*)\)/g)].map((m) => m[1]);
+  const outside = raw.replace(/\([^)]*\)/g, " ");
+  const read = (txt, bracketed) => txt.split(PART_SPLIT).map((p) => ({ text: p.trim(), bracketed })).filter((p) => p.text);
+  return [...read(outside, false), ...inside.flatMap((t) => read(t, true))];
+}
+
+function sectorOfPart({ text, bracketed }) {
+  const t = text.replace(MODEL_ONLY, " ").replace(/\s+/g, " ").trim();
+  if (!/[a-z]/i.test(t)) return null;
+  if (bracketed && /^retail$/i.test(t)) return null;
+  for (const [re, s] of RULES) if (re.test(t)) return s;
+  return null;
+}
+
+// sectorsOf(amazon) → { primary: Retail & Consumer Goods, all: [Retail & Consumer Goods, Technology & AI] }
+// Accepts a library row or an industry string.
+export function sectorsOf(brandOrIndustry) {
+  const industry = typeof brandOrIndustry === "string" ? brandOrIndustry : brandOrIndustry?.industry;
+  const primary = sectorOf(industry);
+  if (!primary) return { primary: null, all: [] };
+  const slugs = [primary.slug];
+  for (const part of partsOf(industry)) {
+    const s = sectorOfPart(part);
+    if (s && !slugs.includes(s)) slugs.push(s);
+  }
+  return { primary, all: slugs.map((s) => ({ slug: s, name: SECTOR_BY_SLUG[s].name })) };
+}
+
+// Sector pages exist (/sectors/:slug).
+export const sectorHref = (slug) => (SECTOR_BY_SLUG[slug] ? `/sectors/${slug}` : null);
+
+// ── Business-model tags (second axis: HOW a brand sells, not what) ─────────
+// Tagged only from LITERAL terms in the record's industry string; most brands
+// carry none, and that is correct. `terms` lists every phrase that triggers a
+// tag, so each tag can name its source. Consumer subscription and marketplace
+// are left out: no record in the index uses either word yet.
+export const MODELS = [
+  {
+    slug: "dtc", name: "Direct-to-consumer",
+    definition: "Sells straight to the end customer through its own channels rather than only through retailers or resellers.",
+    terms: ["DTC", "Direct-to-Consumer"],
+    test: /\bDTC\b|\bdirect-to-consumer\b/i,
+  },
+  {
+    slug: "b2b-saas", name: "B2B SaaS",
+    definition: "Sells software to businesses as a subscription service delivered over the internet.",
+    terms: ["B2B SaaS", "Enterprise B2B SaaS", "SaaS", "UCaaS"],
+    // Any SaaS/UCaaS except one the record itself calls consumer ("B2C SaaS").
+    test: /\bUCaaS\b|(?<!\bB2C\s)\bSaaS\b/i,
+  },
+  {
+    slug: "fintech", name: "Fintech",
+    definition: "Delivers financial services such as banking, payments, lending or investing primarily through software.",
+    terms: ["Fintech", "FinTech", "Financial Technology", "Neobank", "BNPL"],
+    test: /\bfintech\b|\bfinancial technology\b|\bneobank\b|\bBNPL\b/i,
+  },
+  {
+    slug: "platform", name: "Platform & infrastructure",
+    definition: "Provides the underlying platform or infrastructure that other businesses and developers build on.",
+    terms: ["Infrastructure", "Cloud Platform", "Integration Platform", "Application Platform", "Data Platforms"],
+    test: /\binfrastructure\b|\b(?:cloud|integration|application|data) platforms?\b/i,
+  },
+];
+
+const MODEL_BY_SLUG = Object.fromEntries(MODELS.map((m) => [m.slug, m]));
+
+export function modelBySlug(slug) {
+  const m = MODEL_BY_SLUG[slug];
+  return m ? { slug: m.slug, name: m.name, definition: m.definition, terms: m.terms } : null;
+}
+
+// modelsOf(klarna) → [{ slug: "fintech", name: "Fintech", term: "BNPL" }]
+// `term` is the exact text in the record that triggered the tag.
+export function modelsOf(brandOrIndustry) {
+  const industry = String((typeof brandOrIndustry === "string" ? brandOrIndustry : brandOrIndustry?.industry) || "");
+  const out = [];
+  for (const m of MODELS) {
+    const hit = industry.match(m.test);
+    if (hit) out.push({ slug: m.slug, name: m.name, term: hit[0] });
+  }
+  return out;
+}
+
+// Flip when /models/:slug ships, so no page links to a URL that does not
+// exist yet; until then model tags render as plain text.
+export const MODEL_PAGES_LIVE = false;
+export const modelHref = (slug) => (MODEL_PAGES_LIVE && MODEL_BY_SLUG[slug] ? `/models/${slug}` : null);
 
 // ── Rivals ─────────────────────────────────────────────────────────────────
 // Curated pairs of brands that are BOTH in the index and in the same sector.

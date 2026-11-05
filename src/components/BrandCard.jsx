@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { computeGravityScore } from "../lib/gravityScore";
-import { canonicalArchetype } from "../lib/brandTaxonomy";
+import { archetypeOf, archetypeLabel, sectorsOf } from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -66,7 +66,10 @@ export default function BrandCard({ brand, compact = false }) {
   // tint; else off-white. A luma cutoff let mid blues, purples and reds
   // (Apple, Stripe, Canva, Red Bull) through at under 4.5:1.
   const ink = [brand.primary_color, brand.accent_color, brand.secondary_color].find(c => c && inkReadable(c)) || "#F5F5F7";
-  const arch = canonicalArchetype(brand.archetype);
+  // "Outlaw · Rebel" when the record's label names an expression.
+  const arch = archetypeOf(brand);
+  // Sector tags from the record's industry text, primary first; max 3 shown.
+  const sectorTags = sectorsOf(brand).all;
 
   const logoSize = compact ? 64 : 80;
   const iconWrap = compact ? 76 : 96;
@@ -178,10 +181,24 @@ export default function BrandCard({ brand, compact = false }) {
                 borderRadius: 4, padding: "2px 7px", letterSpacing: 0.4,
                 textTransform: "uppercase",
               }}>
-                {arch.name.replace("The ", "")}
+                {archetypeLabel(arch)}
               </span>
             )}
           </div>
+
+          {/* Sector tags (not links: the whole card is one link) */}
+          {sectorTags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "6px 0 8px" }}>
+              {sectorTags.slice(0, 3).map(s => (
+                <span key={s.slug} style={{ fontSize: 9.5, fontWeight: 600, color: "#8E8E93", border: "1px solid #222", borderRadius: 10, padding: "1px 7px", lineHeight: 1.5 }}>
+                  {s.name}
+                </span>
+              ))}
+              {sectorTags.length > 3 && (
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: "#8E8E93", padding: "1px 2px", lineHeight: 1.5 }}>+{sectorTags.length - 3}</span>
+              )}
+            </div>
+          )}
 
           <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, color: brand.is_verified ? "#2ecc71" : "#3a3a3a" }}>
             {brand.is_verified ? "✓ Verified" : "Community"}

@@ -31,12 +31,17 @@ const present = (v) => (Array.isArray(v) ? v.some((x) => String(x ?? "").trim())
 const list = (v) => (Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : x?.name || x?.text || "")).filter((x) => String(x).trim()) : []);
 const hexOk = (h) => /^#[0-9a-f]{3,8}$/i.test(String(h || "").trim());
 
-export function brandHtml(brand, { headingLevel = 1, compact = false } = {}) {
+// Expression counts across the whole index (set in main once brands load):
+// an expression links to its own page only when 2+ brands share it.
+let EXPR_COUNTS = null;
+
+export function brandHtml(brand, { headingLevel = 1, compact = false, exprCounts = EXPR_COUNTS } = {}) {
   const b = brand || {};
   const H = `h${headingLevel}`;
   const H2 = `h${Math.min(headingLevel + 1, 6)}`;
-  const { primary: arch, secondary: arch2 } = taxonomy.brandArchetypes(b);
-  const sector = taxonomy.sectorOf(b.industry);
+  const arch = taxonomy.archetypeOf(b);
+  const { all: sectors } = taxonomy.sectorsOf(b);
+  const models = taxonomy.modelsOf(b);
   const bd = b.brand_data || {};
   const out = [];
 
@@ -46,12 +51,25 @@ export function brandHtml(brand, { headingLevel = 1, compact = false } = {}) {
   out.push(`</header>`);
 
   const facts = [];
+  const short = taxonomy.shortArchetypeName;
+  const famA = (f) => `<a href="/archetypes/${esc(f.slug)}">${esc(short(f.name))}</a>`;
+  const exprA = (familySlug, e) => {
+    const href = taxonomy.expressionHref(familySlug, e, exprCounts);
+    return href ? `<a href="${esc(href)}">${esc(e.name)}</a>` : esc(e.name);
+  };
   if (arch) {
-    let a = `<a href="/archetypes/${esc(arch.slug)}">${esc(arch.name)}</a>`;
-    if (arch2) a += ` with <a href="/archetypes/${esc(arch2.slug)}">${esc(arch2.name)}</a> as secondary`;
+    let a = famA(arch.family);
+    if (arch.expression) a += ` · ${exprA(arch.family.slug, arch.expression)}<br><small>${esc(arch.expression.name)}: ${esc(arch.expression.definition)}</small>`;
     facts.push(`<dt>Archetype</dt><dd>${a}</dd>`);
+    if (arch.blend.length) {
+      facts.push(`<dt>Blend</dt><dd>${arch.blend.map((x) => famA(x.family) + (x.expression ? ` · ${exprA(x.family.slug, x.expression)}` : "")).join(", ")}</dd>`);
+    }
+    if (arch.mapped) facts.push(`<dt></dt><dd><small>${esc(arch.mappedNote)}.</small></dd>`);
   }
-  if (sector) facts.push(`<dt>Sector</dt><dd><a href="/sectors/${esc(sector.slug)}">${esc(sector.name)}</a>${present(b.industry) ? ` (${esc(b.industry)})` : ""}</dd>`);
+  const tag = (name, href) => (href ? `<a class="tag" href="${esc(href)}">${esc(name)}</a>` : `<span class="tag">${esc(name)}</span>`);
+  if (sectors.length) facts.push(`<dt>${sectors.length > 1 ? "Sectors" : "Sector"}</dt><dd>${sectors.map((s) => tag(s.name, taxonomy.sectorHref(s.slug))).join(" ")}</dd>`);
+  if (models.length) facts.push(`<dt>Model</dt><dd>${models.map((m) => tag(m.name, taxonomy.modelHref(m.slug))).join(" ")}</dd>`);
+  if (present(b.industry)) facts.push(`<dt>Industry</dt><dd>${esc(b.industry)}</dd>`);
   if (present(b.founded_year)) facts.push(`<dt>Founded</dt><dd>${esc(b.founded_year)}</dd>`);
   if (present(b.country)) facts.push(`<dt>Country</dt><dd>${esc(b.country)}</dd>`);
   if (present(b.website)) facts.push(`<dt>Website</dt><dd>${esc(String(b.website).replace(/^https?:\/\//, ""))}</dd>`);
@@ -119,6 +137,8 @@ const STATIC_CSS = `<style>
       .bmd-static .palette{list-style:none;padding:0}
       .bmd-static .swatch{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.15)}
       .bmd-static code{font-family:ui-monospace,monospace;color:#F5F5F7}
+      .bmd-static dd small{font-size:12px;color:#8E8E93}
+      .bmd-static .tag{display:inline-block;font-size:12px;padding:3px 10px;margin:0 6px 6px 0;border-radius:20px;border:1px solid #222;background:#0c0c0c;color:#C7C7CC;text-decoration:none}
     </style>`;
 
 // ── Page writer ────────────────────────────────────────────────────────────
@@ -188,6 +208,7 @@ async function main() {
   try { brands = await fetchAllBrands(); }
   catch (e) { console.warn(`Brand fetch failed (${e.message}) — brand pages and brand bodies skipped, static routes still written.`); }
   const n = brands.length;
+  EXPR_COUNTS = taxonomy.expressionCounts(brands);
 
   // ── Static routes ──
   const routes = [

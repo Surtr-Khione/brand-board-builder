@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getBrand } from "../lib/brands";
+import { getBrand, searchBrands } from "../lib/brands";
 import CertificateShare from "../components/CertificateShare";
 import { computeGravityScore } from "../lib/gravityScore";
+import {
+  archetypeOf, shortArchetypeName, expressionCounts, expressionHref, EXPRESSION_PAGES_LIVE,
+  sectorsOf, sectorHref, modelsOf, modelHref,
+} from "../lib/brandTaxonomy";
 
 function rgb(hex = "") {
   const h = hex.replace("#", "").padEnd(6, "0");
@@ -129,6 +133,111 @@ function ScoreRationale({ brand, ink }) {
           Own this brand? <Link to="/builder" style={{ color: "#0071E3", textDecoration: "none" }}>Chart the missing pieces</Link> and the score follows.
         </p>
       </div>
+    </section>
+  );
+}
+
+// Expression counts across the whole index decide whether an expression has
+// its own page (2+ brands). Only fetched once those pages exist.
+let exprCountsCache = null;
+function useExpressionCounts() {
+  const [counts, setCounts] = useState(exprCountsCache);
+  useEffect(() => {
+    if (!EXPRESSION_PAGES_LIVE || exprCountsCache) return;
+    let live = true;
+    (async () => {
+      const all = [];
+      for (let offset = 0; offset < 2000; offset += 100) {
+        const d = await searchBrands({ limit: 100, offset });
+        const page = Array.isArray(d?.brands) ? d.brands : [];
+        all.push(...page);
+        if (page.length < 100) break;
+      }
+      exprCountsCache = expressionCounts(all);
+      if (live) setCounts(exprCountsCache);
+    })().catch(() => {});
+    return () => { live = false; };
+  }, []);
+  return counts;
+}
+
+// Classification: archetype in three levels (family · expression, blend),
+// then sector and business-model tags. Tags come only from the record's own
+// text; BrandMD's judgment calls are labelled as such.
+const TAX_LINK = { color: "#F5F5F7", textDecoration: "underline", textDecorationColor: "rgba(245,245,247,0.3)", textUnderlineOffset: 3 };
+const TAX_CHIP = { display: "inline-block", fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 20, border: "1px solid #222", background: "#0c0c0c", color: "#C7C7CC", textDecoration: "none" };
+const TAX_LABEL = { fontSize: 9, letterSpacing: 3, fontWeight: 800, textTransform: "uppercase", color: "#8E8E93", paddingTop: 4 };
+
+function TaxChip({ href, children }) {
+  return href
+    ? <Link to={href} className="bmd-tax-chip" style={TAX_CHIP}>{children}</Link>
+    : <span style={TAX_CHIP}>{children}</span>;
+}
+
+function Classification({ brand }) {
+  const counts = useExpressionCounts();
+  const a = archetypeOf(brand);
+  const { all: sectors } = sectorsOf(brand);
+  const models = modelsOf(brand);
+  if (!a && !sectors.length && !models.length) return null;
+
+  const famLink = (f) => <Link to={`/archetypes/${f.slug}`} style={TAX_LINK}>{shortArchetypeName(f.name)}</Link>;
+  const exprNode = (familySlug, e) => {
+    const href = expressionHref(familySlug, e, counts);
+    return href ? <Link to={href} style={TAX_LINK}>{e.name}</Link> : <span>{e.name}</span>;
+  };
+
+  return (
+    <section style={{ background: "#0a0a0a", borderBottom: "1px solid #101010", padding: "40px clamp(16px, 5vw, 48px)", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <style>{`.bmd-tax-chip:hover{border-color:#0071E3!important;color:#F5F5F7!important}`}</style>
+      <dl style={{ maxWidth: 760, margin: "0 auto", display: "grid", gridTemplateColumns: "max-content 1fr", gap: "14px 24px", alignItems: "start" }}>
+        {a && (
+          <>
+            <dt style={TAX_LABEL}>Archetype</dt>
+            <dd style={{ margin: 0, fontSize: 15, color: "#F5F5F7", lineHeight: 1.5 }}>
+              {famLink(a.family)}
+              {a.expression && <> <span style={{ color: "#8E8E93" }}>·</span> {exprNode(a.family.slug, a.expression)}</>}
+              {a.expression && <div style={{ fontSize: 12.5, color: "#8E8E93", marginTop: 4 }}>{a.expression.name}: {a.expression.definition}</div>}
+            </dd>
+          </>
+        )}
+        {a && a.blend.length > 0 && (
+          <>
+            <dt style={TAX_LABEL}>Blend</dt>
+            <dd style={{ margin: 0, fontSize: 15, color: "#F5F5F7", lineHeight: 1.5 }}>
+              {a.blend.map((x, i) => (
+                <span key={x.family.slug}>
+                  {i > 0 && ", "}
+                  {famLink(x.family)}
+                  {x.expression && <> <span style={{ color: "#8E8E93" }}>·</span> {exprNode(x.family.slug, x.expression)}</>}
+                </span>
+              ))}
+            </dd>
+          </>
+        )}
+        {a?.mapped && (
+          <>
+            <dt style={TAX_LABEL} aria-hidden="true"></dt>
+            <dd style={{ margin: "-6px 0 0", fontSize: 12, color: "#8E8E93", lineHeight: 1.5 }}>{a.mappedNote}.</dd>
+          </>
+        )}
+        {sectors.length > 0 && (
+          <>
+            <dt style={TAX_LABEL}>{sectors.length > 1 ? "Sectors" : "Sector"}</dt>
+            <dd style={{ margin: 0, display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {sectors.map((s) => <TaxChip key={s.slug} href={sectorHref(s.slug)}>{s.name}</TaxChip>)}
+            </dd>
+          </>
+        )}
+        {models.length > 0 && (
+          <>
+            <dt style={TAX_LABEL}>Model</dt>
+            <dd style={{ margin: 0, display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {models.map((m) => <TaxChip key={m.slug} href={modelHref(m.slug)}>{m.name}</TaxChip>)}
+            </dd>
+          </>
+        )}
+      </dl>
     </section>
   );
 }
@@ -373,6 +482,8 @@ export default function BrandProfile({ slug }) {
         <div style={{ flex: 1, background: sc }} />
         <div style={{ flex: 1, background: ac }} />
       </div>
+
+      <Classification brand={brand} />
 
       {/* WHY THIS SCORE — the number, explained, before anything else */}
       <ScoreRationale brand={brand} ink={pcInk} />

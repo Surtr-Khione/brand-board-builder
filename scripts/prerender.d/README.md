@@ -15,7 +15,9 @@ export default async function ({ brands, taxonomy, brandHtml, esc }) {
 - `brands`: every row from `search-brands` (full records, sorted by name). Empty
   when the fetch failed, so return `[]` (or pages that need no data) then.
 - `taxonomy`: `src/lib/brandTaxonomy.js` (canonicalArchetype, brandArchetypes,
-  sectorOf, ARCHETYPES, SECTORS, RIVALS, rivalsOf, ...).
+  sectorOf, ARCHETYPES, SECTORS, RIVALS, rivalsOf, ...; plus the three-level
+  archetype reading `archetypeOf` / `EXPRESSIONS` / `expressionCounts`, sector
+  tags `sectorsOf`, and business-model tags `modelsOf` / `MODELS`).
 - `brandHtml(brand, { headingLevel, compact })`: the shared crawlable brand body.
 - `esc`: HTML escaper. Escape every value that comes from a record.
 - `body` is static semantic HTML, no scripts. It is injected inside `#root`
