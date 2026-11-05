@@ -5,7 +5,7 @@
 // same rows. Every brand-level statement comes from that brand's record;
 // every number says what it was computed from. Nothing here is inferred
 // about a brand beyond grouping its stored labels.
-import { ARCHETYPES, brandArchetypes, sectorOf } from "../../../lib/brandTaxonomy.js";
+import { ARCHETYPES, EXPRESSIONS, archetypeBySlug, archetypeOf, sectorOf } from "../../../lib/brandTaxonomy.js";
 import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
 // General brand-strategy definitions of the 12 archetypes. These describe the
@@ -32,15 +32,18 @@ export const DEFINITIONS = {
   caregiver:
     "The Caregiver archetype is about protecting and serving others. It leads with compassion, generosity and reliability, and its core promise is that the customer, and the people they care about, will be looked after.",
   jester:
-    "The Jester archetype is about joy and living in the moment. Jester brands use humour, play and irreverence to lower defences and make a category feel lighter than its competitors expect.",
+    "The Jester archetype is about joy and living in the moment. Jester brands use humor, play and irreverence to lower defenses and make a category feel lighter than its competitors expect.",
   sage:
     "The Sage archetype is about truth and understanding. Sage brands lead with expertise, evidence and clarity, help people see their world more clearly, and treat misinformation or confusion as the thing to beat.",
 };
 
 export const INDEX_TITLE = "The 12 Brand Archetypes, by Real Brands | BrandMD";
-export const INDEX_DESC = "All 12 Jungian brand archetypes and every brand in the BrandMD index that holds each one, primary or secondary, with patterns from the records.";
+export const INDEX_DESC = "All 12 brand archetypes, their named expressions, and every brand in the BrandMD index that holds each one, with patterns from the records.";
 export const hubTitle = (name, n) => `${name} Archetype: ${plural(n, "Brand")} Decoded | BrandMD`;
-export const hubDesc = (name, n) => `What ${name.replace(/^The /, "the ")} archetype means, the ${plural(n, "brand")} in the BrandMD index that hold it, and their shared colors, values and voice.`;
+export const hubDesc = (name, n) => `What ${name.replace(/^The /, "the ")} archetype means, its expressions, the ${plural(n, "brand")} in the BrandMD index that hold it, and their shared colors and values.`;
+// Expression pages: "Rebel Archetype: 6 Outlaw Brands | BrandMD"
+export const exprTitle = (name, familyName, n) => `${name} Archetype: ${plural(n, `${familyName.replace(/^The /, "")} Brand`)} | BrandMD`;
+export const exprDesc = (name, familyName, n) => `The ${name} is a way of playing ${familyName.replace(/^The /, "the ")}. What it means, the ${plural(n, "brand")} in the BrandMD index that hold it, and what they share.`;
 
 // ── Small helpers ──────────────────────────────────────────────────────────
 
@@ -140,31 +143,98 @@ function recurringWords(entries, minBrands = 2, limit = 10) {
 }
 
 // ── Grouping ───────────────────────────────────────────────────────────────
+// Three levels, all read through archetypeOf (src/lib/brandTaxonomy.js):
+//   family      the brand's primary archetype (one of the 12);
+//   expression  the named sub-type its own label points to, if any;
+//   blend       its other archetypes: the record's secondary_archetype
+//               (source "record") and any further archetype named inside a
+//               hybrid label (source "label").
 
 const byName = (a, b) => str(a.brand_name).localeCompare(str(b.brand_name));
+const byEntryName = (a, b) => byName(a.brand, b.brand);
 
-// Primary + secondary holders for every archetype, in wheel order.
+// Primary holders + every blend appearance for each archetype, wheel order.
+//   primary: [brand]                     the family is the brand's primary
+//   blend:   [{ brand, source, expression }]  the family is in its blend
 export function groupByArchetype(brands = []) {
-  const groups = Object.fromEntries(ARCHETYPES.map((a) => [a.slug, { ...a, primary: [], secondary: [] }]));
+  const groups = Object.fromEntries(ARCHETYPES.map((a) => [a.slug, { ...a, primary: [], blend: [] }]));
   for (const b of brands) {
-    const { primary, secondary } = brandArchetypes(b);
-    if (primary && groups[primary.slug]) groups[primary.slug].primary.push(b);
-    if (secondary && groups[secondary.slug]) groups[secondary.slug].secondary.push(b);
+    const a = archetypeOf(b);
+    if (!a) continue;
+    if (groups[a.family.slug]) groups[a.family.slug].primary.push(b);
+    for (const x of a.blend) {
+      if (groups[x.family.slug]) groups[x.family.slug].blend.push({ brand: b, source: x.source, expression: x.expression });
+    }
   }
   for (const g of Object.values(groups)) {
     g.primary.sort(byName);
-    g.secondary.sort(byName);
+    g.blend.sort(byEntryName);
   }
   return ARCHETYPES.map((a) => groups[a.slug]);
 }
 
-// Everything an archetype hub shows, computed from the primary holders.
-export function archetypeStats(brands = [], slug) {
-  const group = groupByArchetype(brands).find((g) => g.slug === slug);
-  if (!group) return null;
-  const total = brands.length;
-  const P = group.primary;
+// ── Expressions ────────────────────────────────────────────────────────────
+// An expression gets its own page only when 2+ brands hold it as their
+// PRIMARY expression (their own archetype label names it). A brand that only
+// carries it in its secondary_archetype is listed on the page but does not
+// count toward the threshold.
+export const EXPRESSION_PAGE_MIN = 2;
 
+// Every expression any brand holds, with its holders.
+//   { ...expression, familyName, primary: [brand], secondary: [brand], hasPage }
+export function expressionGroups(brands = []) {
+  const groups = new Map();
+  const get = (id) => {
+    if (!groups.has(id)) {
+      const e = EXPRESSIONS.find((x) => x.id === id);
+      groups.set(id, { ...e, familyName: archetypeBySlug(e.family).name, primary: [], secondary: [] });
+    }
+    return groups.get(id);
+  };
+  for (const b of brands) {
+    const a = archetypeOf(b);
+    if (!a) continue;
+    if (a.expression) get(a.expression.id).primary.push(b);
+    for (const x of a.blend) if (x.expression && x.source === "record") get(x.expression.id).secondary.push(b);
+  }
+  return [...groups.values()]
+    .map((g) => ({
+      ...g,
+      primary: g.primary.sort(byName),
+      secondary: g.secondary.sort(byName),
+      hasPage: g.primary.length >= EXPRESSION_PAGE_MIN,
+    }))
+    .sort((a, b) => b.primary.length - a.primary.length || b.secondary.length - a.secondary.length || a.name.localeCompare(b.name));
+}
+
+// Where an expression's name should link: its own page when it has one,
+// else its section on the family hub.
+export const expressionPath = (g) => (g.hasPage ? `/archetypes/${g.family}/${g.slug}` : `/archetypes/${g.family}#${g.slug}`);
+
+// A family's expressions (held ones only) plus its pure-family brands: those
+// whose label names the family itself, with no expression.
+export function familyExpressions(brands = [], family) {
+  const expressions = expressionGroups(brands).filter((g) => g.family === family);
+  const pure = brands.filter((b) => {
+    const a = archetypeOf(b);
+    return a && a.family.slug === family && !a.expression;
+  }).sort(byName);
+  return { expressions, pure };
+}
+
+export function expressionGroup(brands = [], family, slug) {
+  return expressionGroups(brands).find((g) => g.family === family && g.slug === slug) || null;
+}
+
+// "Mapped by BrandMD from the record's label …" when any part of the brand's
+// archetype reading is a BrandMD judgment call; "" otherwise.
+export const mappedNote = (brand) => archetypeOf(brand)?.mappedNote || "";
+
+// ── Patterns ───────────────────────────────────────────────────────────────
+
+// Patterns shared by a set of brands (an archetype's or an expression's
+// primary holders): colors, fonts, enemies, values, voice, sectors, blends.
+export function patternsOf(P = []) {
   // Color families: brands with at least one stored color in the family.
   const famCount = new Map();
   let withColors = 0;
@@ -216,7 +286,7 @@ export function archetypeStats(brands = [], slug) {
   }
   const withVoice = P.filter((b) => { const v = voiceLines(b); return v.dos.length || v.donts.length; }).length;
 
-  // Sectors the primary holders sit in.
+  // Primary sectors of these brands.
   const sectorCount = new Map();
   for (const b of P) {
     const s = sectorOf(b.industry);
@@ -226,21 +296,18 @@ export function archetypeStats(brands = [], slug) {
   }
   const sectors = [...sectorCount.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-  // Most common secondary archetype among the primary holders.
+  // Archetypes these brands blend with (every blend entry, once per brand).
   const pairCount = new Map();
   for (const b of P) {
-    const { secondary } = brandArchetypes(b);
-    if (!secondary) continue;
-    if (!pairCount.has(secondary.slug)) pairCount.set(secondary.slug, { ...secondary, count: 0 });
-    pairCount.get(secondary.slug).count++;
+    const a = archetypeOf(b);
+    for (const x of a?.blend || []) {
+      if (!pairCount.has(x.family.slug)) pairCount.set(x.family.slug, { ...x.family, count: 0 });
+      pairCount.get(x.family.slug).count++;
+    }
   }
   const pairings = [...pairCount.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   return {
-    ...group,
-    definition: DEFINITIONS[slug],
-    total,
-    share: total ? Math.round((P.length / total) * 100) : 0,
     colorFamilies, withColors,
     fonts, withFonts,
     enemies, enemyWords,
@@ -248,6 +315,31 @@ export function archetypeStats(brands = [], slug) {
     doSamples, dontSamples, withVoice,
     sectors, pairings,
   };
+}
+
+// Everything an archetype hub shows. Patterns come from the primary holders.
+export function archetypeStats(brands = [], slug) {
+  const group = groupByArchetype(brands).find((g) => g.slug === slug);
+  if (!group) return null;
+  const total = brands.length;
+  const P = group.primary;
+  return {
+    ...group,
+    ...patternsOf(P),
+    ...familyExpressions(brands, slug),
+    definition: DEFINITIONS[slug],
+    total,
+    share: total ? Math.round((P.length / total) * 100) : 0,
+  };
+}
+
+// Everything an expression page shows. Patterns come from the brands whose
+// own label names the expression (the primary holders).
+export function expressionStats(brands = [], family, slug) {
+  const g = expressionGroup(brands, family, slug);
+  if (!g) return null;
+  const siblings = expressionGroups(brands).filter((x) => x.family === family && x.id !== g.id);
+  return { ...g, ...patternsOf(g.primary), siblings, total: brands.length };
 }
 
 // Raw label when it differs from the canonical name ("The Rebel" → Outlaw).

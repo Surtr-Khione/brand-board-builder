@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { to: "/builder", label: "Builder" },
   { to: "/check", label: "Check" },
   { to: "/brands", label: "Library" },
-  { to: "/research", label: "Research", also: ["/archetypes", "/sectors", "/versus", "/patterns"] },
+  { to: "/research", label: "Research", also: ["/archetypes", "/sectors", "/models", "/battles", "/patterns"] },
   { to: "/blog", label: "Blog" },
 ];
 

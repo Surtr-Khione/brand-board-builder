@@ -10,7 +10,7 @@
 export const COLOR_FAMILIES = [
   { slug: "black", name: "Black & near-black", rule: "lightness 12% or less", swatch: "#111111" },
   { slug: "white", name: "White & off-white", rule: "lightness 93% or more", swatch: "#F5F5F7" },
-  { slug: "grey", name: "Grey", rule: "saturation under 15%", swatch: "#8E8E93" },
+  { slug: "grey", name: "Gray", rule: "saturation under 15%", swatch: "#8E8E93" },
   { slug: "red", name: "Red", rule: "hue 345° to 15°", swatch: "#D32F2F" },
   { slug: "orange", name: "Orange", rule: "hue 15° to 40°, lightness over 35%", swatch: "#F57C00" },
   { slug: "brown", name: "Brown", rule: "hue 15° to 40°, lightness 35% or less", swatch: "#795548" },

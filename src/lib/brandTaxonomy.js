@@ -242,26 +242,25 @@ export function archetypeLabel(a) {
   return a.expression ? `${fam} · ${a.expression.name}` : fam;
 }
 
-// Brands per expression id, counted from each record's primary label and its
-// secondary_archetype label (a brand counts once per expression).
+// Brands per expression id, counted from each record's PRIMARY archetype label
+// only. This is the same rule archetypeData.expressionGroups uses to decide
+// which expressions get a page: a brand that carries an expression only in its
+// secondary_archetype is listed on that page but does not count toward it.
 export function expressionCounts(brands) {
   const counts = {};
   for (const b of brands || []) {
     const a = archetypeOf(b);
-    if (!a) continue;
-    const ids = new Set();
-    if (a.expression) ids.add(a.expression.id);
-    for (const x of a.blend) if (x.expression) ids.add(x.expression.id);
-    for (const id of ids) counts[id] = (counts[id] || 0) + 1;
+    if (!a || !a.expression) continue;
+    counts[a.expression.id] = (counts[a.expression.id] || 0) + 1;
   }
   return counts;
 }
 
-// An expression gets its own page only when 2+ brands share it.
-// EXPRESSION_PAGES_LIVE stays false until /archetypes/:family/:expression
-// ships, so no page links to a URL that does not exist yet; flip it then and
-// every qualifying link turns on at once.
-export const EXPRESSION_PAGES_LIVE = false;
+// An expression gets its own page only when 2+ brands hold it as primary.
+// /archetypes/:family/:expression has shipped (prerender.d/archetypes.mjs
+// writes exactly the expressions that clear EXPRESSION_PAGE_MIN), so links
+// to qualifying expressions are on everywhere.
+export const EXPRESSION_PAGES_LIVE = true;
 export const EXPRESSION_PAGE_MIN = 2;
 
 export function expressionHref(familySlug, expression, counts) {

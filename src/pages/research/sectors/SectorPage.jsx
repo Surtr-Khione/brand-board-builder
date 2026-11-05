@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import SiteNav from "../../../components/SiteNav";
 import { sectorBySlug } from "../../../lib/brandTaxonomy";
 import { useBrandIndex, usePageMeta } from "./useBrandIndex";
-import { buildSectors, sectorIntro, sectorMeta, listJoin, GRAVITY_NOTE } from "./sectorData";
+import { buildSectors, sectorIntro, sectorMeta, listJoin, countLine, GRAVITY_NOTE, COUNT_NOTE } from "./sectorData";
 import { Crumbs, ClosingCta, LoadState, ARCHETYPE_COLORS } from "./parts";
 import "./sectors.css";
 
@@ -12,6 +12,45 @@ function Stat({ k, children }) {
     <div className="sx-stat">
       <div className="sx-stat-k">{k}</div>
       <div className="sx-stat-v">{children}</div>
+    </div>
+  );
+}
+
+// A brand's sector tags, primary first, exactly as sectorsOf reads them from
+// the record's industry text. The sector being viewed is marked, not linked.
+function SectorTags({ tags, current }) {
+  if (!tags || tags.length < 2) return null;
+  return (
+    <div className="sx-tags" aria-label="Sector tags">
+      {tags.map((t, i) => (t.slug === current
+        ? <span key={t.slug} className="sx-tag sx-tag-on" aria-current="page" title={i === 0 ? "Primary sector" : undefined}>{t.name}</span>
+        : <Link key={t.slug} to={`/sectors/${t.slug}`} className="sx-tag" title={i === 0 ? "Primary sector" : undefined}>{t.name}</Link>))}
+    </div>
+  );
+}
+
+function BrandRow({ r, current, showIndustry }) {
+  return (
+    <div className="sx-row">
+      <div className="sx-dot" aria-hidden="true">
+        {(r.colors.length ? r.colors : [{ hex: "#1a1a1a" }]).map((c, i) => <span key={i} style={{ background: c.hex }} />)}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <Link to={`/brands/${r.slug}`} className="sx-row-name">{r.name}</Link>
+        {r.tagline && <div className="sx-row-tag">&ldquo;{r.tagline}&rdquo;</div>}
+        {showIndustry && r.industry && <div className="sx-row-ind">Industry on record: {r.industry}</div>}
+        <SectorTags tags={r.sectors} current={current} />
+      </div>
+      <div className="sx-row-arch">
+        {r.archetype
+          ? <><Link to={`/archetypes/${r.archetype.slug}`}>{r.archetype.name}</Link>{r.expression && <span> · {r.expression.name}</span>}</>
+          : <span style={{ color: "#8E8E93" }}>No archetype recorded</span>}
+        {r.secondary && <span className="sx-sub">with <Link to={`/archetypes/${r.secondary.slug}`}>{r.secondary.name}</Link></span>}
+      </div>
+      <div className="sx-score" aria-label={r.gravity !== null ? `Gravity Score ${r.gravity} of 100` : "No Gravity Score"}>
+        <div className="sx-score-track"><div className="sx-score-fill" style={{ width: `${r.gravity ?? 0}%` }} /></div>
+        <span className="sx-score-n">{r.gravity ?? "–"}</span>
+      </div>
     </div>
   );
 }
@@ -64,13 +103,13 @@ export default function SectorPage() {
           {d ? <p className="sx-intro">{sectorIntro(d)}</p> : <p className="sx-intro">Loading the sector from the BrandMD index.</p>}
           {d && (
             <div className="sx-stats">
-              <Stat k="Brands">{d.n}<small>of {d.total} ({d.share}%)</small></Stat>
+              <Stat k="Primary brands">{d.n}<small>of {d.total} ({d.share}%)</small></Stat>
+              <Stat k="Tagged brands">{d.tagged}<small>{d.also.length ? `${d.also.length} more by tag` : "no others by tag"}</small></Stat>
               <Stat k="Average Gravity">{d.avgGravity ?? "–"}<small>{d.minGravity !== null ? `range ${d.minGravity}–${d.maxGravity}` : ""}</small></Stat>
               <Stat k="Top archetype">
                 {d.archetypeMix[0] ? <Link to={`/archetypes/${d.archetypeMix[0].slug}`}>{d.archetypeMix[0].name.replace("The ", "")}</Link> : "–"}
                 {d.archetypeMix[0] && <small>{d.archetypeMix[0].count} of {d.n}</small>}
               </Stat>
-              <Stat k="Archetypes in play">{d.archetypeMix.length}<small>of 12</small></Stat>
             </div>
           )}
         </header>
@@ -82,36 +121,30 @@ export default function SectorPage() {
             {/* The brands */}
             <section className="sx-section" aria-labelledby="sx-brands">
               <div className="sx-label">The brands</div>
-              <h2 className="sx-h2" id="sx-brands">{d.n} brands, by Gravity Score</h2>
-              <p className="sx-note">{GRAVITY_NOTE} Industries in this sector, as recorded: {d.industries.join("; ")}.</p>
+              <h2 className="sx-h2" id="sx-brands">{d.n} primary brand{d.n === 1 ? "" : "s"}, by Gravity Score</h2>
+              <p className="sx-note">Brands filed under {d.sector.name} as their primary sector. {GRAVITY_NOTE} Industries here, as recorded: {d.industries.join("; ")}.</p>
               <div className="sx-rows">
-                {d.rows.map((r) => (
-                  <div className="sx-row" key={r.slug}>
-                    <div className="sx-dot" aria-hidden="true">
-                      {(r.colors.length ? r.colors : [{ hex: "#1a1a1a" }]).map((c, i) => <span key={i} style={{ background: c.hex }} />)}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <Link to={`/brands/${r.slug}`} className="sx-row-name">{r.name}</Link>
-                      {r.tagline && <div className="sx-row-tag">&ldquo;{r.tagline}&rdquo;</div>}
-                    </div>
-                    <div className="sx-row-arch">
-                      {r.archetype ? <Link to={`/archetypes/${r.archetype.slug}`}>{r.archetype.name}</Link> : <span style={{ color: "#8E8E93" }}>No archetype recorded</span>}
-                      {r.secondary && <span className="sx-sub">with <Link to={`/archetypes/${r.secondary.slug}`}>{r.secondary.name}</Link></span>}
-                    </div>
-                    <div className="sx-score" aria-label={r.gravity !== null ? `Gravity Score ${r.gravity} of 100` : "No Gravity Score"}>
-                      <div className="sx-score-track"><div className="sx-score-fill" style={{ width: `${r.gravity ?? 0}%` }} /></div>
-                      <span className="sx-score-n">{r.gravity ?? "–"}</span>
-                    </div>
-                  </div>
-                ))}
+                {d.rows.map((r) => <BrandRow key={r.slug} r={r} current={d.sector.slug} />)}
               </div>
             </section>
+
+            {/* Also in this sector (tagged, not primary) */}
+            {d.also.length > 0 && (
+              <section className="sx-section" aria-labelledby="sx-also">
+                <div className="sx-label">Also in this sector</div>
+                <h2 className="sx-h2" id="sx-also">{d.also.length} more brand{d.also.length === 1 ? "" : "s"} tagged {d.sector.name}</h2>
+                <p className="sx-note">Their primary sector is elsewhere, but the industry text on their record also names {d.sector.name}. They are not counted in the archetype mix, Gravity, color or type figures on this page. {COUNT_NOTE}</p>
+                <div className="sx-rows">
+                  {d.also.map((r) => <BrandRow key={r.slug} r={r} current={d.sector.slug} showIndustry />)}
+                </div>
+              </section>
+            )}
 
             {/* Archetype mix */}
             <section className="sx-section" aria-labelledby="sx-mix">
               <div className="sx-label">Archetype mix</div>
               <h2 className="sx-h2" id="sx-mix">Which archetypes {d.sector.name} brands play</h2>
-              <p className="sx-note">Each brand counted once, under its primary archetype. The blue bar is the share within this sector; the grey tick marks the same archetype's share across all {d.total} brands in the index.</p>
+              <p className="sx-note">The {d.n} primary brands, each counted once under its primary archetype. The blue bar is the share within this sector; the gray tick marks the same archetype's share across all {d.total} brands in the index.</p>
               <div className="sx-bars">
                 {d.archetypeMix.map((a) => (
                   <div key={a.slug}>
@@ -248,7 +281,7 @@ export default function SectorPage() {
                       <span>and</span>
                       <Link to={`/brands/${p.b.slug}`}>{p.b.name}</Link>
                       <span>· {p.basis}</span>
-                      <Link to={p.versus} style={{ marginLeft: "auto", fontSize: 12, fontWeight: 600, color: "#F5F5F7", textDecoration: "underline", textDecorationColor: "#0071E3", textUnderlineOffset: 3 }}>Side by side →</Link>
+                      <Link to={p.battle} style={{ marginLeft: "auto", fontSize: 12, fontWeight: 600, color: "#F5F5F7", textDecoration: "underline", textDecorationColor: "#0071E3", textUnderlineOffset: 3 }}>Side by side →</Link>
                     </div>
                   ))}
                 </div>
@@ -260,8 +293,9 @@ export default function SectorPage() {
               <div className="sx-label">Keep exploring</div>
               <h2 className="sx-h2" id="sx-other">Other sectors</h2>
               <div className="sx-others" style={{ marginTop: 16 }}>
-                {others.map((o) => <Link key={o.sector.slug} to={`/sectors/${o.sector.slug}`}>{o.sector.name} · {o.n}</Link>)}
+                {others.map((o) => <Link key={o.sector.slug} to={`/sectors/${o.sector.slug}`} title={countLine(o)}>{o.sector.name} · {o.n} primary</Link>)}
                 <Link to="/sectors">All sectors</Link>
+                <Link to={`/brands?sector=${d.sector.slug}`}>{d.sector.name} in the Library</Link>
                 <Link to="/archetypes">Brands by archetype</Link>
                 <Link to="/research">All research</Link>
               </div>

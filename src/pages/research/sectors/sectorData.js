@@ -5,7 +5,7 @@
 // Plain ESM: no JSX, no import.meta.env (imported under node by the prerender).
 // Nothing is inferred about a brand: empty fields are left out, quotes are the
 // record's own text, and computed figures carry the base they were computed on.
-import { SECTORS, sectorOf, brandArchetypes, ARCHETYPES, rivalsOf, rivalPairSlug } from "../../../lib/brandTaxonomy.js";
+import { SECTORS, sectorsOf, brandArchetypes, archetypeOf, ARCHETYPES, rivalsOf, rivalPairSlug } from "../../../lib/brandTaxonomy.js";
 import { computeGravityScore } from "../../../lib/gravityScore.js";
 import { COLOR_FAMILIES, familyOf } from "../../../lib/colorFamilies.js";
 
@@ -77,6 +77,9 @@ function asList(v) {
 
 export function brandRow(b) {
   const { primary, secondary } = brandArchetypes(b);
+  const expr = archetypeOf(b)?.expression || null;
+  // Sector tags read from the record's own industry text, primary first.
+  const tags = sectorsOf(b).all;
   let gravity = null;
   try { gravity = computeGravityScore(b).score; } catch { gravity = null; }
   const colors = [["Primary", b.primary_color], ["Secondary", b.secondary_color], ["Accent", b.accent_color]]
@@ -93,6 +96,8 @@ export function brandRow(b) {
     industry: present(b.industry) ? String(b.industry).trim() : "",
     archetype: primary ? { slug: primary.slug, name: primary.name } : null,
     secondary: secondary ? { slug: secondary.slug, name: secondary.name } : null,
+    expression: expr ? { slug: expr.slug, name: expr.name } : null,
+    sectors: tags,
     gravity: Number.isFinite(gravity) ? gravity : null,
     colors,
     fonts,
@@ -107,9 +112,16 @@ function pct(n, d) { return d ? Math.round((n / d) * 100) : 0; }
 
 const fontKey = (f) => String(f).toLowerCase().replace(/\(.*?\)/g, "").split(/[;,/]|fallback:/)[0].replace(/\s+/g, " ").trim();
 
-export function sectorDetail(sector, sectorBrands, allBrands) {
-  const rows = sectorBrands.map(brandRow).sort((a, b) => (b.gravity ?? -1) - (a.gravity ?? -1) || a.name.localeCompare(b.name));
+// `sectorBrands` = brands whose PRIMARY sector this is; every rollup below
+// (archetype mix, Gravity, color, type, tone, pairs) counts those only.
+// `alsoBrands` = brands that carry this sector as a further tag read from
+// their industry text; they are listed apart and never enter the rollups.
+export function sectorDetail(sector, sectorBrands, allBrands, alsoBrands = []) {
+  const byScore = (a, b) => (b.gravity ?? -1) - (a.gravity ?? -1) || a.name.localeCompare(b.name);
+  const rows = sectorBrands.map(brandRow).sort(byScore);
+  const also = alsoBrands.map(brandRow).sort(byScore);
   const n = rows.length;
+  const tagged = n + also.length;
   const total = allBrands.length;
 
   // Archetype mix (primary archetype), with the index-wide share for context.
@@ -194,12 +206,12 @@ export function sectorDetail(sector, sectorBrands, allBrands) {
     const key = [r.slug, x.slug].sort().join("|");
     if (seen.has(key)) continue;
     seen.add(key);
-    // /versus/<a>-vs-<b> (slugs sorted) is the versus family's canonical pair page.
-    rivals.push({ a: { slug: r.slug, name: r.name }, b: { slug: x.slug, name: nameOf[x.slug] }, basis: x.basis, versus: `/versus/${rivalPairSlug(r.slug, x.slug)}` });
+    // /battles/<a>-vs-<b> (slugs sorted) is the Brand Battles family's canonical pair page.
+    rivals.push({ a: { slug: r.slug, name: r.name }, b: { slug: x.slug, name: nameOf[x.slug] }, basis: x.basis, battle: `/battles/${rivalPairSlug(r.slug, x.slug)}` });
   }
 
   return {
-    sector, rows, n, total, share: pct(n, total),
+    sector, rows, n, total, share: pct(n, total), also, tagged,
     archetypeMix, avgGravity, minGravity, maxGravity,
     withPrimaryCount: withPrimary.length, primaryFamilies, paletteFamilies, colorTotal, sharedHexes,
     withFontsCount: withFonts.length, sharedFonts, sharedTone,
@@ -208,18 +220,36 @@ export function sectorDetail(sector, sectorBrands, allBrands) {
 }
 
 // All sectors that have at least one brand, in taxonomy order, each with its
-// detail rollup. Brands whose industry maps to no sector are counted apart.
+// detail rollup. A brand is filed under its primary sector (sectorsOf().primary)
+// and listed as "also in" every further sector its industry text names.
+// Brands whose industry maps to no sector are counted apart.
 export function buildSectors(allBrands) {
   const by = {};
+  const alsoBy = {};
   let unmapped = 0;
+  let multi = 0;
   for (const b of allBrands) {
-    const s = sectorOf(b.industry);
-    if (!s) { unmapped++; continue; }
-    (by[s.slug] ||= []).push(b);
+    const { primary, all } = sectorsOf(b);
+    if (!primary) { unmapped++; continue; }
+    (by[primary.slug] ||= []).push(b);
+    if (all.length > 1) multi++;
+    for (const t of all.slice(1)) (alsoBy[t.slug] ||= []).push(b);
   }
-  const sectors = SECTORS.filter((s) => by[s.slug]?.length).map((s) => sectorDetail(s, by[s.slug], allBrands));
-  return { sectors, unmapped, total: allBrands.length };
+  const sectors = SECTORS
+    .filter((s) => by[s.slug]?.length || alsoBy[s.slug]?.length)
+    .map((s) => sectorDetail(s, by[s.slug] || [], allBrands, alsoBy[s.slug] || []));
+  return { sectors, unmapped, multi, total: allBrands.length };
 }
+
+// The two counts a sector carries, worded the same on the hub, the sector
+// page and the crawlable HTML: brands filed here as their primary sector, and
+// brands carrying the tag in any position.
+export function countLine(d) {
+  return `${d.n} primary · ${d.tagged} tagged`;
+}
+
+// What the two counts mean, for the notes beside them.
+export const COUNT_NOTE = "Primary: brands filed under the sector as their main home. Tagged: every brand whose recorded industry names the sector, in any position, so a multi-sector brand counts once in each sector it names.";
 
 // The intro sentence for one sector, from computed facts only.
 export function sectorIntro(d) {
@@ -229,7 +259,10 @@ export function sectorIntro(d) {
     ? ` The most common primary archetypes are ${listJoin(tied.map((a) => a.name))}, with ${top.count} brand${top.count === 1 ? "" : "s"} each.`
     : ` The most common primary archetype is ${top.name} (${top.count} of ${d.n}).`;
   const grav = d.avgGravity !== null ? ` Their average Gravity Score is ${d.avgGravity} of 100, ranging from ${d.minGravity} to ${d.maxGravity}.` : "";
-  return `${d.n} of the ${d.total} brands in the BrandMD index fall in ${d.sector.name}, grouped from the industry each brand's record lists.${archBit}${grav} Below: each brand's archetype and score, the shared color and type patterns, and a positioning line for each brand from its BrandMD record.`;
+  const alsoBit = d.also.length
+    ? ` ${d.also.length} more brand${d.also.length === 1 ? " is" : "s are"} tagged ${d.sector.name} as a further sector because ${d.also.length === 1 ? "its" : "their"} industry text names it; ${d.also.length === 1 ? "it is" : "they are"} listed apart and left out of the figures below.`
+    : "";
+  return `${d.n} of the ${d.total} brands in the BrandMD index have ${d.sector.name} as their primary sector, read from the industry each brand's record lists.${alsoBit}${archBit}${grav} Below: each brand's archetype and score, the shared color and type patterns, and a positioning line for each brand from its BrandMD record.`;
 }
 
 export function listJoin(items) {

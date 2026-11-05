@@ -1,3 +1,7 @@
 # Canonical brand-context files — pretty URLs proxy to the brand-md edge function
 /board/:board/brand.md https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/brand-md/board/:board 302
 /brands/:slug/brand.md https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1/brand-md/slug/:slug 302
+
+# Brand Battles were first previewed at /versus; keep shared links working
+/versus /battles 301
+/versus/* /battles/:splat 301

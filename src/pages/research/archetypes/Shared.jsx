@@ -44,3 +44,148 @@ export function ResearchCta() {
     </div>
   );
 }
+
+const plural = (k, one, many = `${one}s`) => `${k} ${k === 1 ? one : many}`;
+
+export function BrandLink({ brand }) {
+  return <Link to={`/brands/${brand.slug}`}>{brand.brand_name}</Link>;
+}
+
+export function Section({ label, title, sub, id, children }) {
+  return (
+    <section className="arx-section" id={id}>
+      {label && <div className="arx-label">{label}</div>}
+      {title && <h2 className="arx-h2">{title}</h2>}
+      {sub && <p className="arx-sub">{sub}</p>}
+      {children}
+    </section>
+  );
+}
+
+export function Words({ words, of }) {
+  if (!words.length) return null;
+  return (
+    <div className="arx-words">
+      {words.map((w) => (
+        <span key={w.word} className="arx-word" title={w.brands.map((b) => b.name).join(", ")}>
+          {w.word}<small>{w.count} of {of}</small>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// "Mapped by BrandMD …" line under a brand whose archetype reading rests on
+// a BrandMD judgment call (archetypeOf(brand).mappedNote).
+export function MappedNote({ note }) {
+  if (!note) return null;
+  return <div className="arx-mapped">{note}</div>;
+}
+
+// Color, type, enemy, values and voice sections for one set of brands: `s`
+// comes from patternsOf (archetypeData.js) and `P` is that set. `n` = how
+// many brands it covers.
+export function PatternSections({ s, P, n }) {
+  const maxFam = Math.max(1, ...(s.colorFamilies || []).map((f) => f.count));
+  const sharedFonts = (s.fonts || []).filter((f) => f.count >= 2);
+  return (
+    <>
+      <Section
+        label="Color"
+        title="Most common color families"
+        sub={`How many of the ${plural(s.withColors, "brand")} with stored colors use each family in their primary, secondary or accent color. Families are grouped from the hex codes by hue and lightness.`}
+      >
+        {s.colorFamilies.length ? (
+          <div className="arx-rows">
+            {s.colorFamilies.map((f) => (
+              <div key={f.slug}>
+                <div className="arx-row">
+                  <div className="arx-row-name"><span className="arx-dot" style={{ background: f.swatch }} />{f.name}</div>
+                  <div className="arx-row-track"><i style={{ width: `${(f.count / maxFam) * 100}%`, background: f.swatch }} /></div>
+                  <div className="arx-row-n">{f.count} of {s.withColors}</div>
+                </div>
+                <div className="arx-hexes">{f.hexes.slice(0, 18).map((h) => <span key={h} title={h} style={{ background: h }} />)}</div>
+              </div>
+            ))}
+          </div>
+        ) : <p className="arx-empty">No colors are stored for these brands.</p>}
+      </Section>
+
+      <Section
+        label="Type"
+        title="Fonts on record"
+        sub={s.withFonts ? `${plural(s.withFonts, "brand")} of ${n} ${s.withFonts === 1 ? "names its typefaces" : "name their typefaces"} in the index.` : `None of these ${plural(n, "record")} name a typeface yet.`}
+      >
+        {s.withFonts > 0 && (
+          sharedFonts.length ? (
+            <div className="arx-chips">
+              {sharedFonts.map((f) => <span key={f.name} className="arx-chip" title={f.brands.join(", ")}>{f.name}<small>{f.count} brands</small></span>)}
+            </div>
+          ) : (
+            <>
+              <p className="arx-sub">No typeface is shared by two of them. Each brand's named fonts:</p>
+              <ul className="arx-list">
+                {P.filter((b) => [b.primary_font, b.body_font, b.accent_font].some(Boolean)).map((b) => (
+                  <li key={b.slug}><BrandLink brand={b} />: {[b.primary_font, b.body_font, b.accent_font].filter(Boolean).join(" · ")}</li>
+                ))}
+              </ul>
+            </>
+          )
+        )}
+      </Section>
+
+      <Section
+        label="Enemy"
+        title="What they stand against"
+        sub={`Each brand's stated enemy, as recorded. Words that recur across ${plural(s.enemies.length, "enemy statement")} are counted first (once per brand).`}
+      >
+        <Words words={s.enemyWords} of={s.enemies.length} />
+        <ul className="arx-list">
+          {s.enemies.map((e) => (
+            <li key={e.brand.slug}><span className="arx-who"><BrandLink brand={e.brand} /></span><q className="arx-q">{e.text}</q></li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section
+        label="Values"
+        title="What they value"
+        sub={`Words that recur in the core values of ${plural(s.values.length, "brand")} (once per brand), then each brand's values as recorded.`}
+      >
+        <Words words={s.valueWords} of={s.values.length} />
+        <ul className="arx-list">
+          {s.values.map((v) => (
+            <li key={v.brand.slug}><span className="arx-who"><BrandLink brand={v.brand} /></span>{v.values.join(" · ")}</li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section
+        label="Voice"
+        title="How they say it"
+        sub={s.withVoice
+          ? `Sample do and don't lines quoted from the voice rules of ${plural(s.withVoice, "brand")} of ${n} that have them on record.`
+          : `None of these ${plural(n, "record")} carry written do and don't voice rules yet.`}
+      >
+        {s.withVoice > 0 && (
+          <div className="arx-cols">
+            <div>
+              <div className="arx-label" style={{ letterSpacing: 2 }}>Do</div>
+              <ul className="arx-list">
+                {s.doSamples.map((d) => <li key={d.brand.slug} className="arx-do"><span className="arx-who"><BrandLink brand={d.brand} /></span><q className="arx-q">{d.text}</q></li>)}
+                {!s.doSamples.length && <li>No "do" lines on record.</li>}
+              </ul>
+            </div>
+            <div>
+              <div className="arx-label" style={{ letterSpacing: 2 }}>Don't</div>
+              <ul className="arx-list">
+                {s.dontSamples.map((d) => <li key={d.brand.slug} className="arx-dont"><span className="arx-who"><BrandLink brand={d.brand} /></span><q className="arx-q">{d.text}</q></li>)}
+                {!s.dontSamples.length && <li>No "don't" lines on record.</li>}
+              </ul>
+            </div>
+          </div>
+        )}
+      </Section>
+    </>
+  );
+}

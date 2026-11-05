@@ -169,7 +169,9 @@ export default function BrandCard({ brand, compact = false }) {
         {/* ── BRAND INFO ───────────────────────────────────────── */}
         <div style={{ padding: compact ? "14px 16px 0" : "18px 20px 0" }}>
           {/* Name row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 2 }}>
+          {/* Wraps so a long "Family · Expression" chip drops below the name
+              on narrow cards instead of running past the card edge. */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "4px 8px", marginBottom: 2 }}>
             <div style={{ fontSize: nameSize, fontWeight: 800, color: "#f0ece3", letterSpacing: "-0.4px", lineHeight: 1.15 }}>
               {brand.brand_name}
             </div>
