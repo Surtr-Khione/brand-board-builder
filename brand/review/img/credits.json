@@ -1,0 +1,52 @@
+[
+  {
+    "file": "01-color-swatches.jpg",
+    "provider": "openverse/stocksnap",
+    "page": "https://stocksnap.io/photo/color-swatches-VYSZEM4UWE",
+    "creator": "Tim Sullivan",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Color Swatches\" by Tim Sullivan, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "02-interior-designing-color-choices.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/5905612/photo-image-public-domain-fabric-free",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Interior designing color choices\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "03-free-cafe-neon-sign-night.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/5926431/photo-image-background-public-domain-free",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Free cafe neon sign night\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "04-dotombori-neon-sign-at-night.jpg",
+    "provider": "openverse/wikimedia",
+    "page": "https://commons.wikimedia.org/w/index.php?curid=32145896",
+    "creator": "Tokumeigakarinoaoshima",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en/",
+    "attribution": "\"Dotombori neon sign at night\" by Tokumeigakarinoaoshima, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "06-shelf-of-st25-rice-bags-in-vietnamese-gr.jpg",
+    "provider": "openverse/wikimedia",
+    "page": "https://commons.wikimedia.org/w/index.php?curid=182325024",
+    "creator": "VinhNguyen.1257",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en/",
+    "attribution": "\"Shelf of ST25 rice bags in Vietnamese grocery store\" by VinhNguyen.1257, CC0 (public domain dedication)",
+    "needs_credit": false
+  }
+]
