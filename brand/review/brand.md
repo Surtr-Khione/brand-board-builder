@@ -119,8 +119,11 @@ claims sourced word for word. **Not yet provable:** customer outcomes, user coun
 - **Success:** a brand people recognize, a team that writes on-brand without asking, AI answers that describe you right.
 - **Identity:** from "I hope this looks good" to "I know what my brand is and I can prove it."
 
-**Origin story (to write with Ryan, one real scene).** `[NEED: the moment Ryan decided brand could be measured: a
-client, a rebrand, an argument. One scene, real names only with permission.]`
+**Origin story (draft 1, `brand/ORIGIN-STORY.md`).** A direct response marketer who thought branding was a tax
+joins a company with a beautiful brand and no ad engine, builds the engine, and finds the brand was doing the work
+his dashboards couldn't see. The research agrees (Binet and Field: "You need both"), so he opens a lab, takes great
+brands apart, scores them, and that lab becomes BrandMD. Sourced; `[NEED]` marks the company, the real numbers and
+the founder's name, which only Ryan can supply or approve.
 
 **Strategic narrative (for decks).** The shift: AI now writes most first drafts and answers most "who should I
 buy from" questions. Winners: brands with clear, consistent, machine-readable signals. Losers: brands that live in a
@@ -226,6 +229,13 @@ their own library records and in Journal photographs where they are the subject.
 - **One footer** with the same links.
 - **One CTA wording per action:** "Get your score" (analyzer), "Build your brand" (Builder or Founder Mode),
   "Check a draft" (Brand Check). Retire "Chart your brand", "Get My Score" and "Get Your Score: Free".
+
+### Decided: Direction B, the Night frame (Ryan, November 6, 2026)
+
+The app keeps Night as its world. The Journal wears the same Ink nav and an Ink masthead, with the front page's lead
+story in that band over its Signal photograph, then opens into a Paper reading surface. Sections are left-aligned;
+only the hero question is centered. Previews: direction-b.brand-board-builder.pages.dev and
+direction-b.brandmd-journal.pages.dev/blog/.
 
 ---
 
@@ -368,6 +378,7 @@ stories outweighing features (1), voice chart followed (1). No zeros on credibil
 | Version | Date | Change |
 |---|---|---|
 | 0.9 | 2026-11-06 | First full brand file, audit and imagery system; awaiting review |
+| 0.95 | 2026-11-06 | Direction B and blue signal decided; Gravity tiers and phrases; space graphics |
 
 ---
 
@@ -384,3 +395,29 @@ are hotlinks to the brands' own CDNs.
 itself without images); switch logos to `logo_url`; cache hero images into our own storage; and for the 69 brands
 without photos, fill the gaps with **Signal photography of the brand in the wild** (signage, shelves, packaging) from
 licensed sources, treated so the brand's own color is the signal.
+
+---
+
+## 16. Gravity language and space graphics
+
+**Tiers.** Every Gravity Score lands in one of six tiers, shown with the score in the Analyzer
+(`src/lib/gravityScore.js` `gravityTier`):
+
+| Score | Tier | Headline |
+|---|---|---|
+| 0 to 19 | Grounded | Your brand hasn't left the launchpad. |
+| 20 to 39 | Lift-off | You're off the ground. Now hold a course. |
+| 40 to 59 | In orbit | People can see you. Not all of them remember you. |
+| 60 to 74 | Gravity well | You're starting to pull people in. |
+| 75 to 89 | Escape velocity | Your brand moves on its own momentum. |
+| 90 to 100 | Out of this world | A brand people orbit. |
+
+A tier describes how complete and defined a brand is, never revenue. The full phrase bank (headlines, microcopy,
+CTAs, social lines, words to avoid) is `brand/GRAVITY-PHRASES.md`.
+
+**Space graphics** (`brand/graphics/`, regenerate with `make_graphics.py`; each in dark and light): gravity well,
+orbit system, escape velocity, signal constellation, telemetry readout, tier altitude ladder, launchpad, signal
+through noise. Neutrals draw; Signal Blue marks the one thing that matters.
+
+**Signal color decided (Ryan, November 6, 2026):** on BrandMD's own surfaces the signal in every photograph is
+Signal Blue. The Journal keeps each subject's own color.
