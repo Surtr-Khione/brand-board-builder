@@ -2,6 +2,12 @@
 
 React+Vite+Supabase SaaS, **live at https://brandmd.space** (Cloudflare Pages project `brand-board-builder`). GitHub: `Surtr-Khione/brand-board-builder`. (brandmd.world does not resolve — Ryan sometimes calls it that.)
 
+## The blog is the BrandMD Journal (2026-11-06)
+`/blog/*` is NOT this app. It is the content-network site package `~/content-network/sites/brandmd` (nightly
+automated, research-backed articles; Pages project `brandmd-journal`), served by the path-router Worker on route
+`brandmd.space/blog*`. The app only links to `/blog/` with full page loads and reads `/blog/feed.xml` for the homepage
+strip. Edit the Journal's design, voice and rules in that package, never here.
+
 ## Deploy
 `npm run build && npx wrangler pages deploy --branch=main` — `--branch=main` is REQUIRED or it ships a preview. Verify brandmd.space serves the new bundle hash after deploy. No git integration on Pages.
 
