@@ -56,7 +56,7 @@ export default function ResearchHub() {
           <h2>Chart your own brand</h2>
           <p>Every brand in this research was decoded on the same lens. Put your own brand on record, or scan your site and see what it already says.</p>
           <div className="rs-cta-row">
-            <Link to="/builder" className="rs-btn rs-btn-primary">Chart your brand</Link>
+            <Link to="/builder" className="rs-btn rs-btn-primary">Build your brand</Link>
             <Link to="/analyzer" className="rs-btn">Scan your site</Link>
           </div>
         </section>

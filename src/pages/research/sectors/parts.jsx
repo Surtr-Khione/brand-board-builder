@@ -44,7 +44,7 @@ export function ClosingCta({ heading = "Chart your own brand on the same lens" }
       <h2>{heading}</h2>
       <p>Every brand above was decoded into archetype, voice, colors and type. Build that record for your brand, or scan your live site and see where it already stands.</p>
       <div className="sx-cta-btns">
-        <Link to="/builder" className="sx-btn sx-btn-primary">Chart your brand</Link>
+        <Link to="/builder" className="sx-btn sx-btn-primary">Build your brand</Link>
         <Link to="/analyzer" className="sx-btn sx-btn-ghost">Scan your site</Link>
       </div>
     </section>

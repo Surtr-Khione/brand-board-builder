@@ -1,0 +1,22 @@
+[
+  {
+    "file": "01-empty-shelves-plus-signs-that.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/6075192/photo-image-public-domain-wood-covid-19",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Empty shelves plus signs that\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "02-campbell-s-soup-cans-bernard-gotfryd.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/6298154/campbells-soup-cans-bernard-gotfryd-1924-2016",
+    "creator": "libraryofcongress",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Campbell's soup cans Bernard Gotfryd\" by libraryofcongress, CC0 (public domain dedication)",
+    "needs_credit": false
+  }
+]

@@ -242,3 +242,8 @@
 }
 .bmd-cta:active { transform: translateY(0); filter: brightness(0.97); }
 .bmd-marquee-track { will-change: transform; }
+
+/* Direction B signal bands: photo + copy side by side, stacked on phones */
+@media (max-width: 860px) {
+  .bmd-signal-band { grid-template-columns: 1fr !important; gap: 28px !important; }
+}

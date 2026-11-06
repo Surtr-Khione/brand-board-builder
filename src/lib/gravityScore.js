@@ -119,6 +119,25 @@ export function computeGravityScore(brand) {
   return { score, signals, missing, roadmap };
 }
 
+// The six Gravity tiers (brand/GRAVITY-PHRASES.md). The tier names the score; the next move is always the
+// roadmap's first fix. A tier describes how complete and defined a brand is, never revenue.
+export const GRAVITY_TIERS = [
+  { min: 90, name: "Out of this world", headline: "A brand people orbit." },
+  { min: 75, name: "Escape velocity", headline: "Your brand moves on its own momentum." },
+  { min: 60, name: "Gravity well", headline: "You're starting to pull people in." },
+  { min: 40, name: "In orbit", headline: "People can see you. Not all of them remember you." },
+  { min: 20, name: "Lift-off", headline: "You're off the ground. Now hold a course." },
+  { min: 0, name: "Grounded", headline: "Your brand hasn't left the launchpad." },
+];
+
+export function gravityTier(score) {
+  const s = Math.max(0, Math.min(100, Number(score) || 0));
+  const i = GRAVITY_TIERS.findIndex((t) => s >= t.min);
+  const tier = GRAVITY_TIERS[i];
+  const next = i > 0 ? GRAVITY_TIERS[i - 1] : null;
+  return { ...tier, next: next ? { name: next.name, pointsAway: next.min - s } : null };
+}
+
 export function gravityScoreColor(score) {
   if (score >= 75) return "#2ecc71";
   if (score >= 40) return "#f39c12";

@@ -240,7 +240,7 @@ export function ClosingCta() {
         values, voice, colors and type. Put yours on record and see where it lands.
       </p>
       <div className="vs-cta-row">
-        <Link to="/builder" className="vs-btn vs-btn-primary">Chart your brand</Link>
+        <Link to="/builder" className="vs-btn vs-btn-primary">Build your brand</Link>
         <Link to="/analyzer" className="vs-btn">Scan your site</Link>
       </div>
     </section>
