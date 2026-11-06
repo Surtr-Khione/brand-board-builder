@@ -4,3 +4,4 @@ Allow: /brands
 Allow: /brands/
 
 Sitemap: https://brandmd.space/sitemap.xml
+Sitemap: https://brandmd.space/blog/sitemap.xml
