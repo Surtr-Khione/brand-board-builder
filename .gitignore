@@ -30,3 +30,6 @@ dist-ssr
 
 # Supabase CLI local state (discloses project ref, org, pooler host)
 supabase/.temp/
+
+# Local mirror of cached library photos (the Mac copy; server copy lives in brand-assets/heroes)
+brand/library-images/

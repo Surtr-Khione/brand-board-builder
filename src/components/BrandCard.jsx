@@ -41,13 +41,13 @@ function inkReadable(hex) {
   return tagline >= 4.5 && chip >= 4.5;
 }
 
-function logoSources(website) {
-  if (!website) return [];
-  const domain = website.replace(/^https?:\/\//, "").split("/")[0];
+// Our own stored mark first (brand-assets/logos/<slug>.png), favicon after.
+function logoSources(website, logoUrl) {
+  const domain = (website || "").replace(/^https?:\/\//, "").split("/")[0];
   return [
-    `https://logo.clearbit.com/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-  ];
+    logoUrl || null,
+    domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null,
+  ].filter(Boolean);
 }
 
 export default function BrandCard({ brand, compact = false }) {
@@ -57,7 +57,7 @@ export default function BrandCard({ brand, compact = false }) {
   const pc = brand.primary_color || "#333";
   const sc = brand.secondary_color || "#1a1a1a";
   const ac = brand.accent_color || "#555";
-  const sources = logoSources(brand.website);
+  const sources = logoSources(brand.website, brand.logo_url);
   const url = sources[srcIdx] || null;
   const isDark = luma(pc) < 160;
   // Ink for brand-tinted text on the card's near-black info panel: the first
