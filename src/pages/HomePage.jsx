@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
-import { BLOG_POSTS } from "../lib/blogPosts";
+import { useJournalFeed, JOURNAL_URL } from "../lib/journalFeed";
 import { useReveal } from "../lib/useReveal";
 import { BrandPill, OrbitRule, LogoTile } from "../components/TrustMarks";
 import GravityWell from "../components/GravityWell";
@@ -159,7 +159,7 @@ export default function HomePage() {
     });
   }, []);
 
-  const latestPosts = BLOG_POSTS.slice(0, 3);
+  const latestPosts = useJournalFeed(3);
 
   return (
     <div style={{ background: VOID, color: STARLIGHT, fontFamily: SANS, minHeight: "100vh" }}>
@@ -445,27 +445,27 @@ export default function HomePage() {
                   Read before you redesign anything
                 </h2>
               </div>
-              <Link to="/blog" className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
+              <a href={JOURNAL_URL} className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
                 Read the Journal &nbsp;›
-              </Link>
+              </a>
             </div>
           </Reveal>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
             {latestPosts.map((post, i) => (
-              <Reveal key={post.slug} style={{ transitionDelay: `${i * 80}ms` }}>
-                <Link to={`/blog/${post.slug}`} className="bmd-card-link bmd-lift" style={{ textDecoration: "none", color: "inherit", display: "block", borderRadius: 16, height: "100%" }}>
+              <Reveal key={post.href} style={{ transitionDelay: `${i * 80}ms` }}>
+                <a href={post.href} className="bmd-card-link bmd-lift" style={{ textDecoration: "none", color: "inherit", display: "block", borderRadius: 16, height: "100%" }}>
                   <div style={{
                     padding: "24px 26px", borderRadius: 16, height: "100%",
                     border: "1px solid rgba(255,255,255,0.08)",
                     background: `linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%), ${CHARCOAL}`,
                   }}>
                     <div style={{ fontSize: 11.5, fontWeight: 600, color: ACCENT_ICE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>
-                      {post.tag}
+                      {post.when || "The Journal"}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 17.5, lineHeight: 1.32, marginBottom: 8, letterSpacing: "-0.3px" }}>{post.title}</div>
                     <div style={{ fontSize: 13, color: TITANIUM, lineHeight: 1.55 }}>{post.dek}</div>
                   </div>
-                </Link>
+                </a>
               </Reveal>
             ))}
           </div>
@@ -484,7 +484,7 @@ export default function HomePage() {
           <Link to="/analyzer" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Analyzer</Link>
           <Link to="/builder" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Builder</Link>
           <Link to="/brands" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Library</Link>
-          <Link to="/blog" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Blog</Link>
+          <a href={JOURNAL_URL} className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Journal</a>
           <a href="/llms.txt" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>API</a>
         </div>
       </div>

@@ -12,8 +12,14 @@ const NAV_LINKS = [
   { to: "/check", label: "Check" },
   { to: "/brands", label: "Library" },
   { to: "/research", label: "Research", also: ["/archetypes", "/sectors", "/models", "/battles", "/patterns"] },
-  { to: "/blog", label: "Blog" },
+  // The Journal is a separate static publication at /blog/ (path-router Worker), so it needs a full page load
+  { to: "/blog", href: "/blog/", label: "Journal" },
 ];
+
+// Router link for app pages, plain anchor for links that leave the SPA
+function NavItem({ link, ...props }) {
+  return link.href ? <a href={link.href} {...props} /> : <Link to={link.to} {...props} />;
+}
 
 // A link is active on its own path and below it, plus any `also` sections it
 // stands for (the research families all sit under "Research").
@@ -98,9 +104,9 @@ export default function SiteNav({ transparent = false }) {
               {NAV_LINKS.map((link) => {
                 const active = isActive(link, pathname);
                 return (
-                  <Link
+                  <NavItem
                     key={link.to}
-                    to={link.to}
+                    link={link}
                     className="bmd-navlink"
                     style={{
                       fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 500,
@@ -111,7 +117,7 @@ export default function SiteNav({ transparent = false }) {
                     }}
                   >
                     {link.label}
-                  </Link>
+                  </NavItem>
                 );
               })}
             </div>
@@ -141,9 +147,9 @@ export default function SiteNav({ transparent = false }) {
           {NAV_LINKS.map((link, i) => {
             const active = isActive(link, pathname);
             return (
-              <Link
+              <NavItem
                 key={link.to}
-                to={link.to}
+                link={link}
                 style={{
                   fontFamily: "'Inter', sans-serif", fontSize: 22, fontWeight: 600, letterSpacing: "-0.5px",
                   textDecoration: "none", color: active ? "#7DBEFF" : STARLIGHT, padding: "12px 24px",
@@ -151,7 +157,7 @@ export default function SiteNav({ transparent = false }) {
                 }}
               >
                 {link.label}
-              </Link>
+              </NavItem>
             );
           })}
           <Link

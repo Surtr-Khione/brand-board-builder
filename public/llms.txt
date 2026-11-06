@@ -36,6 +36,12 @@ Each brand record includes:
 Apple, Nike, Tesla, Patagonia, Spotify, Airbnb, Netflix, Google, Coca-Cola,
 Amazon, Louis Vuitton, Canva, OpenAI, Red Bull, Notion, and more.
 
+## The BrandMD Journal
+
+Research-backed articles on what makes brands remembered, trusted and bought, every claim linked to its source:
+https://brandmd.space/blog/ (article index for models: https://brandmd.space/blog/llms.txt, feed:
+https://brandmd.space/blog/feed.xml).
+
 ## Build Your Own Brand Board
 
 Free tool at https://brandmd.space — scan any website to auto-populate

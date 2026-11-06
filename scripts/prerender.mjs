@@ -226,26 +226,14 @@ async function main() {
     { path: "/check", title: "Brand Check — Grade Any Draft Against Your Brand | BrandMD", description: "Paste any draft and get it graded against your brand's voice and rules, with quoted violations and an on-brand rewrite." },
     { path: "/compare", title: "Compare Brands Side by Side | BrandMD", description: "Put your site next to your competitors' — same scan, same Gravity Score, side by side. Free, no signup." },
     { path: "/brands", title: `The Brand Index — ${n || 85} World-Class Brands Decoded | BrandMD`, description: `Apple, Nike, Rolex, Ferrari and ${(n || 85) - 4} more — every brand decoded on the same 31-section lens: archetype, voice, colors, and the strategy underneath.`, body: n ? brandsIndexBody(brands) : null },
-    { path: "/blog", title: "The BrandMD Journal", description: "Brand strategy, archetypes, and coherence — read before you redesign anything." },
     { path: "/privacy", title: "Privacy Policy | BrandMD", description: "What BrandMD collects, why, and the choices you have." },
     { path: "/terms", title: "Terms of Service | BrandMD", description: "The terms that govern your use of BrandMD." },
   ];
   for (const r of routes) page(r);
   const counts = { static: routes.length, blog: 0, brands: 0, bodies: routes.filter((r) => r.body).length };
 
-  // ── Blog posts (editorials + generated breakdowns) ──
-  try {
-    const { BLOG_POSTS } = await import("../src/lib/blogPosts.js");
-    for (const post of BLOG_POSTS) {
-      page({
-        path: `/blog/${post.slug}`,
-        title: `${post.title} | BrandMD Journal`,
-        description: post.dek,
-        image: post.brandSlug ? `/og/${post.brandSlug}.png` : "/og/default.png",
-      });
-    }
-    counts.blog = BLOG_POSTS.length;
-  } catch (e) { console.warn(`Blog prerender skipped: ${e.message}`); }
+  // ── /blog/* is the BrandMD Journal: its own static build (content-network site package `brandmd`) with its own
+  //    sitemap at /blog/sitemap.xml, served by the path-router Worker. Nothing to prerender here. ──
 
   // ── Brand pages ──
   for (const b of brands) {
@@ -300,7 +288,7 @@ async function main() {
   writeFileSync("dist/sitemap.xml", sitemap);
 
   const fam = Object.entries(familyCounts).map(([f, k]) => `${f} ${k}`).join(", ");
-  console.log(`Prerendered ${written.size} pages: ${counts.static} static routes, ${counts.blog} journal posts, ${counts.brands} brand pages${fam ? `, research families (${fam})` : ", no research families yet"}; ${counts.bodies} with crawlable bodies. Sitemap: ${urls.length} URLs.`);
+  console.log(`Prerendered ${written.size} pages: ${counts.static} static routes, ${counts.brands} brand pages${fam ? `, research families (${fam})` : ", no research families yet"}; ${counts.bodies} with crawlable bodies. Sitemap: ${urls.length} URLs.`);
 }
 
 // Run only when executed directly, so brandHtml/esc can be imported for tests.

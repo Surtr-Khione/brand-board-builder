@@ -20,8 +20,6 @@ const BrandCheck = lazy(() => import('./pages/BrandCheck'));
 const Compare = lazy(() => import('./pages/Compare'));
 const DriftWatch = lazy(() => import('./pages/DriftWatch'));
 const Analyzer = lazy(() => import('./pages/Analyzer'));
-const Blog = lazy(() => import('./pages/Blog'));
-const BlogPost = lazy(() => import('./pages/BlogPost'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 
@@ -74,8 +72,7 @@ export default function App() {
           <Route path="/brands" element={<BrandLibrary />} />
           <Route path="/brands/:slug" element={<BrandProfilePage />} />
           <Route path="/analyzer" element={<Analyzer />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
+          {/* /blog/* is the BrandMD Journal, a separate static publication routed by the path-router Worker */}
           <Route path="/studio" element={<ContentStudio />} />
           <Route path="/studio/:boardId" element={<ContentStudio />} />
           <Route path="/privacy" element={<Privacy />} />
