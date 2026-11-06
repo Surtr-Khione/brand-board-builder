@@ -1,4 +1,5 @@
 import { BREAKDOWN_POSTS } from "./blogBreakdowns.js";
+import { BRAND_SCIENCE_POSTS } from "./blogBrandScience.js";
 
 export const EDITORIAL_POSTS = [
   {
@@ -77,7 +78,7 @@ export const EDITORIAL_POSTS = [
   },
 ];
 
-export const BLOG_POSTS = [...EDITORIAL_POSTS, ...BREAKDOWN_POSTS];
+export const BLOG_POSTS = [...BRAND_SCIENCE_POSTS, ...EDITORIAL_POSTS, ...BREAKDOWN_POSTS];
 
 export function getPostBySlug(slug) {
   return BLOG_POSTS.find((p) => p.slug === slug) || null;

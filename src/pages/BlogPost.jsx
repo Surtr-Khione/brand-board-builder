@@ -50,11 +50,17 @@ export default function BlogPost() {
         </h1>
         <p style={{ fontSize: 17, color: TITANIUM, lineHeight: 1.6, marginBottom: 40 }}>{post.dek}</p>
 
-        {post.body.map((para, i) => (
-          <p key={i} style={{ fontSize: 16.5, lineHeight: 1.75, color: "rgba(245,245,247,0.86)", marginBottom: 22, fontWeight: 400 }}>
-            {para}
-          </p>
-        ))}
+        {post.body.map((para, i) =>
+          para.startsWith("## ") ? (
+            <h2 key={i} style={{ fontSize: 21, fontWeight: 650, lineHeight: 1.25, letterSpacing: "-0.4px", color: STARLIGHT, margin: "40px 0 14px" }}>
+              {para.slice(3)}
+            </h2>
+          ) : (
+            <p key={i} style={{ fontSize: 16.5, lineHeight: 1.75, color: "rgba(245,245,247,0.86)", marginBottom: 22, fontWeight: 400 }}>
+              {para}
+            </p>
+          )
+        )}
 
         <div style={{
           marginTop: 44, padding: "24px 26px", borderRadius: 16,
@@ -62,10 +68,10 @@ export default function BlogPost() {
           display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "space-between",
         }}>
           <div style={{ fontSize: 14, color: STARLIGHT, maxWidth: 340 }}>
-            Curious what a stranger's first read of your own brand looks like?
+            {post.cta?.text || "Curious what a stranger's first read of your own brand looks like?"}
           </div>
           <Link
-            to="/analyzer"
+            to={post.cta?.to || "/analyzer"}
             className="bmd-cta"
             style={{
               padding: "11px 24px", borderRadius: 100, textDecoration: "none",
@@ -73,7 +79,7 @@ export default function BlogPost() {
               fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
             }}
           >
-            Run the free Analyzer
+            {post.cta?.label || "Run the free Analyzer"}
           </Link>
         </div>
       </article>
