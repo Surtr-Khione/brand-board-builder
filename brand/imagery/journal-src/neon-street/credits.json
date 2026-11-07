@@ -1,0 +1,22 @@
+[
+  {
+    "file": "01-free-neon-signs-walking-street.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/5918450/photo-image-background-public-domain-people",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Free neon signs walking street\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "02-dark-night-english-pub.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/4021817/photo-image-light-alphabet-neon",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Dark night English pub\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  }
+]

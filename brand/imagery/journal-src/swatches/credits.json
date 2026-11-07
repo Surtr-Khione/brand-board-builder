@@ -1,0 +1,22 @@
+[
+  {
+    "file": "01-color-swatches.jpg",
+    "provider": "openverse/stocksnap",
+    "page": "https://stocksnap.io/photo/color-swatches-VYSZEM4UWE",
+    "creator": "Tim Sullivan",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Color Swatches\" by Tim Sullivan, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "02-color-swatches.jpg",
+    "provider": "openverse/stocksnap",
+    "page": "https://stocksnap.io/photo/color-swatches-JCFLIKKJ7T",
+    "creator": "Artsy Crafty",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Color Swatches\" by Artsy Crafty, CC0 (public domain dedication)",
+    "needs_credit": false
+  }
+]

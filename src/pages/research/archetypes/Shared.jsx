@@ -37,7 +37,7 @@ export function ResearchCta() {
       <h2>Chart your own brand</h2>
       <p>Every brand above was decoded on the same lens. Build your own board with an archetype, enemy, values and voice, or scan your site and see what it already says.</p>
       <div className="arx-btns">
-        <Link className="arx-btn primary" to="/builder">Chart your brand</Link>
+        <Link className="arx-btn primary" to="/builder">Build your brand</Link>
         <Link className="arx-btn ghost" to="/analyzer">Scan your site</Link>
       </div>
       <Link className="arx-back" to="/research">← All brand research</Link>

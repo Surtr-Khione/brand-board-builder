@@ -154,7 +154,7 @@ export default function Patterns() {
           <h2>Where does your brand sit?</h2>
           <p>Chart your own brand on the same lens these brands are charted on, or scan your live site to see its colors, type, voice and archetype in under a minute.</p>
           <div className="pt-btns">
-            <Link to="/builder" className="pt-btn primary">Chart your brand</Link>
+            <Link to="/builder" className="pt-btn primary">Build your brand</Link>
             <Link to="/analyzer" className="pt-btn ghost">Scan your site</Link>
           </div>
           <nav className="pt-more" aria-label="More research">

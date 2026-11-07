@@ -5,10 +5,10 @@ const STARLIGHT = "#F5F5F7";
 const TITANIUM = "#8E8E93";
 const ACCENT_BLUE = "#0071E3";
 
+// One nav on every surface, the Journal's included (brand/BRAND.md §8): the same items, order and button.
 const NAV_LINKS = [
-  { to: "/generate", label: "Generate" },
-  { to: "/analyzer", label: "Analyzer" },
-  { to: "/builder", label: "Builder" },
+  { to: "/analyzer", label: "Score", also: ["/compare"] },
+  { to: "/builder", label: "Build", also: ["/start", "/generate", "/board"] },
   { to: "/check", label: "Check" },
   { to: "/brands", label: "Library" },
   { to: "/research", label: "Research", also: ["/archetypes", "/sectors", "/models", "/battles", "/patterns"] },
@@ -122,14 +122,14 @@ export default function SiteNav({ transparent = false }) {
               })}
             </div>
             <Link
-              to="/builder"
+              to="/analyzer"
               className="bmd-cta"
               style={{
                 padding: "8px 18px", borderRadius: 100, background: ACCENT_BLUE, color: "#FFFFFF",
                 textDecoration: "none", fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap",
               }}
             >
-              Chart your brand
+              Get your score
             </Link>
           </div>
         )}
@@ -161,7 +161,7 @@ export default function SiteNav({ transparent = false }) {
             );
           })}
           <Link
-            to="/builder"
+            to="/analyzer"
             className="bmd-cta"
             style={{
               marginTop: 18, padding: "14px 34px", borderRadius: 100, background: ACCENT_BLUE, color: "#fff",
@@ -169,7 +169,7 @@ export default function SiteNav({ transparent = false }) {
               opacity: 0, animation: "bmd-menu-in 0.35s cubic-bezier(0.16,1,0.3,1) 0.28s forwards",
             }}
           >
-            Chart your brand
+            Get your score
           </Link>
           <style>{`@keyframes bmd-menu-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }`}</style>
         </div>

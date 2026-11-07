@@ -23,10 +23,9 @@ export const MARQUE_BRANDS = [
 
 export function LogoTile({ domain, name, size = 30, radius = 8, mono = true, src }) {
   const [idx, setIdx] = useState(0);
-  // Own cache first (never ad-blocked), logo services as fallback
+  // Own cache first (never ad-blocked), favicon as fallback
   const sources = [
     src,
-    domain ? `https://logo.clearbit.com/${domain}` : null,
     domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null,
   ].filter(Boolean);
   return (

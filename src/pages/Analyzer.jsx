@@ -7,7 +7,7 @@ import EmailGate from "../components/EmailGate";
 import CertificateShare from "../components/CertificateShare";
 import { ARCHETYPES } from "../lib/archetypes";
 import { publishBrand } from "../lib/brands";
-import { computeGravityScore, gravityScoreColor } from "../lib/gravityScore";
+import { computeGravityScore, gravityScoreColor, gravityTier } from "../lib/gravityScore";
 
 const VOID = "#000000";
 const CHARCOAL = "#1D1D1F";
@@ -94,6 +94,7 @@ export default function Analyzer() {
   const ac = scanned.accentColor || ACCENT_ICE;
   const { score: gravityScore, missing } = computeGravityScore(scanned);
   const scoreColor = gravityScoreColor(gravityScore);
+  const tier = gravityTier(gravityScore);
 
   return (
     <div style={{ background: VOID, color: STARLIGHT, minHeight: "100vh", fontFamily: SANS }}>
@@ -155,10 +156,19 @@ export default function Analyzer() {
             <div style={{ width: "100%", maxWidth: 320, height: 8, margin: "18px auto 0", borderRadius: 4, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
               <div style={{ width: `${gravityScore}%`, height: "100%", background: scoreColor, borderRadius: 4, transition: "width 0.6s ease" }} />
             </div>
+            <div style={{ marginTop: 18 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: STARLIGHT }}>{tier.name}</div>
+              <div style={{ fontSize: 17, color: STARLIGHT, marginTop: 6 }}>{tier.headline}</div>
+              {tier.next && (
+                <div style={{ fontSize: 13, color: TITANIUM, marginTop: 6 }}>
+                  {tier.next.pointsAway} {tier.next.pointsAway === 1 ? "point" : "points"} from {tier.next.name}.
+                </div>
+              )}
+            </div>
             {missing.length > 0 && (
               <div style={{ fontSize: 13, color: TITANIUM, marginTop: 18, lineHeight: 1.6 }}>
                 Biggest gap: <span style={{ color: STARLIGHT, fontWeight: 600 }}>{missing[0]}</span>
-                {missing.length > 1 && <> — chart it in the Builder to close the rest.</>}
+                {missing.length > 1 && <>. Chart it in the Builder to close the rest.</>}
               </div>
             )}
           </div>

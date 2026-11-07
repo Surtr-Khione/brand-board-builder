@@ -4,7 +4,7 @@ import { searchBrands } from "../lib/brands";
 import SiteNav, { OrbitMark } from "../components/SiteNav";
 import { useJournalFeed, JOURNAL_URL } from "../lib/journalFeed";
 import { useReveal } from "../lib/useReveal";
-import { BrandPill, OrbitRule, LogoTile } from "../components/TrustMarks";
+import { BrandPill, LogoTile } from "../components/TrustMarks";
 import GravityWell from "../components/GravityWell";
 import "../styles/space-theme.css";
 
@@ -16,6 +16,9 @@ const TITANIUM_WARM = "#C9BDAF";
 const STARLIGHT = "#F5F5F7";
 const ACCENT_BLUE = "#0071E3";
 const ACCENT_ICE = "#64D2FF";
+// Text links on dark surfaces: Signal Blue as text fails AA on black (4.5:1); this passes at 7.0:1.
+const LINK_DARK = "#2997FF";
+const FOOTNOTE = "#86868B";
 
 const SANS = "'Inter', -apple-system, sans-serif";
 
@@ -110,7 +113,7 @@ const MISSIONS = [
   {
     verb: "Observe.",
     Icon: ReticleIcon,
-    body: "Scan any live website — or LinkedIn, Instagram, a podcast feed — and get colors, fonts, tone, and your brand archetype back in seconds, free.",
+    body: "Scan any live website and get its colors, fonts, tone, and brand archetype back in seconds. Free.",
     links: [
       { label: "Run the Analyzer", to: "/analyzer" },
       { label: "Browse the Library", to: "/brands" },
@@ -119,13 +122,13 @@ const MISSIONS = [
   {
     verb: "Chart.",
     Icon: CompassIcon,
-    body: "Thirty-one sections across five phases — strategy, voice, visual system, governance, deployment. Nothing decorative; every field feeds the board your team will actually use. Still free.",
+    body: "Thirty-one sections across five phases: strategy, voice, visual system, governance, deployment. Nothing decorative. Every field feeds the board your team will actually use. Still free.",
     links: [{ label: "Start charting", to: "/builder" }],
   },
   {
     verb: "Launch.",
     Icon: RocketIcon,
-    body: "A finished board becomes content — on-brand copy, campaigns, calendars — the ongoing production a brand keeps needing long after the board itself is done.",
+    body: "A finished board becomes content: on-brand copy, campaigns and calendars, the ongoing production a brand keeps needing long after the board itself is done.",
     links: [{ label: "Open Content Studio", to: "/studio" }],
   },
 ];
@@ -148,10 +151,10 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    document.title = "BrandMD — Give your brand gravity.";
+    document.title = "BrandMD: Give your brand gravity.";
     document.querySelector('meta[name="description"]')?.setAttribute(
       "content",
-      "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute — free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
+      "Scan any website and get its colors, fonts, tone, and brand archetype back in under a minute. Free, instant, no signup. Then chart the strategy and voice underneath it with the same frameworks that built Apple, Nike, and Patagonia."
     );
     searchBrands({ limit: 36 }).then((d) => {
       setMarqueeBrands(d.brands || []);
@@ -167,6 +170,10 @@ export default function HomePage() {
 
       {/* ══ HERO — the gravity well: scroll descends into a 3D orbital system ══ */}
       <GravityWell>
+        <div style={{
+          position: "relative", padding: "28px 24px 8px", margin: "-28px -24px 0", borderRadius: 40,
+          background: "radial-gradient(ellipse at center, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0) 72%)",
+        }}>
         <div style={{
           fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22,
           textShadow: "0 2px 16px rgba(0,0,0,0.9)",
@@ -186,7 +193,7 @@ export default function HomePage() {
           fontSize: 17, color: TITANIUM, maxWidth: 480, margin: "0 auto 34px", lineHeight: 1.6, fontWeight: 400,
           textShadow: "0 2px 18px rgba(0,0,0,0.9)",
         }}>
-          Enter your URL below — free, instant, no signup.
+          Paste your URL. Free, instant, no signup.
         </p>
 
         <form onSubmit={submitHeroScan} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 26 }}>
@@ -208,42 +215,42 @@ export default function HomePage() {
               background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600, fontFamily: SANS,
             }}
           >
-            Get My Score
+            Get your score
           </button>
         </form>
 
         <div style={{ fontSize: 14, color: TITANIUM, marginBottom: 20, textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
           No website yet?{" "}
-          <Link to="/start" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+          <Link to="/start" className="bmd-link" style={{ color: LINK_DARK, textDecoration: "none", fontWeight: 600 }}>
             Start from your idea →
           </Link>
         </div>
         <div style={{ fontSize: 12, fontWeight: 600, color: TITANIUM, letterSpacing: 1.4, textTransform: "uppercase", textShadow: "0 2px 14px rgba(0,0,0,0.9)" }}>
           The marks in orbit ran this exact scan
         </div>
-        <div style={{ fontSize: 12.5, color: "#6E6E73", letterSpacing: 0.2, marginTop: 8 }}>
+        <div style={{ fontSize: 12.5, color: FOOTNOTE, letterSpacing: 0.2, marginTop: 8 }}>
           {totalBrands || 85} brands decoded &nbsp;&middot;&nbsp;{" "}
-          <Link to="/brands" className="bmd-link" style={{ color: "#6E6E73", textDecoration: "underline" }}>explore the index</Link>
+          <Link to="/brands" className="bmd-link" style={{ color: FOOTNOTE, textDecoration: "underline" }}>explore the index</Link>
+        </div>
         </div>
       </GravityWell>
 
       {/* ══ FIND — search the index; Fortune 500 scrolls quietly behind it ══ */}
       <div style={{ padding: "80px 40px 100px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-        <Reveal style={{ maxWidth: 640, margin: "0 auto 56px", textAlign: "center" }}>
-          <OrbitRule />
+        <Reveal style={{ maxWidth: 1180, margin: "0 auto 56px" }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>
             Search the index
           </div>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 4vw, 40px)", letterSpacing: "-1px", marginBottom: 12 }}>
-            Look up <span style={{ color: ACCENT_BLUE }}>any brand</span> in the index.
+            Look up any brand in the index.
           </h2>
           <div style={{ fontSize: 13.5, color: TITANIUM, marginBottom: 26 }}>
             Or put yourself next to them:{" "}
-            <Link to="/compare" className="bmd-link" style={{ color: ACCENT_BLUE, textDecoration: "none", fontWeight: 600 }}>
+            <Link to="/compare" className="bmd-link" style={{ color: LINK_DARK, textDecoration: "none", fontWeight: 600 }}>
               compare brands side by side →
             </Link>
           </div>
-          <form onSubmit={submitFind} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <form onSubmit={submitFind} style={{ display: "flex", gap: 10, flexWrap: "wrap", maxWidth: 520 }}>
             <input
               value={findQuery}
               onChange={(e) => setFindQuery(e.target.value)}
@@ -292,11 +299,34 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ══ SIGNAL BAND: black and white world, one signal in Signal Blue (brand/BRAND.md §9) ══ */}
+      <div style={{ padding: "100px 40px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="bmd-signal-band" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 56, alignItems: "center" }}>
+          <Reveal>
+            <img src="/img/signal/dotonbori-blue.webp" alt="A street of neon signs at night in black and white, with only the blue signs in color" loading="lazy" width="1400" height="788"
+              style={{ width: "100%", height: "auto", display: "block", borderRadius: 14 }} />
+          </Reveal>
+          <Reveal>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
+              Why gravity matters
+            </div>
+            <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 3.6vw, 44px)", letterSpacing: "-1.2px", lineHeight: 1.08, marginBottom: 16 }}>
+              In a street full of signs, one gets read.
+            </h2>
+            <p style={{ fontSize: 17, color: TITANIUM, lineHeight: 1.6, marginBottom: 26, maxWidth: 440 }}>
+              Your brand competes with every other signal your customer sees today. The Gravity Score shows how strong yours is, and which fix moves it most.
+            </p>
+            <Link to="/analyzer" className="bmd-cta" style={{ display: "inline-block", padding: "13px 28px", borderRadius: 100, textDecoration: "none", background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15, fontWeight: 600 }}>
+              Get your score
+            </Link>
+          </Reveal>
+        </div>
+      </div>
+
       {/* ══ MISSION SEQUENCE ══ */}
       <div style={{ padding: "10px 40px 120px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", paddingTop: 90 }}>
-          <Reveal style={{ textAlign: "center", marginBottom: 64 }}>
-            <OrbitRule />
+          <Reveal style={{ marginBottom: 56 }}>
             <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 4vw, 46px)", letterSpacing: "-1.2px" }}>
               Three instruments. One trajectory.
             </h2>
@@ -317,10 +347,10 @@ export default function HomePage() {
                   <div style={{ fontWeight: 700, fontSize: 26, letterSpacing: "-0.6px", margin: "20px 0 12px" }}>
                     {m.verb}
                   </div>
-                  <p style={{ fontSize: 14, color: TITANIUM, lineHeight: 1.65, marginBottom: 20, flex: 1 }}>{m.body}</p>
+                  <p style={{ fontSize: 15, color: TITANIUM, lineHeight: 1.65, marginBottom: 20, flex: 1 }}>{m.body}</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {m.links.map((l) => (
-                      <Link key={l.to} to={l.to} className="bmd-link" style={{ fontSize: 13.5, fontWeight: 500, color: ACCENT_BLUE, textDecoration: "none" }}>
+                      <Link key={l.to} to={l.to} className="bmd-link" style={{ fontSize: 14, fontWeight: 500, color: LINK_DARK, textDecoration: "none" }}>
                         {l.label} &nbsp;›
                       </Link>
                     ))}
@@ -334,8 +364,8 @@ export default function HomePage() {
 
       {/* ══ WHAT WE BELIEVE — the manifesto, stated plainly ══ */}
       <div style={{ padding: "0 40px 120px" }}>
-        <div style={{ maxWidth: 780, margin: "0 auto" }}>
-          <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}><div style={{ maxWidth: 780 }}>
+          <Reveal style={{ marginBottom: 36 }}>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: TITANIUM, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>
               What we believe
             </div>
@@ -346,10 +376,10 @@ export default function HomePage() {
           <Reveal>
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
               {[
-                "Diagnose before you decorate — colors and fonts are the last decision, not the first.",
+                "Diagnose before you decorate. Colors and fonts are the last decision, not the first.",
                 "A brand that agrees with itself beats one that impresses for a moment.",
-                "Free means the real thing — the diagnosis is never a teaser withheld to force an upgrade.",
-                "If you can't say it back in your own words, it isn't a brand yet — it's a mood board.",
+                "Free means the real thing. The diagnosis is never a teaser withheld to force an upgrade.",
+                "If you can't say it back in your own words, it isn't a brand yet. It's a mood board.",
               ].map((line, i) => (
                 <div key={i} style={{
                   display: "flex", gap: 18, alignItems: "flex-start", padding: "18px 0",
@@ -363,20 +393,19 @@ export default function HomePage() {
               ))}
             </div>
           </Reveal>
-        </div>
+        </div></div>
       </div>
 
       {/* ══ THE INDEX — the logo wall: marks only, no labels doing double duty ══ */}
       {marqueeBrands.length > 0 && (
         <div style={{ padding: "0 40px 90px" }}>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-            <Reveal style={{ textAlign: "center", marginBottom: 44 }}>
-              <OrbitRule />
+            <Reveal style={{ marginBottom: 40 }}>
               <h2 style={{ fontWeight: 700, fontSize: "clamp(26px, 3.5vw, 40px)", letterSpacing: "-0.9px", marginBottom: 12 }}>
                 Already decoded.
               </h2>
-              <p style={{ fontSize: 15.5, color: TITANIUM, maxWidth: 460, margin: "0 auto" }}>
-                {totalBrands || 85} brands in the public index — every one on the same 31-section lens.
+              <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 520, margin: 0 }}>
+                {totalBrands || 85} brands in the public index, every one read on the same 31-section lens.
               </p>
             </Reveal>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 14, marginBottom: 34 }}>
@@ -395,8 +424,8 @@ export default function HomePage() {
                 </Reveal>
               ))}
             </div>
-            <Reveal style={{ textAlign: "center" }}>
-              <Link to="/brands" className="bmd-link" style={{ fontSize: 14, color: ACCENT_BLUE, textDecoration: "none", fontWeight: 500 }}>
+            <Reveal>
+              <Link to="/brands" className="bmd-link" style={{ fontSize: 15, color: LINK_DARK, textDecoration: "none", fontWeight: 500 }}>
                 Browse the full index &nbsp;›
               </Link>
             </Reveal>
@@ -406,12 +435,13 @@ export default function HomePage() {
 
       {/* ══ CLOSING CTA — one clean ask ══ */}
       <div style={{ padding: "0 40px 120px" }}>
-        <Reveal style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+        <div className="bmd-signal-band" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 56, alignItems: "center" }}>
+        <Reveal>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-1.2px", marginBottom: 16 }}>
             Your brand has a number.
           </h2>
-          <p style={{ fontSize: 16, color: TITANIUM, maxWidth: 440, margin: "0 auto 30px", lineHeight: 1.65 }}>
-            One scan tells you what a stranger — or an AI — reads from your site today.
+          <p style={{ fontSize: 17, color: TITANIUM, maxWidth: 440, margin: "0 0 30px", lineHeight: 1.65 }}>
+            One scan tells you what a stranger, or an AI, reads from your site today.
             Free, instant, and the roadmap comes with it.
           </p>
           <Link
@@ -422,7 +452,7 @@ export default function HomePage() {
               background: ACCENT_BLUE, color: "#FFFFFF", fontSize: 15.5, fontWeight: 600, marginBottom: 18,
             }}
           >
-            Get Your Score — Free
+            Get your score
           </Link>
           <div style={{ fontSize: 13.5 }}>
             <Link to="/start" className="bmd-link" style={{ color: TITANIUM, textDecoration: "none", fontWeight: 500 }}>
@@ -430,6 +460,11 @@ export default function HomePage() {
             </Link>
           </div>
         </Reveal>
+        <Reveal>
+          <img src="/img/signal/swatches-blue.webp" alt="A fan of color swatches in black and white with one band in blue" loading="lazy" width="960" height="640"
+            style={{ width: "100%", height: "auto", display: "block", borderRadius: 14 }} />
+        </Reveal>
+        </div>
       </div>
 
       {/* ══ JOURNAL TEASER ══ */}
@@ -476,16 +511,16 @@ export default function HomePage() {
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "26px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <OrbitMark size={18} />
-          <span style={{ fontSize: 12, color: "#6E6E73" }}>Give your brand gravity. — brandmd.space</span>
+          <span style={{ fontSize: 12, color: FOOTNOTE }}>Give your brand gravity.</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
-          <Link to="/privacy" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Privacy</Link>
-          <Link to="/terms" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Terms</Link>
-          <Link to="/analyzer" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Analyzer</Link>
-          <Link to="/builder" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Builder</Link>
-          <Link to="/brands" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Library</Link>
-          <a href={JOURNAL_URL} className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>Journal</a>
-          <a href="/llms.txt" className="bmd-link" style={{ fontSize: 12, color: "#6E6E73", textDecoration: "none" }}>API</a>
+          <Link to="/privacy" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Privacy</Link>
+          <Link to="/terms" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Terms</Link>
+          <Link to="/analyzer" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Analyzer</Link>
+          <Link to="/builder" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Builder</Link>
+          <Link to="/brands" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Library</Link>
+          <a href={JOURNAL_URL} className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>Journal</a>
+          <a href="/llms.txt" className="bmd-link" style={{ fontSize: 12, color: FOOTNOTE, textDecoration: "none" }}>API</a>
         </div>
       </div>
     </div>

@@ -609,12 +609,6 @@ function BrandIconPreview({ brand }) {
     return (
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: 64, height: 64, background: "#fff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <img src={`https://logo.clearbit.com/${domain}`} alt="Logo" style={{ width: 46, height: 46, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
-          </div>
-          <div style={{ fontSize: 8, color: "#333", marginTop: 4, letterSpacing: 1 }}>CLEARBIT</div>
-        </div>
-        <div style={{ textAlign: "center" }}>
           <div style={{ width: 64, height: 64, background: "#111", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
             <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=256`} alt="Favicon" style={{ width: 46, height: 46, objectFit: "contain" }} onError={e => e.currentTarget.style.display = "none"} />
           </div>
@@ -1960,6 +1954,7 @@ export default function BrandBoardBuilder({ boardId: initialBoardId }) {
         brandPersonality: b.brandPersonality?.length ? b.brandPersonality : prev.brandPersonality,
         photoStyle: b.photoStyle || prev.photoStyle,
         socialPersonality: b.socialPersonality || prev.socialPersonality,
+        logoUrl: b.logoUrl || prev.logoUrl,
       }));
     } catch {}
   }, []);

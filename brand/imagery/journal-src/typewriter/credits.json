@@ -1,0 +1,22 @@
+[
+  {
+    "file": "01-free-typewriter-keys-close.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/5906736/photo-image-public-domain-vintage-free",
+    "creator": "unknown",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Free typewriter keys close\" by unknown, CC0 (public domain dedication)",
+    "needs_credit": false
+  },
+  {
+    "file": "02-vintage-typewriter-keys.jpg",
+    "provider": "openverse/rawpixel",
+    "page": "https://www.rawpixel.com/image/432980/free-photo-image-story-writer-typewriter",
+    "creator": "Markus Spiske",
+    "license": "CC0 (public domain dedication)",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "\"Vintage typewriter keys\" by Markus Spiske, CC0 (public domain dedication)",
+    "needs_credit": false
+  }
+]

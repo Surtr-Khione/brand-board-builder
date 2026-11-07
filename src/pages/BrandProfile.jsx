@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getBrand, searchBrands } from "../lib/brands";
 import CertificateShare from "../components/CertificateShare";
 import { computeGravityScore } from "../lib/gravityScore";
+import BRAND_IMAGES from "../lib/brandImages.json";
 import {
   archetypeOf, shortArchetypeName, expressionCounts, expressionHref, EXPRESSION_PAGES_LIVE,
   sectorsOf, sectorHref, modelsOf, modelHref, modelCounts, MODEL_PAGES_LIVE,
@@ -24,18 +25,18 @@ function luma(hex = "") {
   return isNaN(r + g + b) ? 0 : (r * 299 + g * 587 + b * 114) / 1000;
 }
 
-function logoSources(website) {
-  if (!website) return [];
-  const d = website.replace(/^https?:\/\//, "").split("/")[0];
+// Our own stored mark first (brand-assets/logos/<slug>.png), favicon after.
+function logoSources(website, logoUrl) {
+  const d = (website || "").replace(/^https?:\/\//, "").split("/")[0];
   return [
-    `https://logo.clearbit.com/${d}`,
-    `https://www.google.com/s2/favicons?domain=${d}&sz=256`,
-  ];
+    logoUrl || null,
+    d ? `https://www.google.com/s2/favicons?domain=${d}&sz=256` : null,
+  ].filter(Boolean);
 }
 
-function BrandLogo({ website, name, size = 100, radius = 20, pc }) {
+function BrandLogo({ website, logoUrl, name, size = 100, radius = 20, pc }) {
   const [idx, setIdx] = useState(0);
-  const sources = logoSources(website);
+  const sources = logoSources(website, logoUrl);
   const url = sources[idx] || null;
   const rnd = Math.round(size * 0.2);
   const imgSize = Math.round(size * 0.65);
@@ -55,6 +56,64 @@ function BrandLogo({ website, name, size = 100, radius = 20, pc }) {
         </span>
       )}
     </div>
+  );
+}
+
+// Brand photography. Only images stored on OUR server (the public
+// brand-assets bucket, cached by scripts/cache-heroes.mjs) are ever rendered;
+// a hotlink to a brand's own CDN is ignored, so a brand page never depends on
+// someone else's server. Brands without cached photos render exactly as before.
+// Storage (Ryan, 2026-11-06): the GHL media library (Insiders.Marketing, folder "BrandMD - Brand Library"), mapped
+// slug -> URLs in src/lib/brandImages.json by scripts/brand-images-to-ghl.py; originals mirrored on the Mac.
+const OWN_STORAGE = [
+  `${import.meta.env.VITE_SUPABASE_URL || "https://bukgitgwwmzdjibekmzb.supabase.co"}/storage/v1/object/public/brand-assets/`,
+  "https://assets.cdn.filesafe.space/lxG2xl9eg8Y5jZMCJtEa/",
+];
+function ownedImages(brand) {
+  const mapped = brand?.slug ? BRAND_IMAGES[brand.slug] : null;
+  const list = Array.isArray(mapped) && mapped.length ? mapped : brand?.hero_images;
+  return (Array.isArray(list) ? list : []).filter((u) => typeof u === "string" && OWN_STORAGE.some((p) => u.startsWith(p)));
+}
+
+const SECTION_LABEL = { fontFamily: "'Inter', -apple-system, sans-serif", fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#8E8E93", textTransform: "uppercase" };
+
+function BrandGallery({ images, brandName, onFail }) {
+  // One wide lead frame, then an even grid: 6, 3, 2 or 1 frames, so the grid
+  // never ends on an empty cell. Layout adapts to how many survive loading.
+  const n = images.length;
+  const shown = images.slice(0, n >= 6 ? 6 : n >= 3 ? 3 : n);
+  if (!shown.length) return null;
+  return (
+    <section style={{ background: "#060606", borderTop: "1px solid #0d0d0d", paddingBottom: 3 }}>
+      <style>{`
+        .bmd-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+        .bmd-gallery figure { margin: 0; overflow: hidden; background: #0a0a0a; aspect-ratio: 4 / 3; position: relative; }
+        .bmd-gallery figure.lead { grid-column: 1 / 3; grid-row: span 2; aspect-ratio: auto; }
+        .bmd-gallery.n1 { grid-template-columns: 1fr; }
+        .bmd-gallery.n1 figure.lead { grid-column: auto; grid-row: auto; aspect-ratio: 21 / 9; }
+        .bmd-gallery.n2 { grid-template-columns: 1fr 1fr; }
+        .bmd-gallery.n2 figure.lead { grid-column: auto; grid-row: auto; aspect-ratio: 4 / 3; }
+        .bmd-gallery img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+        .bmd-gallery figure:hover img { transform: scale(1.04); }
+        @media (max-width: 760px) {
+          .bmd-gallery, .bmd-gallery.n2 { grid-template-columns: 1fr 1fr; }
+          .bmd-gallery figure.lead { grid-column: 1 / 3; grid-row: auto; aspect-ratio: 16 / 9; }
+          .bmd-gallery figure:nth-child(6) { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) { .bmd-gallery img { transition: none; } .bmd-gallery figure:hover img { transform: none; } }
+      `}</style>
+      <div style={{ padding: "72px clamp(16px, 5vw, 48px) 32px", display: "flex", alignItems: "baseline", gap: 16 }}>
+        <div style={SECTION_LABEL}>Brand in Action</div>
+        <div style={{ flex: 1, height: 1, background: "#111" }} />
+      </div>
+      <div className={`bmd-gallery n${Math.min(shown.length, 3)}`}>
+        {shown.map((src, i) => (
+          <figure key={src} className={i === 0 ? "lead" : undefined}>
+            <img src={src} alt={`${brandName} photography ${i + 1}`} loading="lazy" decoding="async" onError={() => onFail(src)} />
+          </figure>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -247,7 +306,25 @@ export default function BrandProfile({ slug }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cloneMsg, setCloneMsg] = useState(false);
+  const [badImgs, setBadImgs] = useState({});
+  const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
+  const failImg = (src) => setBadImgs((m) => (m[src] ? m : { ...m, [src]: true }));
+  const hasPhotos = ownedImages(data?.brand).length > 0;
+
+  // Parallax for the photo layers, only on pages that have photos and only
+  // when the visitor has not asked for reduced motion.
+  useEffect(() => {
+    if (!hasPhotos) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; setScrollY(window.scrollY); });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, [hasPhotos]);
 
   useEffect(() => {
     getBrand(slug).then(d => { setData(d); setLoading(false); });
@@ -280,6 +357,7 @@ export default function BrandProfile({ slug }) {
       primaryFont: b.primary_font, bodyFont: b.body_font,
       toneAttributes: b.tone_attributes || [], brandPersonality: b.brand_personality || [],
       photoStyle: b.photo_style, socialPersonality: b.social_personality,
+      logoUrl: b.logo_url,
     }));
     setCloneMsg(true);
     setTimeout(() => navigate("/builder"), 600);
@@ -323,6 +401,21 @@ export default function BrandProfile({ slug }) {
   const personality = (brand.brand_personality || []).filter(Boolean);
   const tone = (brand.tone_attributes || []).filter(Boolean);
 
+  // Cached photography that actually loaded. A frame that fails drops out and
+  // the next one takes its place; with none left every section falls back.
+  const photos = ownedImages(brand).filter((u) => !badImgs[u]);
+  const coverPhoto = photos[0] || null;
+  const archetypePhoto = photos[1] || null;
+  const moodboard = photos.length >= 6 ? photos.slice(2, 6) : photos.length >= 4 ? photos.slice(0, 4) : null;
+  const closingPhoto = photos.length > 3 ? photos[photos.length - 1] : null;
+  // Over a darkened photo the cover always reads in white.
+  const coverLight = heroLight && !coverPhoto;
+  const coverText = coverLight ? heroText : "#ffffff";
+  const coverMuted = coverLight ? heroMuted : "rgba(255,255,255,0.62)";
+  const ctaLight = heroLight && !closingPhoto;
+  const ctaText = closingPhoto ? "#ffffff" : heroText;
+  const ctaMuted = closingPhoto ? "rgba(255,255,255,0.66)" : heroMuted;
+
   // Try loading brand's actual fonts from Google Fonts
   const gFontParts = [];
   if (brand.primary_font) gFontParts.push(`family=${encodeURIComponent(brand.primary_font.trim())}:wght@400;700;900`);
@@ -349,10 +442,29 @@ export default function BrandProfile({ slug }) {
           ═══════════════════════════════════════════════════════ */}
       <section style={{
         minHeight: "100vh",
-        background: `linear-gradient(155deg, ${pc} 0%, rgba(${rgb(pc)},0.72) 45%, rgba(${rgb(pc)},0.12) 85%, #060606 100%)`,
+        background: coverPhoto
+          ? "#060606"
+          : `linear-gradient(155deg, ${pc} 0%, rgba(${rgb(pc)},0.72) 45%, rgba(${rgb(pc)},0.12) 85%, #060606 100%)`,
         display: "flex", flexDirection: "column", position: "relative",
         overflow: "hidden",
       }}>
+        {/* Cover photo (cached on our storage), darkened and tinted so the
+            masthead always reads; brands without one keep the color cover. */}
+        {coverPhoto && (
+          <>
+            <img src={coverPhoto} alt="" aria-hidden="true" onError={() => failImg(coverPhoto)}
+              style={{
+                position: "absolute", left: 0, right: 0, top: "-8%", width: "100%", height: "116%",
+                objectFit: "cover", filter: "brightness(0.42) saturate(1.05)",
+                transform: `translate3d(0, ${scrollY * 0.22}px, 0)`, willChange: "transform",
+                pointerEvents: "none",
+              }} />
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: `linear-gradient(155deg, rgba(${rgb(pc)},0.55) 0%, rgba(${rgb(pc)},0.18) 45%, rgba(6,6,6,0.35) 70%, #060606 100%)`,
+            }} />
+          </>
+        )}
         {/* Large brand color circle — decorative */}
         <div style={{
           position: "absolute", right: "-15%", top: "5%",
@@ -369,22 +481,22 @@ export default function BrandProfile({ slug }) {
 
         {/* NAV */}
         <nav style={{ padding: "20px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 10 }}>
-          <Link to="/brands" style={{ fontSize: 11, color: heroMuted, textDecoration: "none", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", transition: "color 0.2s" }}
-            onMouseEnter={e => e.currentTarget.style.color = heroText}
-            onMouseLeave={e => e.currentTarget.style.color = heroMuted}
+          <Link to="/brands" style={{ fontSize: 11, color: coverMuted, textDecoration: "none", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", transition: "color 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.color = coverText}
+            onMouseLeave={e => e.currentTarget.style.color = coverMuted}
           >← Brand Library</Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {brand.is_verified && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: heroMuted, letterSpacing: 2, textTransform: "uppercase" }}>✓ Verified</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: coverMuted, letterSpacing: 2, textTransform: "uppercase" }}>✓ Verified</span>
             )}
             <button onClick={handleClone} style={{
-              padding: "9px 20px", borderRadius: 8, border: `1px solid ${heroLight ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)"}`,
-              background: heroLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
-              color: heroText, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              padding: "9px 20px", borderRadius: 8, border: `1px solid ${coverLight ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)"}`,
+              background: coverLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
+              color: coverText, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
               backdropFilter: "blur(12px)", transition: "all 0.2s",
             }}
-              onMouseEnter={e => e.currentTarget.style.background = heroLight ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)"}
-              onMouseLeave={e => e.currentTarget.style.background = heroLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}
+              onMouseEnter={e => e.currentTarget.style.background = coverLight ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)"}
+              onMouseLeave={e => e.currentTarget.style.background = coverLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}
             >
               {cloneMsg ? "Opening builder…" : "Clone Board →"}
             </button>
@@ -395,18 +507,18 @@ export default function BrandProfile({ slug }) {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "0 48px 72px", position: "relative", zIndex: 10 }}>
 
           {/* Issue label */}
-          <div className="fadein" style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: heroMuted, textTransform: "uppercase", marginBottom: 36 }}>
+          <div className="fadein" style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: coverMuted, textTransform: "uppercase", marginBottom: 36 }}>
             Brand Identity Archive&nbsp;&nbsp;·&nbsp;&nbsp;{brand.industry || "Global Brand"}
             {brand.founded_year && <>&nbsp;&nbsp;·&nbsp;&nbsp;Est. {brand.founded_year}</>}
           </div>
 
           {/* Logo + Name horizontal */}
           <div className="fadein" style={{ display: "flex", alignItems: "flex-end", gap: 36, marginBottom: 24 }}>
-            <BrandLogo website={brand.website} name={brand.brand_name} size={120} radius={22} pc={pc} />
+            <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={120} radius={22} pc={pc} />
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: "clamp(72px, 12vw, 160px)",
-              fontWeight: 900, color: heroText,
+              fontWeight: 900, color: coverText,
               lineHeight: 0.88, letterSpacing: "-4px",
               margin: 0, flex: 1, minWidth: 0,
             }}>
@@ -420,7 +532,7 @@ export default function BrandProfile({ slug }) {
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: "clamp(16px, 2.4vw, 24px)",
               fontStyle: "italic", fontWeight: 700,
-              color: heroMuted, marginBottom: 32,
+              color: coverMuted, marginBottom: 32,
               maxWidth: 760, lineHeight: 1.35,
               paddingLeft: 156, // indent past logo
             }}>
@@ -441,27 +553,27 @@ export default function BrandProfile({ slug }) {
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: 7,
                 padding: "7px 16px", borderRadius: 8,
-                background: heroLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)",
+                background: coverLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)",
                 backdropFilter: "blur(12px)",
-                fontSize: 13, fontWeight: 700, color: heroText,
+                fontSize: 13, fontWeight: 700, color: coverText,
               }}>
                 <span style={{ color: "#D4AF37", fontSize: 11 }}>◆</span>
                 {brand.brand_valuation}
               </span>
             )}
             {brand.archetype && (
-              <span style={{ padding: "7px 16px", borderRadius: 8, background: heroLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 700, color: heroText, letterSpacing: 0.5, backdropFilter: "blur(8px)" }}>
+              <span style={{ padding: "7px 16px", borderRadius: 8, background: coverLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 700, color: coverText, letterSpacing: 0.5, backdropFilter: "blur(8px)" }}>
                 {brand.archetype}
               </span>
             )}
             {brand.country && (
-              <span style={{ padding: "7px 16px", borderRadius: 8, background: heroLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 600, color: heroMuted }}>
+              <span style={{ padding: "7px 16px", borderRadius: 8, background: coverLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 600, color: coverMuted }}>
                 {brand.country}
               </span>
             )}
             {brand.website && (
               <a href={`https://${brand.website}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                <span style={{ padding: "7px 16px", borderRadius: 8, background: heroLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 600, color: heroMuted, transition: "all 0.2s" }}>
+                <span style={{ padding: "7px 16px", borderRadius: 8, background: coverLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 600, color: coverMuted, transition: "all 0.2s" }}>
                   ↗ {brand.website}
                 </span>
               </a>
@@ -470,7 +582,7 @@ export default function BrandProfile({ slug }) {
         </div>
 
         {/* Scroll hint */}
-        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: heroMuted, letterSpacing: 2, textTransform: "uppercase", fontWeight: 600 }}>
+        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: coverMuted, letterSpacing: 2, textTransform: "uppercase", fontWeight: 600 }}>
           ↓ Scroll
         </div>
       </section>
@@ -520,7 +632,7 @@ export default function BrandProfile({ slug }) {
                 {/* Small logo watermark on primary swatch */}
                 {i === 0 && (
                   <div style={{ position: "absolute", right: 20, bottom: 20, opacity: 0.15 }}>
-                    <BrandLogo website={brand.website} name={brand.brand_name} size={64} radius={12} pc={luma(hex) > 155 ? "#000" : "#fff"} />
+                    <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={64} radius={12} pc={luma(hex) > 155 ? "#000" : "#fff"} />
                   </div>
                 )}
               </div>
@@ -540,6 +652,9 @@ export default function BrandProfile({ slug }) {
           ))}
         </div>
       </section>
+
+      {/* BRAND IN ACTION: cached photography grid (hidden when none) */}
+      <BrandGallery images={photos} brandName={brand.brand_name} onFail={failImg} />
 
       {/* ════════════════════════════════════════
           MISSION — full-width editorial pull quote
@@ -577,7 +692,7 @@ export default function BrandProfile({ slug }) {
             {/* Attribution */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
               <div style={{ width: 40, height: 1, background: `rgba(${rgb(pcInk)},0.3)` }} />
-              <BrandLogo website={brand.website} name={brand.brand_name} size={28} radius={6} pc={pcInk} />
+              <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={28} radius={6} pc={pcInk} />
               <div style={{ fontSize: 11, fontWeight: 700, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
                 {brand.brand_name}
                 {brand.archetype && <span style={{ color: `rgba(${rgb(pcInk)},0.6)` }}>&nbsp;·&nbsp;{brand.archetype}</span>}
@@ -592,17 +707,31 @@ export default function BrandProfile({ slug }) {
           ARCHETYPE STATEMENT
           ════════════════════════════════════════ */}
       {brand.archetype && (
-        <section style={{ background: "#060606", padding: "0", overflow: "hidden" }}>
+        <section style={{ background: "#060606", padding: "0", overflow: "hidden", position: "relative" }}>
+          {/* Interstitial photo behind the archetype, when one is cached */}
+          {archetypePhoto && (
+            <>
+              <img src={archetypePhoto} alt="" aria-hidden="true" onError={() => failImg(archetypePhoto)}
+                style={{
+                  position: "absolute", left: 0, right: 0, top: "-12%", width: "100%", height: "124%",
+                  objectFit: "cover", pointerEvents: "none",
+                  transform: `translate3d(0, ${Math.max(-60, Math.min(60, (scrollY - 1600) * 0.08))}px, 0)`, willChange: "transform",
+                }} />
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(90deg, rgba(6,6,6,0.9) 0%, rgba(6,6,6,0.62) 50%, rgba(6,6,6,0.22) 100%)" }} />
+            </>
+          )}
           <div style={{
-            padding: "100px 48px",
-            background: `linear-gradient(90deg, rgba(${rgb(pcInk)},0.04) 0%, transparent 100%)`,
+            padding: archetypePhoto ? "clamp(120px, 18vh, 200px) 48px" : "100px 48px",
+            background: archetypePhoto ? "transparent" : `linear-gradient(90deg, rgba(${rgb(pcInk)},0.04) 0%, transparent 100%)`,
             borderLeft: `4px solid ${pcInk}`,
+            position: "relative",
           }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#2a2a2a", textTransform: "uppercase", marginBottom: 20 }}>Brand Archetype</div>
+            <div style={archetypePhoto ? { ...SECTION_LABEL, color: "rgba(245,245,247,0.72)", marginBottom: 20 } : { fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#2a2a2a", textTransform: "uppercase", marginBottom: 20 }}>Brand Archetype</div>
             <div style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: "clamp(56px, 9vw, 120px)",
-              fontWeight: 900, color: pcInk,
+              textShadow: archetypePhoto ? "0 4px 40px rgba(0,0,0,0.45)" : undefined,
+              fontWeight: 900, color: archetypePhoto ? "#ffffff" : pcInk,
               lineHeight: 0.9, letterSpacing: "-2px",
               marginBottom: 24,
             }}>
@@ -615,7 +744,9 @@ export default function BrandProfile({ slug }) {
                   <span key={p} style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 24, fontStyle: "italic",
-                    color: i === 0 ? `rgba(${rgb(pcInk)},0.9)` : i === 1 ? `rgba(${rgb(pcInk)},0.65)` : `rgba(${rgb(pcInk)},0.4)`,
+                    color: archetypePhoto
+                      ? (i === 0 ? "rgba(255,255,255,0.92)" : i === 1 ? "rgba(255,255,255,0.74)" : "rgba(255,255,255,0.58)")
+                      : (i === 0 ? `rgba(${rgb(pcInk)},0.9)` : i === 1 ? `rgba(${rgb(pcInk)},0.65)` : `rgba(${rgb(pcInk)},0.4)`),
                     fontWeight: 700, letterSpacing: "-0.3px",
                   }}>{p}</span>
                 ))}
@@ -759,12 +890,19 @@ export default function BrandProfile({ slug }) {
                 color: "#c8c4bb", lineHeight: 1.4, marginBottom: 20,
               }}>{brand.photo_style}</div>
             </div>
-            {/* Visual moodboard placeholder — branded color blocks */}
+            {/* Moodboard: real cached photography when there are 4+ frames,
+                otherwise branded color blocks (each block is also the fallback
+                for a frame that fails to load). */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 6 }}>
-              <div style={{ borderRadius: 10, background: pc, aspectRatio: "1" }} />
-              <div style={{ borderRadius: 10, background: `rgba(${rgb(pcInk)},0.4)`, aspectRatio: "1" }} />
-              <div style={{ borderRadius: 10, background: sc, aspectRatio: "1" }} />
-              <div style={{ borderRadius: 10, background: `rgba(${rgb(ac)},0.6)`, aspectRatio: "1" }} />
+              {[pc, `rgba(${rgb(pcInk)},0.4)`, sc, `rgba(${rgb(ac)},0.6)`].map((color, i) => (
+                <div key={i} style={{ borderRadius: 10, background: color, aspectRatio: "1", overflow: "hidden" }}>
+                  {moodboard?.[i] && (
+                    <img src={moodboard[i]} alt={`${brand.brand_name} photo direction ${i + 1}`} loading="lazy" decoding="async"
+                      onError={() => failImg(moodboard[i])}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -853,23 +991,31 @@ export default function BrandProfile({ slug }) {
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "100px 48px", textAlign: "center", position: "relative", overflow: "hidden",
       }}>
+        {/* Closing photo (cached), deep-darkened under a brand-ink wash */}
+        {closingPhoto && (
+          <>
+            <img src={closingPhoto} alt="" aria-hidden="true" onError={() => failImg(closingPhoto)}
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.3) saturate(1.05)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `linear-gradient(155deg, rgba(${rgb(pcInk)},0.5) 0%, rgba(${rgb(pcInk)},0.22) 50%, rgba(0,0,0,0.6) 100%)` }} />
+          </>
+        )}
         {/* Background texture */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "repeating-linear-gradient(45deg, #fff 0px, #fff 1px, transparent 0, transparent 50%)", backgroundSize: "16px 16px", pointerEvents: "none" }} />
 
         {/* Logo */}
         <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
-          <BrandLogo website={brand.website} name={brand.brand_name} size={100} radius={20} pc={pcInk} />
+          <BrandLogo website={brand.website} logoUrl={brand.logo_url} name={brand.brand_name} size={100} radius={20} pc={pcInk} />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: heroMuted, textTransform: "uppercase", marginBottom: 20 }}>Build Like</div>
+          <div style={{ fontSize: 9, letterSpacing: 4, fontWeight: 800, color: ctaMuted, textTransform: "uppercase", marginBottom: 20 }}>Build Like</div>
           <div style={{
             fontFamily: "'Playfair Display', Georgia, serif",
             fontSize: "clamp(52px, 9vw, 110px)",
-            fontWeight: 900, color: heroText,
+            fontWeight: 900, color: ctaText,
             lineHeight: 0.9, letterSpacing: "-3px", marginBottom: 28,
           }}>{brand.brand_name}</div>
-          <div style={{ fontSize: 15, color: heroMuted, marginBottom: 40, maxWidth: 440, margin: "0 auto 40px" }}>
+          <div style={{ fontSize: 15, color: ctaMuted, marginBottom: 40, maxWidth: 440, margin: "0 auto 40px" }}>
             Clone this brand board into your workspace and build your own identity with the same framework.
           </div>
 
@@ -882,8 +1028,8 @@ export default function BrandProfile({ slug }) {
 
           <button onClick={handleClone} style={{
             padding: "16px 44px", borderRadius: 12, border: "none",
-            background: heroLight ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.95)",
-            color: heroLight ? "#fff" : "#111",
+            background: ctaLight ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.95)",
+            color: ctaLight ? "#fff" : "#111",
             fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
             boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
             transition: "transform 0.2s, box-shadow 0.2s",

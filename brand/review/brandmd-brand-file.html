@@ -1,0 +1,455 @@
+<title>BrandMD Brand File</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+/* Layout: a review document in BrandMD's own system. Paper reading surface, Ink frames for the design mockups. */
+:root {
+  --paper: #F5F5F7; --card: #FFFFFF; --ink-text: #0B0B0C; --muted: #6E6E73; --rule: rgba(11,11,12,.12);
+  --signal: #0071E3; --link: #0066CC; --chip: #E8E8ED; --good: #1E7F3C; --warn: #A15C00; --bad: #B42318;
+  --night: #000000; --ink: #0B0B0C; --titanium: #8E8E93; --snow: #F5F5F7;
+  --font: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F0F10; --card: #18181A; --ink-text: #F5F5F7; --muted: #A1A1A6; --rule: rgba(245,245,247,.12);
+  --link: #2997FF; --chip: #26262A; --good: #3FB66B; --warn: #E2A23B; --bad: #F97066; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0F0F10; --card: #18181A; --ink-text: #F5F5F7; --muted: #A1A1A6; --rule: rgba(245,245,247,.12);
+  --link: #2997FF; --chip: #26262A; --good: #3FB66B; --warn: #E2A23B; --bad: #F97066; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink-text); font: 400 17px/1.6 var(--font); font-optical-sizing: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: var(--link) }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 96px }
+.read { max-width: 720px }
+h1, h2, h3 { text-wrap: balance; letter-spacing: -0.025em; line-height: 1.08; margin: 0 }
+h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 800; letter-spacing: -0.035em }
+h2 { font-size: clamp(28px, 3.6vw, 40px); font-weight: 800 }
+h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em }
+.label { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.lede { font-size: clamp(19px, 2vw, 22px); line-height: 1.5; color: var(--muted); max-width: 760px }
+section { padding-block: 72px 0; border-top: 1px solid var(--rule); margin-top: 72px }
+section:first-of-type { border-top: 0; margin-top: 0 }
+.stack { display: grid; gap: 16px }
+.num { font-variant-numeric: tabular-nums }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--signal); vertical-align: middle; margin-right: 8px }
+
+/* masthead */
+.mast { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 40px }
+.mast .meta { text-align: right; font-size: 14px; color: var(--muted) }
+.orbit-mark { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5F5F7 0%, #C9BDAF 35%, #5A5A5E 70%, #1D1D1F 100%); box-shadow: 0 0 0 1px rgba(100,210,255,.35); margin-bottom: 20px }
+@media (max-width: 720px) { .mast { grid-template-columns: 1fr } .mast .meta { text-align: left } }
+
+/* short version */
+.short { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; margin-top: 32px }
+.short > div { background: var(--card); padding: 22px 24px }
+.short p { margin: 6px 0 0; font-size: 17px }
+.short .wide { grid-column: 1 / -1 }
+.short .big { font-size: clamp(22px, 2.6vw, 28px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25 }
+@media (max-width: 640px) { .short { grid-template-columns: 1fr } }
+
+/* scores */
+.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px }
+.score { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 22px }
+.score .n { font-size: 48px; font-weight: 800; letter-spacing: -0.04em; line-height: 1 }
+.score .of { font-size: 18px; color: var(--muted); font-weight: 600 }
+.score p { margin: 10px 0 0; font-size: 15px; color: var(--muted) }
+.bar { height: 6px; border-radius: 6px; background: var(--chip); margin-top: 14px; overflow: hidden }
+.bar i { display: block; height: 100%; background: var(--signal) }
+@media (max-width: 820px) { .scores { grid-template-columns: 1fr } }
+.tablewrap { overflow-x: auto; margin-top: 24px; border: 1px solid var(--rule); border-radius: 14px; background: var(--card) }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 620px }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+tr:last-child td { border-bottom: 0 }
+.pill { display: inline-block; min-width: 28px; text-align: center; font-weight: 700; border-radius: 99px; padding: 1px 9px; font-size: 13px }
+.p2 { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad) }
+.p3 { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn) }
+.p4 { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good) }
+
+/* imagery */
+.ba { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 28px }
+.ba figure, .gallery figure { margin: 0 }
+.ba img, .gallery img { display: block; width: 100%; height: auto; border-radius: 10px }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 8px }
+.gallery { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-top: 12px }
+.gallery .col { display: grid; gap: 12px }
+.gallery > figure { display: flex; flex-direction: column }
+.gallery > figure img { flex: 1; min-height: 0; object-fit: cover }
+@media (max-width: 720px) { .ba, .gallery { grid-template-columns: 1fr } }
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 28px }
+.rules div { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 20px; font-size: 15px }
+.rules strong { display: block; font-size: 15px; margin-bottom: 4px }
+@media (max-width: 820px) { .rules { grid-template-columns: 1fr } }
+
+/* direction mockups (fixed palettes: they depict specific designs) */
+.dir { margin-top: 36px }
+.dir-head { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: baseline; justify-content: space-between }
+.dir-head p { margin: 6px 0 0; color: var(--muted); max-width: 640px }
+.tag { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; background: var(--signal); color: #fff }
+.tag.alt { background: var(--chip); color: var(--ink-text) }
+.mocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px }
+@media (max-width: 900px) { .mocks { grid-template-columns: 1fr } }
+.mock { border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); font-family: var(--font); min-width: 0 }
+.cap { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 2px 0 }
+.m-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; background: #0B0B0C; color: #F5F5F7; font-size: 11px }
+.m-nav .brand { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12px }
+.m-nav .brand i { width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5F5F7, #5A5A5E 70%, #1D1D1F) }
+.m-nav .items { display: flex; gap: 10px; color: #8E8E93; flex-wrap: wrap }
+.m-nav .btn { background: #0071E3; color: #fff; border-radius: 99px; padding: 4px 10px; font-weight: 600; white-space: nowrap }
+.m-hero { background: #000; color: #F5F5F7; padding: 26px 18px 30px; position: relative; overflow: hidden }
+.m-hero .k { font-size: 9px; letter-spacing: .14em; color: #8E8E93; font-weight: 600 }
+.m-hero h4 { font-size: clamp(20px, 2.6vw, 28px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin: 6px 0 8px; max-width: 70% }
+.m-hero h4 b { color: #2997FF }
+.m-hero .field { display: flex; gap: 6px; max-width: 75% }
+.m-hero .field span { flex: 1; border: 1px solid #3A3A3C; border-radius: 99px; padding: 5px 10px; font-size: 10px; color: #8E8E93 }
+.m-hero .field em { background: #0071E3; color: #fff; border-radius: 99px; padding: 5px 10px; font-size: 10px; font-style: normal; font-weight: 600 }
+.m-hero svg { position: absolute; right: -40px; bottom: -60px; width: 55%; opacity: .9 }
+.m-band { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: center; padding: 18px }
+.m-band img { width: 100%; border-radius: 6px; display: block }
+.m-band h5 { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 6px }
+.m-band p { font-size: 10.5px; line-height: 1.45; margin: 0 }
+.m-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 18px 18px }
+.m-cards div { border-radius: 8px; padding: 10px; font-size: 10px; line-height: 1.35; min-height: 66px }
+.m-cards b { display: block; font-size: 11px; margin-bottom: 3px }
+.m-mast { padding: 16px 18px 10px; display: flex; justify-content: space-between; align-items: end; gap: 10px }
+.m-mast strong { font-size: clamp(18px, 2.4vw, 24px); font-weight: 800; letter-spacing: -0.035em; line-height: 1 }
+.m-mast span { font-size: 9px; letter-spacing: .1em; text-transform: uppercase }
+.m-sec { display: flex; gap: 12px; padding: 8px 18px; font-size: 10px; font-weight: 600; border-block: 1px solid; flex-wrap: wrap }
+.m-lead { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; padding: 16px 18px 20px; align-items: start }
+.m-lead .kk { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #0071E3 }
+.m-lead h6 { font-size: 15px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; margin: 4px 0 6px }
+.m-lead p { font-size: 10px; line-height: 1.45; margin: 0 }
+.m-lead img { width: 100%; border-radius: 6px; display: block }
+.m-list { padding: 0 18px 18px; display: grid; gap: 8px }
+.m-list div { font-size: 10.5px; font-weight: 700; line-height: 1.3; padding-top: 8px; border-top: 1px solid }
+.pros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; font-size: 15px }
+.pros ul { margin: 6px 0 0; padding-left: 18px }
+@media (max-width: 720px) { .pros { grid-template-columns: 1fr } .m-band, .m-lead { grid-template-columns: 1fr } }
+.rec { margin-top: 36px; background: var(--card); border: 1px solid var(--rule); border-left: 0; border-radius: 14px; padding: 24px 26px; position: relative }
+.rec::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 18px; width: 3px; border-radius: 3px; background: var(--signal) }
+.rec p { margin: 8px 0 0 }
+
+/* graphics */
+.devices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 28px }
+.device { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start }
+.device .art { background: #0B0B0C; border-radius: 10px; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden }
+.device .art.light { background: #F5F5F7 }
+.device svg { width: 86%; height: auto; max-width: 100% }
+.device .art img { width: 100%; height: 100%; object-fit: contain; display: block }
+.device p { margin: 0; font-size: 14px; color: var(--muted) }
+@media (max-width: 900px) { .devices { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (max-width: 560px) { .devices { grid-template-columns: 1fr } }
+
+/* tokens */
+.tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 24px }
+.tok { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--card) }
+.tok .sw { height: 64px }
+.tok div:last-child { padding: 10px 12px; font-size: 13px }
+.tok code { font-size: 12px; color: var(--muted) }
+
+/* lists, decisions */
+.plan { counter-reset: s; list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 10px }
+.plan li { counter-increment: s; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px 14px 52px; position: relative; font-size: 16px }
+.plan li::before { content: counter(s); position: absolute; left: 16px; top: 13px; width: 24px; height: 24px; border-radius: 50%; background: var(--ink-text); color: var(--paper); font-size: 13px; font-weight: 700; display: grid; place-items: center }
+.ask { display: grid; gap: 12px; margin-top: 24px }
+.ask div { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px }
+.ask strong { display: block }
+.ask span { color: var(--muted); font-size: 15px }
+
+/* full file */
+details.full { margin-top: 28px; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 6px 22px }
+details.full summary { cursor: pointer; font-weight: 700; padding: 14px 0; list-style-position: inside }
+.md h1 { font-size: 34px; margin: 24px 0 8px } .md h2 { font-size: 24px; margin: 36px 0 10px } .md h3 { font-size: 18px; margin: 24px 0 8px }
+.md table { min-width: 560px; margin: 12px 0 } .md .tw { overflow-x: auto }
+.md code { font-size: .9em; background: var(--chip); padding: 1px 5px; border-radius: 4px }
+.md pre { background: var(--chip); padding: 12px; border-radius: 8px; overflow-x: auto }
+.md hr { border: 0; border-top: 1px solid var(--rule); margin: 28px 0 }
+.foot { margin-top: 72px; font-size: 13px; color: var(--muted) }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <div class="orbit-mark" aria-hidden="true"></div>
+    <div class="label">Draft 0.9 for review · not published on brandmd.space</div>
+    <h1>BrandMD Brand File</h1>
+    <p class="lede">Strategy, voice, the visual system, a new imagery direction, two ways to make the app and the Journal feel like one brand, and an audit of where brandmd.space stands today.</p>
+  </div>
+  <div class="meta">November 6, 2026<br>Built with brand-studio and the writing skill</div>
+</header>
+
+<section aria-labelledby="s0">
+  <div class="label">Update · Direction B chosen</div>
+  <h2 id="s0" style="margin-top:8px">Direction B is built. Look before it ships.</h2>
+  <p class="lede" style="margin-top:14px">Both halves are on preview links only. Production is unchanged until you say go.</p>
+  <div class="ask" style="margin-top:20px">
+    <div><strong><a href="https://direction-b.brand-board-builder.pages.dev/">The app: direction-b.brand-board-builder.pages.dev</a></strong><span>One nav (Score, Build, Check, Library, Research, Journal) and one button, Get your score. Left-aligned sections, two Signal photo bands, the hero copy cleared of orbit marks, passing link colors, no em dashes, and the Gravity tier on every score.</span></div>
+    <div><strong><a href="https://direction-b.brandmd-journal.pages.dev/blog/">The Journal: direction-b.brandmd-journal.pages.dev/blog/</a></strong><span>The app's nav and orbit mark, an Ink masthead with the lead story over its photograph, then the Paper reading surface. Eight treated CC0 photos now feed the nightly engine, and every caption credits the real source.</span></div>
+  </div>
+
+  <h3 style="margin-top:44px">The six Gravity tiers</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Score</th><th>Tier</th><th>What the score screen says</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0 to 19</td><td><strong>Grounded</strong></td><td>Your brand hasn't left the launchpad.</td></tr>
+        <tr><td class="num">20 to 39</td><td><strong>Lift-off</strong></td><td>You're off the ground. Now hold a course.</td></tr>
+        <tr><td class="num">40 to 59</td><td><strong>In orbit</strong></td><td>People can see you. Not all of them remember you.</td></tr>
+        <tr><td class="num">60 to 74</td><td><strong>Gravity well</strong></td><td>You're starting to pull people in.</td></tr>
+        <tr><td class="num">75 to 89</td><td><strong>Escape velocity</strong></td><td>Your brand moves on its own momentum.</td></tr>
+        <tr><td class="num">90 to 100</td><td><strong>Out of this world</strong></td><td>A brand people orbit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:15px;color:var(--muted);margin-top:12px">Live in the Analyzer preview, with "N points from the next tier" under each score. A tier describes how complete a brand is, never revenue.</p>
+  <details class="full"><summary>The full phrase bank: headlines, microcopy, CTAs, social lines, words to avoid</summary><div class="md" id="phrases">Loading…</div></details>
+
+  <h3 style="margin-top:44px">Space graphics</h3>
+  <div class="devices">
+    <div class="device"><div class="art"><img src="gfx/gravity-well-dark.svg" alt="A grid bending into a gravity well"></div><p>Gravity well. Hero and section backgrounds.</p></div>
+    <div class="device"><div class="art"><img src="gfx/orbit-system-dark.svg" alt="Orbits with one blue satellite"></div><p>Orbit system. The library and Research pages.</p></div>
+    <div class="device"><div class="art"><img src="gfx/escape-velocity-dark.svg" alt="A blue trajectory leaving orbit"></div><p>Escape velocity. Upgrades, launches, wins.</p></div>
+    <div class="device"><div class="art"><img src="gfx/constellation-dark.svg" alt="Brand signals as a constellation"></div><p>Signal constellation. How a brand's parts connect.</p></div>
+    <div class="device"><div class="art"><img src="gfx/telemetry-dark.svg" alt="Gravity dial at 72 with signal bars"></div><p>Telemetry. Score cards, share images, emails.</p></div>
+    <div class="device"><div class="art light"><img src="gfx/tier-ladder-light.svg" alt="The six tiers as an altitude scale"></div><p>Tier ladder. Explains a score at a glance.</p></div>
+    <div class="device"><div class="art"><img src="gfx/launchpad-dark.svg" alt="A sphere lifting off a launchpad"></div><p>Launchpad. Founder Mode and first boards.</p></div>
+    <div class="device"><div class="art"><img src="gfx/signal-through-noise-dark.svg" alt="One blue signal among grey marks"></div><p>Signal through noise. The thesis, without words.</p></div>
+  </div>
+
+  <h3 style="margin-top:44px">The origin story, draft 1</h3>
+  <div class="read"><p>Your arc: a direct response marketer who thought branding was a tax joins a company with a beautiful brand and no ad engine, builds the engine, and finds the brand was doing the work his dashboards couldn't see. Then he opens a lab, scores great brands, and the lab becomes BrandMD. Every outside fact is sourced (Binet and Field's 996 campaigns, Dollar Shave Club, Airbnb's S-1, Houlihan Lokey's deal data, a meta-analysis of 83 studies). "Bad brands rarely sell for multiples" is stated as your opinion, because no study tests it directly. The company, your real results and your name are marked [NEED]: I didn't invent them.</p></div>
+  <details class="full" open><summary>Read the origin story</summary><div class="md" id="origin">Loading…</div></details>
+</section>
+
+<section aria-labelledby="s1">
+  <div class="label">01 · The short version</div>
+  <h2 id="s1" style="margin-top:8px">Branding has been sold as taste. It can be measured.</h2>
+  <div class="short">
+    <div class="wide"><div class="label">One-liner</div><p class="big">Most founders guess at their brand. BrandMD scores it, builds the full system, and checks everything you publish against it, so people remember you and AI describes you right.</p></div>
+    <div><div class="label">Who it is for</div><p>Founders and small teams who cannot afford an agency and will not settle for a logo and two colors.</p></div>
+    <div><div class="label">The enemy</div><p>Guesswork: the rebrand chosen by whoever spoke last, the moodboard nobody can defend, the stat nobody can source.</p></div>
+    <div><div class="label">The promise</div><p>Your brand, measured and made usable, in minutes.</p></div>
+    <div><div class="label">Tagline (keep)</div><p>Give your brand gravity.</p></div>
+    <div><div class="label">Type and archetype</div><p>Tech challenger with evidence cues · Sage with a Magician streak · Openness + Achievement, gain-seeking.</p></div>
+    <div><div class="label">Connection moment</div><p>The first score: a URL in, a number and a roadmap back in under a minute. Every surface should lead there.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="s2">
+  <div class="label">02 · Where brandmd.space stands</div>
+  <h2 id="s2" style="margin-top:8px">The strategy is sound. It was never written down, so the surfaces drifted.</h2>
+  <div class="scores">
+    <div class="score"><div class="label">Brand strength</div><div class="n num">38<span class="of"> / 90</span></div><div class="bar"><i style="width:42%"></i></div><p>42%. Most of the gap is validation a new product can't have yet (no customer evidence, no entry-point map). Consistency scores lowest of what we control.</p></div>
+    <div class="score"><div class="label">Connection</div><div class="n num">27<span class="of"> / 60</span></div><div class="bar"><i style="width:45%"></i></div><p>Clear but generic. Strong: the free score as a lead magnet, a named three-step plan, badge value. Missing: belonging, real stories, a followed voice chart.</p></div>
+    <div class="score"><div class="label">Homepage gate</div><div class="n num">30<span class="of"> / 50</span></div><div class="bar"><i style="width:60%"></i></div><p>The 5-second test passes. Discipline, contrast, one-accent use and craft finish fall below 4 and need fixing.</p></div>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Homepage check</th><th>Score</th><th>What we saw on the live page</th></tr></thead>
+      <tbody>
+        <tr><td>One accent</td><td><span class="pill p2 num">2</span></td><td>Signal Blue colors headline words, links, buttons and orbit dots at the same time.</td></tr>
+        <tr><td>System discipline</td><td><span class="pill p2 num">2</span></td><td>Every section is centered; radii and section padding vary; styles are inline per section.</td></tr>
+        <tr><td>Contrast</td><td><span class="pill p2 num">2</span></td><td>Blue text links on black 4.5:1, footer grey 4.1:1, Titanium labels on the Journal's Paper 3.0:1.</td></tr>
+        <tr><td>Craft finish</td><td><span class="pill p2 num">2</span></td><td>22 em dashes in homepage copy; orbiting marks slide behind the subhead and the URL field; a near-empty screen under the hero.</td></tr>
+        <tr><td>Conversion mechanics</td><td><span class="pill p3 num">3</span></td><td>One strong action, three wordings for it ("Chart your brand", "Get My Score", "Get Your Score: Free") and seven nav items.</td></tr>
+        <tr><td>Squint</td><td><span class="pill p3 num">3</span></td><td>The planet and orbit marks compete with the headline and the field.</td></tr>
+        <tr><td>5-second test, grayscale, fit, scannability</td><td><span class="pill p4 num">4</span></td><td>"What's the Gravity of your brand?" plus a URL field is clear. Tech-clean Sage fits the buyer.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="s3">
+  <div class="label">03 · Imagery</div>
+  <h2 id="s3" style="margin-top:8px">Signal photography: the world in black and white, one signal in color.</h2>
+  <p class="lede" style="margin-top:14px">It is BrandMD's thesis made visible. Most of what people see is noise, and a strong brand is the one signal that gets through. On BrandMD's own surfaces the signal is Signal Blue. In the Journal and the library it is the subject brand's own color, because that color is the lesson.</p>
+  <div class="ba">
+    <figure><img src="img/shelf-orig.webp" alt="A supermarket shelf of rice bags in full color" loading="lazy"><figcaption>Before: a shelf where every bag shouts.</figcaption></figure>
+    <figure><img src="img/shelf-yellow.webp" alt="The same shelf in black and white with only the yellow packaging left in color" loading="lazy"><figcaption>After: only one color family survives, 19% of the frame. The shelf now makes the point about salience by itself.</figcaption></figure>
+  </div>
+  <div class="gallery" style="margin-top:12px">
+    <figure><img src="img/dotonbori-blue.webp" alt="Dotonbori street signs at night in black and white with the blue signs left in color" loading="lazy"><figcaption>Homepage band: a street of signs, and blue is the one that reads.</figcaption></figure>
+    <div class="col">
+      <figure><img src="img/swatches-blue.webp" alt="A fan of color swatches in black and white with one band recolored blue" loading="lazy"><figcaption>Builder and ads: one swatch recolored to Signal Blue.</figcaption></figure>
+      <figure><img src="img/fabric-red.webp" alt="Fabric and paint swatches in black and white with the red swatches left in color" loading="lazy"><figcaption>Journal: the subject's own color kept.</figcaption></figure>
+    </div>
+  </div>
+  <div class="rules">
+    <div><strong>Treatment</strong>Black and white with a gentle S-curve, true blacks, one signal hue covering 3% to 25% of the frame, feathered edges. No sepia, no second color.</div>
+    <div><strong>Subjects</strong>Brands in the wild and the work of making them: signage, shelves, packaging, storefronts at night, swatches, proofs. Hands are fine. Faces are never the hero, and never AI people.</div>
+    <div><strong>Sources</strong>Our own photos, then CC0 and public domain, then Pexels and Unsplash, then CC BY with credit, then Envato (licensed per project), then AI for objects and places only. Every file is logged with its license.</div>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-top:16px">All sample photos are CC0 (Wikimedia Commons, StockSnap, Rawpixel) and were found and treated by the new <strong>brand-imagery</strong> skill. Credits are recorded in <code>brand/imagery/src/credits.json</code>.</p>
+</section>
+
+<section aria-labelledby="s4">
+  <div class="label">04 · Making the app and the Journal one brand</div>
+  <h2 id="s4" style="margin-top:8px">Two directions. Both share one frame; they differ in how much light comes in.</h2>
+  <p class="lede" style="margin-top:14px">Shared in both: the same nav (orbit mark, BrandMD, Score, Build, Check, Library, Research, Journal), one button that always says "Get your score", the same footer, the same tokens and radius family, Inter everywhere, and Signal photography.</p>
+
+  <div class="dir">
+    <div class="dir-head"><div><span class="tag alt">Direction A</span><h3 style="margin-top:10px">Paper app: bring the white into BrandMD</h3><p>The hero stays Night, so the gravity moment survives. Everything below it turns to Paper with white cards, left-aligned sections and photo bands. The Journal keeps its paper front page.</p></div></div>
+    <div class="mocks">
+      <div>
+        <div class="mock">
+          <div class="m-nav"><span class="brand"><i></i>BrandMD</span><span class="items"><span>Score</span><span>Build</span><span>Check</span><span>Library</span><span>Journal</span></span><span class="btn">Get your score</span></div>
+          <div class="m-hero"><div class="k">BRAND INTELLIGENCE</div><h4>What's the <b>Gravity</b> of your brand?</h4><div class="field"><span>yourbrand.com</span><em>Get your score</em></div>
+            <svg viewBox="0 0 200 140" aria-hidden="true"><g fill="none" stroke="#8E8E93" stroke-opacity=".28"><ellipse cx="100" cy="100" rx="95" ry="50"/><ellipse cx="100" cy="100" rx="65" ry="34"/><ellipse cx="100" cy="100" rx="35" ry="18"/></g><circle cx="100" cy="100" r="11" fill="#D9D9DE"/><circle cx="160" cy="76" r="3" fill="#0071E3"/></svg></div>
+          <div style="background:#F5F5F7;color:#0B0B0C">
+            <div class="m-band"><div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#6E6E73">WHY IT MATTERS</div><h5>In a street full of signs, one gets read.</h5><p style="color:#6E6E73">Your brand is a signal. The score shows how strong it is, and what to fix first.</p></div><img src="img/dotonbori-blue.webp" alt=""></div>
+            <div class="m-cards"><div style="background:#fff"><b>Score</b>A number and a roadmap in under a minute.</div><div style="background:#fff"><b>Build</b>The full 31-section board.</div><div style="background:#fff"><b>Check</b>Every draft graded on-brand.</div></div>
+          </div>
+        </div>
+        <div class="mock-cap cap">Homepage</div>
+      </div>
+      <div>
+        <div class="mock">
+          <div class="m-nav"><span class="brand"><i></i>BrandMD</span><span class="items"><span>Score</span><span>Build</span><span>Check</span><span>Library</span><span style="color:#F5F5F7">Journal</span></span><span class="btn">Get your score</span></div>
+          <div style="background:#F5F5F7;color:#0B0B0C">
+            <div class="m-mast"><strong>The BrandMD Journal</strong><span style="color:#6E6E73">Friday, Nov 6</span></div>
+            <div class="m-sec" style="border-color:#D2D2D7;color:#0B0B0C"><span style="color:#0066CC">Front page</span><span>The Study</span><span>Case Files</span><span>Myth vs Evidence</span></div>
+            <div class="m-lead"><div><div class="kk">CASE FILE</div><h6>Tropicana swapped its orange for a glass of juice. Unit sales fell 20%.</h6><p style="color:#6E6E73">The quiet shoppers who walked past were the big part.</p></div><img src="img/fabric-red.webp" alt=""></div>
+            <div class="m-list" style="color:#0B0B0C"><div style="border-color:#D2D2D7">'Consistent branding lifts revenue 23%' is everywhere. We traced it.</div></div>
+          </div>
+        </div>
+        <div class="mock-cap cap">Journal front page</div>
+      </div>
+    </div>
+    <div class="pros">
+      <div><strong>Gains</strong><ul><li>Reading and browsing pages (library, research, guidelines) get easier on the eyes.</li><li>The Journal and the app look like one product immediately.</li><li>Photos carry the color, which suits the black and white direction.</li></ul></div>
+      <div><strong>Costs</strong><ul><li>The biggest rebuild: every homepage section and the library restyled.</li><li>Loses some of the night-sky atmosphere that makes BrandMD memorable today.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="dir" style="margin-top:56px">
+    <div class="dir-head"><div><span class="tag">Direction B · recommended</span><h3 style="margin-top:10px">Night frame: bring the black into the Journal</h3><p>The app keeps Night as its world, but loses the centered everything and gets photo bands. The Journal puts on the same Ink nav and an Ink masthead with the lead story over a Signal photograph, then opens into a Paper reading surface.</p></div></div>
+    <div class="mocks">
+      <div>
+        <div class="mock">
+          <div class="m-nav"><span class="brand"><i></i>BrandMD</span><span class="items"><span>Score</span><span>Build</span><span>Check</span><span>Library</span><span>Journal</span></span><span class="btn">Get your score</span></div>
+          <div class="m-hero"><div class="k">BRAND INTELLIGENCE</div><h4>What's the <b>Gravity</b> of your brand?</h4><div class="field"><span>yourbrand.com</span><em>Get your score</em></div>
+            <svg viewBox="0 0 200 140" aria-hidden="true"><g fill="none" stroke="#8E8E93" stroke-opacity=".28"><ellipse cx="100" cy="100" rx="95" ry="50"/><ellipse cx="100" cy="100" rx="65" ry="34"/><ellipse cx="100" cy="100" rx="35" ry="18"/></g><circle cx="100" cy="100" r="11" fill="#D9D9DE"/><circle cx="160" cy="76" r="3" fill="#0071E3"/></svg></div>
+          <div style="background:#0B0B0C;color:#F5F5F7">
+            <div class="m-band"><img src="img/dotonbori-blue.webp" alt=""><div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#8E8E93">WHY IT MATTERS</div><h5>In a street full of signs, one gets read.</h5><p style="color:#A1A1A6">Your brand is a signal. The score shows how strong it is, and what to fix first.</p></div></div>
+            <div class="m-cards"><div style="background:#18181A"><b>Score</b><span style="color:#A1A1A6">A number and a roadmap in under a minute.</span></div><div style="background:#18181A"><b>Build</b><span style="color:#A1A1A6">The full 31-section board.</span></div><div style="background:#18181A"><b>Check</b><span style="color:#A1A1A6">Every draft graded on-brand.</span></div></div>
+          </div>
+        </div>
+        <div class="mock-cap cap">Homepage</div>
+      </div>
+      <div>
+        <div class="mock">
+          <div class="m-nav"><span class="brand"><i></i>BrandMD</span><span class="items"><span>Score</span><span>Build</span><span>Check</span><span>Library</span><span style="color:#F5F5F7">Journal</span></span><span class="btn">Get your score</span></div>
+          <div style="background:#0B0B0C;color:#F5F5F7">
+            <div class="m-mast"><strong>The BrandMD Journal</strong><span style="color:#8E8E93">Friday, Nov 6</span></div>
+            <div class="m-lead"><div><div class="kk" style="color:#2997FF">CASE FILE</div><h6>Tropicana swapped its orange for a glass of juice. Unit sales fell 20%.</h6><p style="color:#A1A1A6">The quiet shoppers who walked past were the big part.</p></div><img src="img/cafe-blue.webp" alt="" style="aspect-ratio:3/2;object-fit:cover"></div>
+          </div>
+          <div style="background:#F5F5F7;color:#0B0B0C">
+            <div class="m-sec" style="border-color:#D2D2D7"><span style="color:#0066CC">Front page</span><span>The Study</span><span>Case Files</span><span>Myth vs Evidence</span></div>
+            <div class="m-list" style="padding-top:10px"><div style="border-color:#D2D2D7">'Consistent branding lifts revenue 23%' is everywhere. We traced it.</div><div style="border-color:#D2D2D7">A 2026 study: visual complexity signals brand status.</div></div>
+          </div>
+        </div>
+        <div class="mock-cap cap">Journal front page</div>
+      </div>
+    </div>
+    <div class="pros">
+      <div><strong>Gains</strong><ul><li>Keeps what is already distinctive about BrandMD: the night sky and the gravity well.</li><li>Moving between app and Journal now feels like turning a page, not changing sites.</li><li>Articles still read on Paper, which suits long reading.</li><li>Smallest change: mostly the Journal's frame and the homepage's alignment.</li></ul></div>
+      <div><strong>Costs</strong><ul><li>The library and research pages stay dark, so long brand pages remain heavier to read.</li><li>Signal Blue on Night needs the lighter link blue for text (built into the tokens).</li></ul></div>
+    </div>
+  </div>
+
+  <div class="rec"><strong>Recommendation: Direction B, then judge.</strong><p>The night sky is the closest thing BrandMD has to a distinctive asset, and Direction A would spend it. Direction B fixes the "two websites" feeling with one frame and one photo language, keeps reading comfortable, and is about a third of the work. If the library still feels heavy after B ships, give brand pages a Paper body as a second step.</p></div>
+</section>
+
+<section aria-labelledby="s5">
+  <div class="label">05 · Graphic devices</div>
+  <h2 id="s5" style="margin-top:8px">Six devices for the blog, the app and social.</h2>
+  <div class="devices">
+    <div class="device"><div class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Orbit rings with one blue dot"><g fill="none" stroke="#8E8E93" stroke-opacity=".35"><ellipse cx="120" cy="96" rx="110" ry="52"/><ellipse cx="120" cy="96" rx="78" ry="36"/><ellipse cx="120" cy="96" rx="46" ry="21"/></g><circle cx="120" cy="96" r="14" fill="#D9D9DE"/><circle cx="196" cy="60" r="4.5" fill="#0071E3"/></svg></div><h3>Orbit rings</h3><p>Hero backgrounds, dividers and social cards. One blue dot at most.</p></div>
+    <div class="device"><div class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Gravity dial reading 72"><path d="M60 128 A70 70 0 1 1 180 128" fill="none" stroke="#2C2C2E" stroke-width="12" stroke-linecap="round"/><path d="M60 128 A70 70 0 0 1 187.8 99" fill="none" stroke="#0071E3" stroke-width="12" stroke-linecap="round"/><text x="120" y="98" text-anchor="middle" font-family="Inter, Arial" font-size="40" font-weight="800" fill="#F5F5F7">72</text><text x="120" y="120" text-anchor="middle" font-family="Inter, Arial" font-size="10" font-weight="600" letter-spacing="2" fill="#8E8E93">GRAVITY</text></svg></div><h3>Gravity dial</h3><p>The score as a number on a 270° arc. Analyzer, certificates, share cards.</p></div>
+    <div class="device"><div class="art light"><svg viewBox="0 0 240 160" role="img" aria-label="Bar chart where one bar is blue"><g font-family="Inter, Arial" font-size="9" fill="#6E6E73"><text x="20" y="150">Voice</text><text x="70" y="150">Color</text><text x="118" y="150">Name</text><text x="166" y="150">Logo</text></g><rect x="20" y="70" width="34" height="68" rx="3" fill="#C7C7CC"/><rect x="68" y="40" width="34" height="98" rx="3" fill="#0071E3"/><rect x="116" y="88" width="34" height="50" rx="3" fill="#C7C7CC"/><rect x="164" y="98" width="34" height="40" rx="3" fill="#C7C7CC"/><circle cx="85" cy="28" r="4" fill="#0071E3"/></svg></div><h3>Signal dot and chart</h3><p>Every series grey except the one that matters. One chart, one point.</p></div>
+    <div class="device"><div class="art light"><svg viewBox="0 0 240 160" role="img" aria-label="Evidence meter at Replicated, two of four"><g transform="translate(36 64)"><rect width="36" height="10" rx="5" fill="#0071E3"/><rect x="42" width="36" height="10" rx="5" fill="#0071E3"/><rect x="84" width="36" height="10" rx="5" fill="#D2D2D7"/><rect x="126" width="36" height="10" rx="5" fill="#D2D2D7"/></g><text x="36" y="104" font-family="Inter, Arial" font-size="12" fill="#6E6E73">Evidence strength:</text><text x="146" y="104" font-family="Inter, Arial" font-size="12" font-weight="700" fill="#0B0B0C">Replicated</text></svg></div><h3>Evidence meter</h3><p>Four steps, filled to the grade. Every Journal article.</p></div>
+    <div class="device"><div class="art"><svg viewBox="0 0 240 160" role="img" aria-label="Palette strip with five colors"><g transform="translate(20 58)"><rect width="200" height="22" rx="4" fill="#0B0B0C" stroke="#3A3A3C"/><rect x="0" width="80" height="22" rx="4" fill="#000"/><rect x="80" width="50" height="22" fill="#F5F5F7"/><rect x="130" width="30" height="22" fill="#8E8E93"/><rect x="160" width="40" height="22" rx="4" fill="#0071E3"/></g><g font-family="Inter, Arial" font-size="8.5" fill="#8E8E93"><text x="20" y="98">#000000</text><text x="100" y="98">#F5F5F7</text><text x="176" y="98">#0071E3</text></g></svg></div><h3>Palette strip</h3><p>A brand's colors as one bar, sized by use, hex in tabular type. Library cards and Battles.</p></div>
+    <div class="device"><div class="art light"><svg viewBox="0 0 240 160" role="img" aria-label="Scorecard comparing two brands"><rect x="20" y="30" width="200" height="22" rx="4" fill="#0B0B0C"/><g font-family="Inter, Arial" font-size="9" font-weight="700" fill="#F5F5F7"><text x="30" y="45">Signal</text><text x="120" y="45">Brand A</text><text x="175" y="45">Brand B</text></g><g font-family="Inter, Arial" font-size="9" fill="#0B0B0C"><text x="30" y="72">Color</text><text x="120" y="72">Owned</text><text x="175" y="72">Shared</text><text x="30" y="96">Voice</text><text x="120" y="96">Clear</text><text x="175" y="96">Mixed</text><text x="30" y="120">Mascot</text><text x="120" y="120">None</text><text x="175" y="120">Famous</text></g><g stroke="#D2D2D7"><line x1="20" y1="80" x2="220" y2="80"/><line x1="20" y1="104" x2="220" y2="104"/></g><circle cx="113" cy="69" r="3" fill="#0071E3"/></svg></div><h3>Scorecard</h3><p>Two columns, Ink header. Brand Battles and Compare.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="s6">
+  <div class="label">06 · Tokens</div>
+  <h2 id="s6" style="margin-top:8px">One palette, with a link blue for each surface.</h2>
+  <div class="tokens">
+    <div class="tok"><div class="sw" style="background:#000"></div><div><strong>Night</strong><br><code>#000000</code> · app hero</div></div>
+    <div class="tok"><div class="sw" style="background:#0B0B0C"></div><div><strong>Ink</strong><br><code>#0B0B0C</code> · dark surfaces</div></div>
+    <div class="tok"><div class="sw" style="background:#F5F5F7;border-bottom:1px solid var(--rule)"></div><div><strong>Paper</strong><br><code>#F5F5F7</code> · reading</div></div>
+    <div class="tok"><div class="sw" style="background:#8E8E93"></div><div><strong>Titanium</strong><br><code>#8E8E93</code> · labels on dark</div></div>
+    <div class="tok"><div class="sw" style="background:#6E6E73"></div><div><strong>Graphite</strong><br><code>#6E6E73</code> · labels on light, 4.7:1</div></div>
+    <div class="tok"><div class="sw" style="background:#0071E3"></div><div><strong>Signal Blue</strong><br><code>#0071E3</code> · the one accent</div></div>
+    <div class="tok"><div class="sw" style="background:#0066CC"></div><div><strong>Link, light</strong><br><code>#0066CC</code> · 5.1:1 on Paper</div></div>
+    <div class="tok"><div class="sw" style="background:#2997FF"></div><div><strong>Link, dark</strong><br><code>#2997FF</code> · 7.0:1 on Night</div></div>
+  </div>
+  <p style="font-size:15px;color:var(--muted);margin-top:16px">Radius family 8 / 14 / pill. Spacing 4 to 128 on a fixed scale. Inter only, Display cuts for headlines, tabular numerals for every score.</p>
+</section>
+
+<section aria-labelledby="s7">
+  <div class="label">07 · Brand pages and their missing photos</div>
+  <h2 id="s7" style="margin-top:8px">The photo-rich brand pages were built in July and never merged.</h2>
+  <div class="read">
+    <p>On July 2 a version of the brand pages with a full-bleed hero photo, a "Brand in Action" gallery, an archetype photo and a real photo moodboard was built on a side branch (<code>worktree-sprightly-growing-flame</code>, commit <code>866be1d</code>). It never reached the live site, so the photos only ever showed on that branch's own deploy.</p>
+    <p>Two problems sit underneath. Logos: 84 of 85 brands have a sharp logo in our own storage, but the pages ask Clearbit first, which no longer exists, so they show favicons and letter tiles. Photos: only 16 brands ever had photo links, 13 of those are broken, and the rest point at the brands' own servers.</p>
+  </div>
+  <ol class="plan">
+    <li><strong>Fix logos on all 84 pages.</strong> Read our cached <code>logo_url</code> first and drop Clearbit. About an hour.</li>
+    <li><strong>Port the gallery and photo sections</strong> from the July commit by hand (about 150 lines; each section hides itself when a brand has no photos).</li>
+    <li><strong>Cache brand photos in our storage</strong> instead of hotlinking, with a script like the existing logo cache.</li>
+    <li><strong>Fill the other 69 brands with Signal photography</strong> of the brand in the wild (signage, shelves, packaging), keeping the brand's own color as the signal, sourced and logged by the brand-imagery skill.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="s8">
+  <div class="label">08 · Already done today</div>
+  <h2 id="s8" style="margin-top:8px">The Journal's sitemap now updates and pings search engines on every post.</h2>
+  <div class="read">
+    <p>Every nightly build rewrites <code>brandmd.space/blog/sitemap.xml</code> with a <code>lastmod</code> date, and robots.txt lists it beside the app's own sitemap. Two engine fixes went live: page URLs, canonicals and sitemap entries now end in a slash (before, each one bounced through a redirect), and IndexNow now works for sites served under a folder. The first IndexNow submission was accepted (7 URLs), so Bing and other IndexNow engines hear about each new article the night it publishes.</p>
+  </div>
+</section>
+
+<section aria-labelledby="s9">
+  <div class="label">09 · Decisions for you</div>
+  <h2 id="s9" style="margin-top:8px">Four calls before anything ships.</h2>
+  <div class="ask">
+    <div><strong>Direction A or B</strong><span>B is recommended. Nothing is pushed until you choose.</span></div>
+    <div><strong>Signal Blue as the signal on our own photos</strong><span>Or keep each photo's own color everywhere. Blue makes the photos an ownable asset; own colors look more natural.</span></div>
+    <div><strong>CTA wording</strong><span>"Get your score" everywhere, replacing "Chart your brand", "Get My Score" and "Get Your Score: Free".</span></div>
+    <div><strong>Your origin story</strong><span>One real scene: the moment you decided brand could be measured. It is the one [NEED] left in the brand file.</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="s10">
+  <div class="label">10 · The full brand file</div>
+  <h2 id="s10" style="margin-top:8px">Everything above, in detail.</h2>
+  <details class="full"><summary>Read BRAND.md (about 4,000 words)</summary><div class="md" id="md">Loading the brand file…</div></details>
+</section>
+
+<p class="foot">Photos: CC0 sources via Openverse (Wikimedia Commons contributors Tokumeigakarinoaoshima and VinhNguyen.1257, StockSnap photographer Tim Sullivan, Rawpixel). Treated with brand-imagery. Draft for internal review.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script>
+(function () {
+  [["phrases", "phrases.md"], ["origin", "origin.md"]].forEach(function (p) {
+    var t = document.getElementById(p[0]);
+    fetch(p[1]).then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); }).then(function (s) {
+      t.innerHTML = window.marked ? window.marked.parse(s) : "<pre>" + s.replace(/</g, "&lt;") + "</pre>";
+      t.querySelectorAll("table").forEach(function (tb) { var w = document.createElement("div"); w.className = "tw"; tb.parentNode.insertBefore(w, tb); w.appendChild(tb); });
+    }).catch(function () { t.textContent = "Could not load " + p[1] + "."; });
+  });
+  var el = document.getElementById("md");
+  fetch("brand.md").then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); }).then(function (t) {
+    el.innerHTML = window.marked ? window.marked.parse(t) : "<pre>" + t.replace(/</g, "&lt;") + "</pre>";
+    el.querySelectorAll("table").forEach(function (tb) { var w = document.createElement("div"); w.className = "tw"; tb.parentNode.insertBefore(w, tb); w.appendChild(tb); });
+  }).catch(function () { el.textContent = "The brand file could not load here. It lives at brand/BRAND.md in the brand-board-builder repo."; });
+})();
+</script>
