@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getBrand, searchBrands } from "../lib/brands";
 import CertificateShare from "../components/CertificateShare";
 import { computeGravityScore } from "../lib/gravityScore";
+import BRAND_IMAGES from "../lib/brandImages.json";
 import {
   archetypeOf, shortArchetypeName, expressionCounts, expressionHref, EXPRESSION_PAGES_LIVE,
   sectorsOf, sectorHref, modelsOf, modelHref, modelCounts, MODEL_PAGES_LIVE,
@@ -62,9 +63,16 @@ function BrandLogo({ website, logoUrl, name, size = 100, radius = 20, pc }) {
 // brand-assets bucket, cached by scripts/cache-heroes.mjs) are ever rendered;
 // a hotlink to a brand's own CDN is ignored, so a brand page never depends on
 // someone else's server. Brands without cached photos render exactly as before.
-const OWN_STORAGE = `${import.meta.env.VITE_SUPABASE_URL || "https://bukgitgwwmzdjibekmzb.supabase.co"}/storage/v1/object/public/brand-assets/`;
-function ownedImages(list) {
-  return (Array.isArray(list) ? list : []).filter((u) => typeof u === "string" && u.startsWith(OWN_STORAGE));
+// Storage (Ryan, 2026-11-06): the GHL media library (Insiders.Marketing, folder "BrandMD - Brand Library"), mapped
+// slug -> URLs in src/lib/brandImages.json by scripts/brand-images-to-ghl.py; originals mirrored on the Mac.
+const OWN_STORAGE = [
+  `${import.meta.env.VITE_SUPABASE_URL || "https://bukgitgwwmzdjibekmzb.supabase.co"}/storage/v1/object/public/brand-assets/`,
+  "https://assets.cdn.filesafe.space/lxG2xl9eg8Y5jZMCJtEa/",
+];
+function ownedImages(brand) {
+  const mapped = brand?.slug ? BRAND_IMAGES[brand.slug] : null;
+  const list = Array.isArray(mapped) && mapped.length ? mapped : brand?.hero_images;
+  return (Array.isArray(list) ? list : []).filter((u) => typeof u === "string" && OWN_STORAGE.some((p) => u.startsWith(p)));
 }
 
 const SECTION_LABEL = { fontFamily: "'Inter', -apple-system, sans-serif", fontSize: 9, letterSpacing: 4, fontWeight: 800, color: "#8E8E93", textTransform: "uppercase" };
@@ -302,7 +310,7 @@ export default function BrandProfile({ slug }) {
   const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
   const failImg = (src) => setBadImgs((m) => (m[src] ? m : { ...m, [src]: true }));
-  const hasPhotos = ownedImages(data?.brand?.hero_images).length > 0;
+  const hasPhotos = ownedImages(data?.brand).length > 0;
 
   // Parallax for the photo layers, only on pages that have photos and only
   // when the visitor has not asked for reduced motion.
@@ -395,7 +403,7 @@ export default function BrandProfile({ slug }) {
 
   // Cached photography that actually loaded. A frame that fails drops out and
   // the next one takes its place; with none left every section falls back.
-  const photos = ownedImages(brand.hero_images).filter((u) => !badImgs[u]);
+  const photos = ownedImages(brand).filter((u) => !badImgs[u]);
   const coverPhoto = photos[0] || null;
   const archetypePhoto = photos[1] || null;
   const moodboard = photos.length >= 6 ? photos.slice(2, 6) : photos.length >= 4 ? photos.slice(0, 4) : null;
