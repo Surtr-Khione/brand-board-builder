@@ -19,7 +19,6 @@ import * as taxonomy from "../src/lib/brandTaxonomy.js";
 import { computeGravityScore } from "../src/lib/gravityScore.js";
 
 const SITE = "https://brandmd.space";
-const API = "https://bukgitgwwmzdjibekmzb.supabase.co/functions/v1";
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 export const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -180,17 +179,13 @@ function page({ path, title, description, image = "/og/default.png", jsonld = nu
   written.add(path);
 }
 
+// The library is the static file the site itself serves (public/data/brands.json, from scripts/snapshot-brands.py),
+// so a build never depends on the database being reachable.
 async function fetchAllBrands() {
-  const all = [];
-  for (let offset = 0; offset < 2000; offset += 100) {
-    const res = await fetch(`${API}/search-brands?limit=100&offset=${offset}`);
-    if (!res.ok) throw new Error(`search-brands HTTP ${res.status}`);
-    const { brands } = await res.json();
-    if (!Array.isArray(brands)) throw new Error("search-brands returned no brands array");
-    all.push(...brands);
-    if (brands.length < 100) break;
-  }
-  return all.sort((a, b) => String(a.brand_name).localeCompare(String(b.brand_name)));
+  const file = new URL("../public/data/brands.json", import.meta.url);
+  const { brands } = JSON.parse(readFileSync(file, "utf8"));
+  if (!Array.isArray(brands)) throw new Error("public/data/brands.json has no brands array");
+  return [...brands].sort((a, b) => String(a.brand_name).localeCompare(String(b.brand_name)));
 }
 
 function brandsIndexBody(brands) {
