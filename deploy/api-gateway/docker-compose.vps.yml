@@ -1,0 +1,39 @@
+# brandmd-api: allow-list gateway for api.brandmd.space in front of the self-hosted Supabase (supabrain).
+# See default.conf.template for what is reachable. House pattern: ~/Bragi/deploy/.
+#
+# DNS: api.brandmd.space must be an A record to 147.79.74.73, DNS-only (grey cloud). Traefik's
+# TLS-ALPN challenge (mytlschallenge) breaks behind Cloudflare's proxy.
+#
+# Deploy: ./deploy/api-gateway/to-vps.sh
+services:
+  brandmd-api:
+    image: nginx:1.27.5-alpine
+    container_name: brandmd-api
+    restart: unless-stopped
+    env_file: /opt/brandmd-api/.env     # BMD_ANON_KEY only (the stack's public anon key); chmod 600, root-owned
+    environment:
+      NGINX_ENVSUBST_FILTER: "^BMD_"
+    volumes:
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    networks: [traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=root_default
+      - traefik.http.routers.brandmd-api.rule=Host(`api.brandmd.space`)
+      - traefik.http.routers.brandmd-api.entrypoints=websecure
+      - traefik.http.routers.brandmd-api.tls=true
+      - traefik.http.routers.brandmd-api.tls.certresolver=mytlschallenge
+      - traefik.http.services.brandmd-api.loadbalancer.server.port=8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+networks:
+  traefik:
+    external: true
+    name: root_default
