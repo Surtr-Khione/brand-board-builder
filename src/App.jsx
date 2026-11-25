@@ -14,6 +14,7 @@ const BrandLibrary = lazy(() => import('./pages/BrandLibrary'));
 const BrandProfile = lazy(() => import('./pages/BrandProfile'));
 const ContentStudio = lazy(() => import('./pages/ContentStudio'));
 const FounderStart = lazy(() => import('./pages/FounderStart'));
+const FounderImport = lazy(() => import('./pages/FounderImport'));
 const BrandGenerator = lazy(() => import('./pages/BrandGenerator'));
 const BrandGuidelines = lazy(() => import('./pages/BrandGuidelines'));
 const BrandCheck = lazy(() => import('./pages/BrandCheck'));
@@ -61,6 +62,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/start" element={<FounderStart />} />
+          <Route path="/import" element={<FounderImport />} />
           <Route path="/generate" element={<BrandGenerator />} />
           <Route path="/builder" element={<BrandBoardBuilder />} />
           <Route path="/board/:boardId" element={<BoardPage />} />
